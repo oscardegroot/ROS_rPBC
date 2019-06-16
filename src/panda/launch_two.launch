@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+
+<rosparam command="load" file="$(find panda)/config/2Dparams.yaml" />
+
+<node name="Robot_1" pkg="panda" type="CMM_node" output="screen">
+  <param name="id" value="1"/>
+  <param name="j_id" value="2"/>
+</node>
+
+<node name="Robot_2" pkg="panda" type="CMM_node" output="log">
+  <param name="id" value="2"/>
+  <param name="j_id" value="1"/>
+</node>
+
+</launch>

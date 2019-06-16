@@ -40,8 +40,8 @@ add_library(${PROJECT_NAME}
 
 # The CMM Node
 add_executable(CMM_node src/CMM.cpp)
-target_link_libraries(CMM_node ${catkin_LIBRARIES})
-add_dependencies(CMM_node generate_message cpp std_msgs)
+target_link_libraries(CMM_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_dependencies(CMM_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 ###################################################################################
