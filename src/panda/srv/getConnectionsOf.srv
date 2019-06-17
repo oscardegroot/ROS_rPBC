@@ -1,0 +1,5 @@
+int64 id_i
+int64 id_j
+---
+bool is_connected
+std_msgs/Float64MultiArray r_star

@@ -7,6 +7,8 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #ifndef Edge_H
 #define Edge_H
 
+//#include <thread>
+//#include <mutex>
 #include "ros/ros.h"
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -14,20 +16,22 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #include <iostream>
 #include <string>
 #include "panda/Waves.h"
+//#include <memory>
 
 class Edge{
 public:
 	// Constructor and destructor
-	Edge(int i, int j, double gain, int l_dim);
+	Edge(int i, int j, double gain, int l_set);
 	~Edge();
 
 	void waveCallback(const panda::Waves::ConstPtr& msg);
 
 	Eigen::VectorXd sampleEdge(Eigen::VectorXd r_i);
 
+
 private:
 
-	int i_ID, j_ID, l;
+	int i_ID, j_ID, l_dim;
 	bool is_agent_i;
 
 	// The wave impedance B and network gain Kd
@@ -36,17 +40,18 @@ private:
 	// The buffer for WVM purposes
 	Eigen::VectorXd s_buffer, s_received;
 
-	// The last received timestamp
-	uint64_t timestamp = 0;
-	bool data_received = false;
-
 	void setScatteringGain(double gain);
-	void applyWVM(Eigen::VectorXd* wave_pointer, Eigen::VectorXd r_i);
-	void publishWave(Eigen::VectorXd s_in, Eigen::VectorXd r_i);
+	void publishWave(Eigen::VectorXd r_i);
+	void applyWVM(Eigen::VectorXd & wave_reference, Eigen::VectorXd r_i);
 	Eigen::VectorXd getTauST(Eigen::VectorXd s_in, Eigen::VectorXd r_i);
 	Eigen::VectorXd getWaveST(Eigen::VectorXd s_in, Eigen::VectorXd r_i);
 
+	// The last received timestamp
+	int timestamp = 0;
+	bool data_received = false;
 
+	//Threadlock
+	//std::unique_ptr<std::mutex> m = std::make_unique<std::mutex>();;
 	// The Ros node handle
 	ros::NodeHandle nh;
 

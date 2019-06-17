@@ -15,7 +15,16 @@ find_package(catkin REQUIRED COMPONENTS
 ################################################
 
 ## Generate messages in the 'msg' folder
-add_message_files(DIRECTORY msg FILES Waves.msg)
+add_message_files(DIRECTORY msg 
+	FILES 
+	Waves.msg
+)
+
+## Services in the 'srv' folder
+add_service_files(DIRECTORY srv
+  FILES
+  getConnectionsOf.srv
+)
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(DEPENDENCIES std_msgs)
@@ -35,14 +44,20 @@ include
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
   src/classes/Edge.cpp
+  src/classes/Goals.cpp
+  src/classes/Remote.cpp
 )
 
 
-# The CMM Node
-add_executable(CMM_node src/CMM.cpp)
-target_link_libraries(CMM_node ${catkin_LIBRARIES} ${PROJECT_NAME})
-add_dependencies(CMM_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# The agent Node
+add_executable(Agent_node src/Agent.cpp)
+target_link_libraries(Agent_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_dependencies(Agent_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+# The remote node
+add_executable(Remote src/Remote_Node.cpp)
+target_link_libraries(Remote ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_dependencies(Remote ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ###################################################################################
 
