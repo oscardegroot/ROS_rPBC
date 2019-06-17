@@ -1,11 +1,13 @@
 /*
 File: Edge.cpp
 
-Implements communication on an edge on one side using ST and WVM
+Implements communication on an edge on one side using ST and WVM.
+Externally calling sampleEdge will sample the buffer and return a wave to the other side of the channel.
+
 i: agent id
 j: connected agent id
-agent_i: is this agent the positive power agent (true/false)
 gain: gain of the connection 
+l: dimension of the channel
 */
 
 

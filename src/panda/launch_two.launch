@@ -13,13 +13,13 @@
 <node name="Agent_1" pkg="panda" type="Agent_node" output="log">
   <param name="i_id" value="1"/>
 </node>
-
+<!-- 
 <node name="Agent_2" pkg="panda" type="Agent_node" output="log">
   <param name="i_id" value="2"/>
 </node>
 
 <node name="Agent_3" pkg="panda" type="Agent_node" output="log">
   <param name="i_id" value="3"/>
-</node>
+</node> -->
 
 </launch>

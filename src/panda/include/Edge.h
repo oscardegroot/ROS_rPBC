@@ -7,8 +7,6 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #ifndef Edge_H
 #define Edge_H
 
-//#include <thread>
-//#include <mutex>
 #include "ros/ros.h"
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -16,7 +14,6 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #include <iostream>
 #include <string>
 #include "panda/Waves.h"
-//#include <memory>
 
 class Edge{
 public:

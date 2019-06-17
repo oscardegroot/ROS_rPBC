@@ -46,11 +46,12 @@ add_library(${PROJECT_NAME}
   src/classes/Edge.cpp
   src/classes/Goals.cpp
   src/classes/Remote.cpp
+  src/classes/Agent.cpp
 )
 
 
 # The agent Node
-add_executable(Agent_node src/Agent.cpp)
+add_executable(Agent_node src/Agent_Node.cpp)
 target_link_libraries(Agent_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 add_dependencies(Agent_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
