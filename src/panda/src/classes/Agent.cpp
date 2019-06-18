@@ -1,5 +1,5 @@
 
-#include "Agent.h";
+#include "Agent.h"
 
 
 Agent::Agent(){
@@ -57,14 +57,27 @@ void Agent::initiateEdges(){
 }
 
 
-void Agent::sample(){
-	// For testing purposes, generate an r and randomize the seed
-	Eigen::VectorXd r_i(l);
-	
+Eigen::VectorXd Agent::sample(){
+
+	// Initialise the combined input
+	Eigen::VectorXd tau_i = Eigen::VectorXd::Zero(l);
+
+	// Get the output
+	Eigen::VectorXd r_i = this->getOutput();
+
 	// Sample all edges
 	for(int i = 0; i < edges.size(); i++){
-		r_i = Eigen::VectorXd::Random(l);
-		edges[i]->sampleEdge(r_i);
+		tau_i += edges[i]->sampleEdge(r_i);
 	}
 
+	// Return the combined input
+	return tau_i;
+
+}
+
+Eigen::VectorXd Agent::getOutput(){
+	// Temporary placeholder
+
+	return  Eigen::VectorXd::Random(l);
+	//return controller->getOutput();
 }

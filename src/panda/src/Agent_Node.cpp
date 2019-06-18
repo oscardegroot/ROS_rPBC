@@ -5,6 +5,7 @@
 #include "panda/getConnectionsOf.h"
 
 #include "Agent.h"
+#include "Panda.h"
 #include "Edge.h"
 #include "Goals.h"
 
@@ -18,13 +19,15 @@ int main(int argc, char **argv){
 	// Initialise ROS
 	ros::init(argc, argv, "Agent");
 
-	Agent agent;
+	Panda panda;
+	//Maybe also define the controller here.
 
 	ros::Rate loop_rate(0.5);
 
 	while(ros::ok()){
 		
-		agent.sample();
+		Eigen::VectorXd tau_i = panda.sample();
+		std::cout << "Tau: " << tau_i << "\n";
 		
 		ros::spinOnce();
 		// ros::Duration(0.1).sleep();

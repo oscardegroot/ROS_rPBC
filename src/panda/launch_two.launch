@@ -8,10 +8,12 @@
 
 <node name="Agent_0" pkg="panda" type="Agent_node" output="screen">
   <param name="i_id" value="0"/>
+  <param name="robot_type" value = "panda"/>
 </node>
 
 <node name="Agent_1" pkg="panda" type="Agent_node" output="log">
   <param name="i_id" value="1"/>
+  <param name="robot_type" value = "dummy"/>
 </node>
 <!-- 
 <node name="Agent_2" pkg="panda" type="Agent_node" output="log">

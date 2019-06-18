@@ -47,6 +47,7 @@ add_library(${PROJECT_NAME}
   src/classes/Goals.cpp
   src/classes/Remote.cpp
   src/classes/Agent.cpp
+  src/classes/Panda.cpp
 )
 
 

@@ -15,11 +15,12 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 
 #include "Agent.h"
 #include "Edge.h"
-#include "Goals.h"
 
 #include <vector>
 #include <string>
 #include <sstream>
+
+/* Possibly divide this up further in a system and a controller */
 
 class Agent{
 
@@ -27,13 +28,21 @@ public:
 	Agent();
 	~Agent();
 
+	virtual Eigen::VectorXd readSensors() = 0;
+	virtual bool sendInput() = 0;
+	virtual Eigen::MatrixXd getM(Eigen::VectorXd q) = 0;
+	virtual Eigen::VectorXd getdHdq(Eigen::VectorXd q) = 0;
 
-	void sample();
+	Eigen::VectorXd sample();
+	Eigen::VectorXd getOutput();
 
 private:
 
 	int i_id, j_id, l, N;
 
+	// Coordinate count, actuated count
+	const int nq = 0;
+	const int mq = 0;
 
 	ros::NodeHandlePtr n;
 
@@ -41,6 +50,7 @@ private:
 	std::vector<Edge*> edges;
 
 	void initiateEdges();
+
 
 
 

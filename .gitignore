@@ -1,3 +1,6 @@
 /build/
 /devel/
 /install/
+/src/panda_control/
+/src/panda_simulation/
+/src/franka_description/
