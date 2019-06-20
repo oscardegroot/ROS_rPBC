@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
   message_generation
 )
 
@@ -29,7 +30,7 @@ add_service_files(DIRECTORY srv
 ## Generate added messages and services with any dependencies listed here
 generate_messages(DEPENDENCIES std_msgs)
 
-catkin_package(CATKIN_DEPENDS roscpp rospy std_msgs message_runtime)
+catkin_package(CATKIN_DEPENDS roscpp rospy std_msgs sensor_msgs message_runtime)
 
 ###########
 ## Build ##
@@ -46,8 +47,11 @@ add_library(${PROJECT_NAME}
   src/classes/Edge.cpp
   src/classes/Goals.cpp
   src/classes/Remote.cpp
-  src/classes/Agent.cpp
-  src/classes/Panda.cpp
+  src/classes/System.cpp
+  src/classes/CMM.cpp
+  src/classes/PandaSim.cpp
+  src/classes/IDAPBC.cpp
+  src/classes/Controller.cpp
 )
 
 

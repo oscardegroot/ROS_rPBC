@@ -9,23 +9,23 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 
 #include "ros/ros.h"
 
-#include "Agent.h"
-
-#include <vector>
-#include <string>
-#include <sstream>
+#include "System.h"
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
 
 class Controller{
 
 public:
-	Controller();
+	Controller(int l_dim);
 	~Controller();
 
+	int l;
+
 	// Get the agent output, possibly modified
-	virtual Eigen::VectorXd getOutput(VectorXd z_i, VectorXd q_i);
+	virtual Eigen::VectorXd getOutput(System * system) = 0;
 
 	// Compute the input (POSSIBLY AT A ROBOTSTATE HERE)
-	virtual Eigen::VectorXd computeControl(VectorXd q_i, VectorXd dq_i) = 0;
+	virtual Eigen::VectorXd computeControl(System * system, Eigen::VectorXd tau_c) = 0;
 
 private:
 

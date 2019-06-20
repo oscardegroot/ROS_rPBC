@@ -1,9 +1,7 @@
+#include "CMM.h"
 
-#include "Agent.h"
 
-
-Agent::Agent(){
-
+CMM::CMM(){
 	n = ros::NodeHandlePtr(new ros::NodeHandle("~"));
 
 	// Get a nodehandle
@@ -18,14 +16,12 @@ Agent::Agent(){
 	connect_client = n->serviceClient<panda::getConnectionsOf>("/get_connections_of");
 
 	// Retrieve connections and create communication edges
-	Agent::initiateEdges();
+	CMM::initiateEdges();
+}
 
-}		
+CMM::~CMM(){};
 
-Agent::~Agent(){
-};
-
-void Agent::initiateEdges(){
+void CMM::initiateEdges(){
 
 	// For all possible other agents
 	for(int j = 0; j < N; j++){
@@ -56,28 +52,20 @@ void Agent::initiateEdges(){
 	
 }
 
-
-Eigen::VectorXd Agent::sample(){
+Eigen::VectorXd CMM::sample(Eigen::VectorXd r){
 
 	// Initialise the combined input
-	Eigen::VectorXd tau_i = Eigen::VectorXd::Zero(l);
+	Eigen::VectorXd tau = Eigen::VectorXd::Zero(l);
 
 	// Get the output
-	Eigen::VectorXd r_i = this->getOutput();
+	//Eigen::VectorXd r_i = this->getOutput();
 
 	// Sample all edges
 	for(int i = 0; i < edges.size(); i++){
-		tau_i += edges[i]->sampleEdge(r_i);
+		tau += edges[i]->sampleEdge(r);
 	}
 
 	// Return the combined input
-	return tau_i;
+	return tau;
 
-}
-
-Eigen::VectorXd Agent::getOutput(){
-	// Temporary placeholder
-
-	return  Eigen::VectorXd::Random(l);
-	//return controller->getOutput();
 }

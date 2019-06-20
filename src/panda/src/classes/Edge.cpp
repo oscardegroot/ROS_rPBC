@@ -16,14 +16,14 @@ l: dimension of the channel
 
 Edge::Edge(int i, int j, double gain, int l_set){
 
-	std::cout << "Initialising an edge between agent " << i << " and " << j << "\n";
+	std::cout << "[Edge] Edge between " << i << " and " << j << "..";
 
 	//Save the connection between agents
 	i_ID = i;
 	j_ID = j;
 	l_dim = l_set;
 	
-	std::cout << "s_" << i_ID << j_ID << "+\n";
+	//std::cout << "s_" << i_ID << j_ID << "+\n";
 
 	// If this is agent i, send on the positivily defined channel, listen to the negative channel
 	if(i < j){
@@ -34,16 +34,14 @@ Edge::Edge(int i, int j, double gain, int l_set){
 		wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "p", 100, &Edge::waveCallback, this);
 	}
 
-	if(!wave_sub)
-	{
-		std::cout << "problem with the subscriber!\n";
-	}
 	// Set the scattering gain
 	Edge::setScatteringGain(gain);
 
 	// Initialise buffers
 	s_buffer = Eigen::VectorXd::Zero(l_dim);//Eigen::Matrix<double, l, 1>::Zero();
 	s_received = Eigen::VectorXd::Zero(l_dim);
+
+	std::cout << " done.\n";
 
 }
 
@@ -53,13 +51,8 @@ Edge::~Edge(){}
 
 void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	
-	if(l_dim > 4)
-	{
-		std::cout << "[Error]: Data is corrupted!\n";
-		return;
-	}
 	// Its not the message
-	std::cout << "Edge | Data received!\n";
+	std::cout << "[Edge] Data received!\n";
 	
 
 	std::vector<double> s = msg->s.data;
@@ -94,7 +87,7 @@ Eigen::VectorXd Edge::sampleEdge(Eigen::VectorXd r_i){
 /* Reconstruct data if necessary */
 void Edge::applyWVM(Eigen::VectorXd & wave_reference, Eigen::VectorXd r_i){
 	 
-	 std::cout << "WVM Function | ";
+	 std::cout << "[Edge] WVM -> ";
 
 	/*We need to apply WVM*/
 	if(!data_received)
@@ -196,6 +189,6 @@ void Edge::setScatteringGain(double gain){
 	gain_tau << H*matrix_ST.block(0,0,l_dim,l_dim), -H;
 	gain_wave << matrix_ST.block(l_dim,0,l_dim,l_dim)+matrix_ST.block(l_dim,l_dim,l_dim,l_dim)*H*matrix_ST.block(0,0,l_dim, l_dim), -matrix_ST.block(l_dim, l_dim, l_dim, l_dim)*H;
 
-	std::cout << "Scattering gains initialised\n";
+	//std::cout << "[Edge]	Scattering Initialised\n";
 }
 
