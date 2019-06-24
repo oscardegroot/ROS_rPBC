@@ -22,10 +22,10 @@ public:
 	int l;
 
 	// Get the agent output, possibly modified
-	virtual Eigen::VectorXd getOutput(System * system) = 0;
+	virtual Eigen::VectorXd getOutput(std::unique_ptr<System>& system) = 0;
 
 	// Compute the input (POSSIBLY AT A ROBOTSTATE HERE)
-	virtual Eigen::VectorXd computeControl(System * system, Eigen::VectorXd tau_c) = 0;
+	virtual Eigen::VectorXd computeControl(std::unique_ptr<System>& system, Eigen::VectorXd tau_c) = 0;
 
 private:
 

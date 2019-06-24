@@ -11,6 +11,7 @@
 #include "Goals.h"
 #include "CMM.h"
 
+#include <memory>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -29,26 +30,28 @@ int main(int argc, char **argv){
 	n.getParam("/l_dim", l);
 	n.getParam("/N_dim", N);
 	
-	System * system = new PandaSim();
-	Controller * controller = new IDAPBC(l, system);
+	std::unique_ptr<System> system = std::make_unique<PandaSim>();
+	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(l, system);
+	//Controller * controller = new IDAPBC(l, system);
 	CMM cmm;
 
 
 
 	//Maybe also define the controller here-> Agent has a system and a controller
 
-	ros::Rate loop_rate(1);
+	ros::Rate loop_rate(1000);
 
 	while(ros::ok()){
 		// If system data is available
 
 		if(system->dataReady()){
 			Eigen::VectorXd tau_network = cmm.sample(controller->getOutput(system));
-			std::cout << "Network Sampled | ";
+			//std::cout << "Network Sampled | ";
 			Eigen::VectorXd tau = controller->computeControl(system, tau_network);
-			std::cout << "Control Calculated | ";
+			//std::cout << "Control Calculated | ";
+
 			system->sendInput(tau);
-			std::cout << "Input send!\n";
+			//std::cout << "Input send!\n";
 			
 			system->setDataReady(false);
 		}
@@ -59,8 +62,8 @@ int main(int argc, char **argv){
 		loop_rate.sleep();
 	}
 
-	delete system;
-	delete controller;
+	//delete system;
+	//delete controller;
 	// Not sure if necessary but still
 	//delete edges;
 
