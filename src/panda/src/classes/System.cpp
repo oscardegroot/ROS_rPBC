@@ -1,3 +1,8 @@
+/*
+File: System.cpp
+
+Defines an interface for systems controlled by IDAPBC or rPBC
+*/
 
 #include "System.h"
 
@@ -5,6 +10,8 @@
 System::System(int n_set, int m_set) 
 	: n(n_set), m(m_set)
 {
+	
+
 }
 		
 

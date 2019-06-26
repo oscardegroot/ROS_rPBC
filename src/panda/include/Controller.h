@@ -1,7 +1,9 @@
 /*
+
 File: Controller.h
 
-Define a connection with another agent that uses the ST and WVM to passify communication
+An interface for controllers using IDAPBC or rPBC control.
+
 */
 
 #ifndef Controller_H
@@ -12,6 +14,7 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #include "System.h"
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
+#include "std_msgs/Float64MultiArray.h"
 
 class Controller{
 
@@ -21,14 +24,20 @@ public:
 
 	int l;
 
+	ros::Publisher z_pub;	
+	ros::NodeHandle nh;
+
 	// Get the agent output, possibly modified
 	virtual Eigen::VectorXd getOutput(std::unique_ptr<System>& system) = 0;
 
 	// Compute the input (POSSIBLY AT A ROBOTSTATE HERE)
 	virtual Eigen::VectorXd computeControl(std::unique_ptr<System>& system, Eigen::VectorXd tau_c) = 0;
+	
+	void publishZ(Eigen::VectorXd z);
+
+
 
 private:
-
 
 
 

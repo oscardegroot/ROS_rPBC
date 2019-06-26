@@ -45,7 +45,7 @@ void Goals::setConsensus(){
 		connections.push_back(connections_i);
 	}
 
-	std::cout << "Goals: New goal is consensus!\n";
+	logMsg("Goals", "Goal is set to consensus");
 }
 
 void Goals::setGraphFC(){
@@ -58,7 +58,7 @@ void Goals::setGraphFC(){
 		graph.push_back(c_i);
 	}
 
-	std::cout << "Goals: Graph set as fully connected\n";
+	logMsg("Goals", "Graph is set to fully connected");
 }
 
 // Set a formation with even distances between agents (circular)

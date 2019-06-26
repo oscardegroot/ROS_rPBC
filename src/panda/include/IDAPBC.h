@@ -10,6 +10,7 @@ A standard IDA-PBC controller, implements the controller interface defined in Co
 #include "ros/ros.h"
 #include <ros/console.h>
 #include "Controller.h"
+#include "CustomLog.h"
 
 #include <sstream>
 

@@ -1,32 +1,22 @@
 
 #include "PandaSim.h"
 
-#define LOG(msg) std::cout << msg << std::endl
 //See: https://github.com/frankaemika/franka_ros/blob/kinetic-devel/franka_example_controllers/include/franka_example_controllers/joint_impedance_example_controller.h
 
 PandaSim::PandaSim()
 	:System(7, 7)
 {
-	cout << "[PandaSim] Initialising PandaSim system.. ";
+	logMsg("PandaSim", "Initialising...", 2);
 	this->setState(Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(n));
 
 	for(int i = 0; i < n; i++){
 		tau_pubs[i] = nh.advertise<std_msgs::Float64>("/robot1/panda_joint" +
 													  to_string(i+1) + 
-													  "_controller/command", 20);
+													  "_controller/command", 100);
 	}
 	
-    sensor_sub = nh.subscribe("/robot1/joint_states", 20, &PandaSim::readStateCallback, this);
-
-    DH_a << 0.0, 0.0, 0.0825, -0.0825, 0.0, 0.088, 0.0;
-    DH_d << 0.333, 0.0, 0.316, 0.0, 0.384, 0.0, 0.107;
-    DH_alpha << M_PI_2, -M_PI_2, M_PI_2, -M_PI_2, M_PI_2, M_PI_2, 0;
-
-    for(int i = 0; i < 7; i++){
-    	L_cogs[i] = Eigen::Matrix<double, 3, 1>::Zero();
-    }
-
-  	cout << "done.\n";
+    sensor_sub = nh.subscribe("/robot1/joint_states", 100, &PandaSim::readStateCallback, this);
+    logMsg("PandaSim", "Done!", 2);
 }
 
 // Callback for reading the states
@@ -80,39 +70,30 @@ Eigen::VectorXd PandaSim::getdVdq(){
 	Eigen::Matrix<double, 7, 1> dV;
 	Eigen::Matrix<double, 7, 1> q = this->state.q;
 
-	// dV as calculated with DH parameters
 	dV[0] = 0;
-	dV[1] = 0.0001275*cos(q(1)) - 13.46*sin(q(1)) - 0.4351*cos(q(1))*cos(q(2)) + 0.00208*cos(q(1))*sin(q(2)) - 6.843*cos(q(3))*sin(q(1)) - 1.24*sin(q(1))*sin(q(3)) + 0.3163*sin(q(1))*sin(q(3))*sin(q(4)) - 1.24*cos(q(1))*cos(q(2))*cos(q(3)) + 6.843*cos(q(1))*cos(q(2))*sin(q(3)) + 0.3163*cos(q(1))*cos(q(4))*sin(q(2)) - 0.06801*cos(q(3))*cos(q(5))*sin(q(1)) - 0.8156*cos(q(1))*sin(q(2))*sin(q(4)) + 0.8156*cos(q(4))*sin(q(1))*sin(q(3)) - 0.5003*cos(q(3))*sin(q(1))*sin(q(5)) + 0.8156*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4)) + 0.3163*cos(q(1))*cos(q(2))*cos(q(3))*sin(q(4)) + 0.06801*cos(q(1))*cos(q(2))*cos(q(5))*sin(q(3)) + 0.5003*cos(q(1))*cos(q(2))*sin(q(3))*sin(q(5)) + 0.5003*cos(q(1))*cos(q(5))*sin(q(2))*sin(q(4)) - 0.5003*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.06801*cos(q(1))*sin(q(2))*sin(q(4))*sin(q(5)) + 0.06801*cos(q(4))*sin(q(1))*sin(q(3))*sin(q(5)) - 0.5003*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5)) + 0.06801*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(5));
-	dV[2] = 0.00208*cos(q(2))*sin(q(1)) + 0.4351*sin(q(1))*sin(q(2)) - 6.843*sin(q(1))*sin(q(2))*sin(q(3)) + 0.3163*cos(q(2))*cos(q(4))*sin(q(1)) + 1.24*cos(q(3))*sin(q(1))*sin(q(2)) - 0.8156*cos(q(2))*sin(q(1))*sin(q(4)) - 0.8156*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(2)) + 0.5003*cos(q(2))*cos(q(5))*sin(q(1))*sin(q(4)) - 0.3163*cos(q(3))*sin(q(1))*sin(q(2))*sin(q(4)) - 0.06801*cos(q(5))*sin(q(1))*sin(q(2))*sin(q(3)) - 0.06801*cos(q(2))*sin(q(1))*sin(q(4))*sin(q(5)) - 0.5003*sin(q(1))*sin(q(2))*sin(q(3))*sin(q(5)) + 0.5003*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(2)) - 0.06801*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(2))*sin(q(5));
-	dV[3] = 1.24*cos(q(1))*cos(q(3)) - 6.843*cos(q(1))*sin(q(3)) - 0.8156*cos(q(1))*cos(q(3))*cos(q(4)) + 6.843*cos(q(2))*cos(q(3))*sin(q(1)) - 0.3163*cos(q(1))*cos(q(3))*sin(q(4)) - 0.06801*cos(q(1))*cos(q(5))*sin(q(3)) + 1.24*cos(q(2))*sin(q(1))*sin(q(3)) - 0.5003*cos(q(1))*sin(q(3))*sin(q(5)) + 0.5003*cos(q(1))*cos(q(3))*cos(q(4))*cos(q(5)) + 0.06801*cos(q(2))*cos(q(3))*cos(q(5))*sin(q(1)) - 0.06801*cos(q(1))*cos(q(3))*cos(q(4))*sin(q(5)) - 0.8156*cos(q(2))*cos(q(4))*sin(q(1))*sin(q(3)) + 0.5003*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(5)) - 0.3163*cos(q(2))*sin(q(1))*sin(q(3))*sin(q(4)) + 0.5003*cos(q(2))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.06801*cos(q(2))*cos(q(4))*sin(q(1))*sin(q(3))*sin(q(5));
-	dV[4] = 0.8156*cos(q(1))*sin(q(3))*sin(q(4)) - 0.3163*cos(q(1))*cos(q(4))*sin(q(3)) - 0.8156*cos(q(4))*sin(q(1))*sin(q(2)) - 0.3163*sin(q(1))*sin(q(2))*sin(q(4)) + 0.3163*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(1)) - 0.8156*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(4)) + 0.5003*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(2)) - 0.5003*cos(q(1))*cos(q(5))*sin(q(3))*sin(q(4)) - 0.06801*cos(q(4))*sin(q(1))*sin(q(2))*sin(q(5)) + 0.06801*cos(q(1))*sin(q(3))*sin(q(4))*sin(q(5)) + 0.5003*cos(q(2))*cos(q(3))*cos(q(5))*sin(q(1))*sin(q(4)) - 0.06801*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(4))*sin(q(5));
-	dV[5] = 0.5003*cos(q(1))*cos(q(3))*cos(q(5)) - 0.06801*cos(q(1))*cos(q(3))*sin(q(5)) - 0.06801*cos(q(1))*cos(q(4))*cos(q(5))*sin(q(3)) + 0.5003*cos(q(2))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.5003*cos(q(1))*cos(q(4))*sin(q(3))*sin(q(5)) - 0.06801*cos(q(2))*sin(q(1))*sin(q(3))*sin(q(5)) - 0.06801*cos(q(5))*sin(q(1))*sin(q(2))*sin(q(4)) - 0.5003*sin(q(1))*sin(q(2))*sin(q(4))*sin(q(5)) + 0.06801*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1)) + 0.5003*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(5));
-	std::cout << "q(1) = " << q(1) << "\n";
+	dV[1] = 0.00012753*cos(q(1)) - 13.4638*sin(q(1)) - 2.86303*cos(q(1))*cos(q(2)) + 0.00207972*cos(q(1))*sin(q(2)) - 6.84302*cos(q(3))*sin(q(1)) + 1.99683*sin(q(1))*sin(q(3)) + 0.316304*sin(q(1))*sin(q(3))*sin(q(4)) + 1.99683*cos(q(1))*cos(q(2))*cos(q(3)) + 6.84302*cos(q(1))*cos(q(2))*sin(q(3)) + 0.316304*cos(q(1))*cos(q(4))*sin(q(2)) - 0.0680127*cos(q(3))*cos(q(5))*sin(q(1)) - 0.0062784*cos(q(1))*sin(q(2))*sin(q(4)) + 0.0062784*cos(q(4))*sin(q(1))*sin(q(3)) - 0.50033*cos(q(3))*sin(q(1))*sin(q(5)) + 0.0062784*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4)) + 0.316304*cos(q(1))*cos(q(2))*cos(q(3))*sin(q(4)) + 0.0680127*cos(q(1))*cos(q(2))*cos(q(5))*sin(q(3)) + 0.50033*cos(q(1))*cos(q(2))*sin(q(3))*sin(q(5)) + 0.50033*cos(q(1))*cos(q(5))*sin(q(2))*sin(q(4)) - 0.50033*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.0680127*cos(q(1))*sin(q(2))*sin(q(4))*sin(q(5)) + 0.0680127*cos(q(4))*sin(q(1))*sin(q(3))*sin(q(5)) - 0.50033*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5)) + 0.0680127*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(5));
+	dV[2] = 0.00207972*cos(q(2))*sin(q(1)) + 2.86303*sin(q(1))*sin(q(2)) - 6.84302*sin(q(1))*sin(q(2))*sin(q(3)) + 0.316304*cos(q(2))*cos(q(4))*sin(q(1)) - 1.99683*cos(q(3))*sin(q(1))*sin(q(2)) - 0.0062784*cos(q(2))*sin(q(1))*sin(q(4)) - 0.0062784*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(2)) + 0.50033*cos(q(2))*cos(q(5))*sin(q(1))*sin(q(4)) - 0.316304*cos(q(3))*sin(q(1))*sin(q(2))*sin(q(4)) - 0.0680127*cos(q(5))*sin(q(1))*sin(q(2))*sin(q(3)) - 0.0680127*cos(q(2))*sin(q(1))*sin(q(4))*sin(q(5)) - 0.50033*sin(q(1))*sin(q(2))*sin(q(3))*sin(q(5)) + 0.50033*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(2)) - 0.0680127*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(2))*sin(q(5));
+	dV[3] = 6.84302*cos(q(2))*cos(q(3))*sin(q(1)) - 6.84302*cos(q(1))*sin(q(3)) - 0.0062784*cos(q(1))*cos(q(3))*cos(q(4)) - 1.99683*cos(q(1))*cos(q(3)) - 0.316304*cos(q(1))*cos(q(3))*sin(q(4)) - 0.0680127*cos(q(1))*cos(q(5))*sin(q(3)) - 1.99683*cos(q(2))*sin(q(1))*sin(q(3)) - 0.50033*cos(q(1))*sin(q(3))*sin(q(5)) + 0.50033*cos(q(1))*cos(q(3))*cos(q(4))*cos(q(5)) + 0.0680127*cos(q(2))*cos(q(3))*cos(q(5))*sin(q(1)) - 0.0680127*cos(q(1))*cos(q(3))*cos(q(4))*sin(q(5)) - 0.0062784*cos(q(2))*cos(q(4))*sin(q(1))*sin(q(3)) + 0.50033*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(5)) - 0.316304*cos(q(2))*sin(q(1))*sin(q(3))*sin(q(4)) + 0.50033*cos(q(2))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.0680127*cos(q(2))*cos(q(4))*sin(q(1))*sin(q(3))*sin(q(5));
+	dV[4] = 0.0062784*cos(q(1))*sin(q(3))*sin(q(4)) - 0.316304*cos(q(1))*cos(q(4))*sin(q(3)) - 0.0062784*cos(q(4))*sin(q(1))*sin(q(2)) - 0.316304*sin(q(1))*sin(q(2))*sin(q(4)) + 0.316304*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(1)) - 0.0062784*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(4)) + 0.50033*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(2)) - 0.50033*cos(q(1))*cos(q(5))*sin(q(3))*sin(q(4)) - 0.0680127*cos(q(4))*sin(q(1))*sin(q(2))*sin(q(5)) + 0.0680127*cos(q(1))*sin(q(3))*sin(q(4))*sin(q(5)) + 0.50033*cos(q(2))*cos(q(3))*cos(q(5))*sin(q(1))*sin(q(4)) - 0.0680127*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(4))*sin(q(5));
+	dV[5] = 0.50033*cos(q(1))*cos(q(3))*cos(q(5)) - 0.0680127*cos(q(1))*cos(q(3))*sin(q(5)) - 0.0680127*cos(q(1))*cos(q(4))*cos(q(5))*sin(q(3)) + 0.50033*cos(q(2))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.50033*cos(q(1))*cos(q(4))*sin(q(3))*sin(q(5)) - 0.0680127*cos(q(2))*sin(q(1))*sin(q(3))*sin(q(5)) - 0.0680127*cos(q(5))*sin(q(1))*sin(q(2))*sin(q(4)) - 0.50033*sin(q(1))*sin(q(2))*sin(q(4))*sin(q(5)) + 0.0680127*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1)) + 0.50033*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(5));
 
 	return dV;
 }
 
-Eigen::Vector3d PandaSim::getEEPose(Eigen::Matrix<double, 7, 1> q)
+Eigen::VectorXd PandaSim::getEEPose()
 {
-	// Fix matlab function that calculates z
-	return Eigen::Vector3d::Zero();
+	Eigen::Vector3d z;
+	Eigen::Matrix<double, 7, 1> q = this->state.q;
+
+	// z as calculated in Matlab
+	z[0] = 0.316*cos(q(0))*sin(q(1)) - 0.0825*sin(q(0))*sin(q(2)) + 0.384*sin(q(0))*sin(q(2))*sin(q(3)) + 0.0825*cos(q(0))*cos(q(1))*cos(q(2)) + 0.384*cos(q(0))*cos(q(3))*sin(q(1)) - 0.0825*cos(q(0))*sin(q(1))*sin(q(3)) + 0.0825*cos(q(3))*sin(q(0))*sin(q(2)) - 0.0825*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3)) - 0.384*cos(q(0))*cos(q(1))*cos(q(2))*sin(q(3)) + 0.088*cos(q(0))*cos(q(3))*sin(q(1))*sin(q(5)) - 0.088*cos(q(2))*cos(q(5))*sin(q(0))*sin(q(4)) + 0.088*sin(q(0))*sin(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(5))*sin(q(2))*sin(q(4)) + 0.088*cos(q(0))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.088*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(2)) + 0.088*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5));
+	z[1] = 0.0825*cos(q(0))*sin(q(2)) + 0.316*sin(q(0))*sin(q(1)) - 0.0825*sin(q(0))*sin(q(1))*sin(q(3)) + 0.0825*cos(q(1))*cos(q(2))*sin(q(0)) - 0.0825*cos(q(0))*cos(q(3))*sin(q(2)) + 0.384*cos(q(3))*sin(q(0))*sin(q(1)) - 0.384*cos(q(0))*sin(q(2))*sin(q(3)) - 0.0825*cos(q(1))*cos(q(2))*cos(q(3))*sin(q(0)) + 0.088*cos(q(0))*cos(q(2))*cos(q(5))*sin(q(4)) - 0.384*cos(q(1))*cos(q(2))*sin(q(0))*sin(q(3)) + 0.088*cos(q(3))*sin(q(0))*sin(q(1))*sin(q(5)) - 0.088*cos(q(0))*sin(q(2))*sin(q(3))*sin(q(5)) + 0.088*cos(q(0))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(2)) - 0.088*cos(q(1))*cos(q(2))*sin(q(0))*sin(q(3))*sin(q(5)) - 0.088*cos(q(1))*cos(q(5))*sin(q(0))*sin(q(2))*sin(q(4)) + 0.088*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(1))*sin(q(3)) + 0.088*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(0));
+	z[2] = 0.316*cos(q(1)) + 0.384*cos(q(1))*cos(q(3)) - 0.0825*cos(q(2))*sin(q(1)) - 0.0825*cos(q(1))*sin(q(3)) + 0.0825*cos(q(2))*cos(q(3))*sin(q(1)) + 0.088*cos(q(1))*cos(q(3))*sin(q(5)) + 0.384*cos(q(2))*sin(q(1))*sin(q(3)) + 0.088*cos(q(1))*cos(q(4))*cos(q(5))*sin(q(3)) + 0.088*cos(q(2))*sin(q(1))*sin(q(3))*sin(q(5)) + 0.088*cos(q(5))*sin(q(1))*sin(q(2))*sin(q(4)) - 0.088*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1)) + 0.333;
+	return z;
 }
 
 
-// //Link count >= 1
-// Eigen::Vector3d PandaSim::getCOG(int i, Eigen::Matrix<double, 7, 1> q){
-
-// 	// Transform to the i-1th link 
-// 	Eigen::Matrix<double,4, 4> T_im1 = getTi(i - 1, q);
-
-// 	//Transform to the cog of the next link
-// 	Eigen::Matrix<double, 3, 1> O_cog;
-// 	O_cog << cos(q(i))*L_cogs[i](0) - sin(q(i))*L_cogs[i](1), sin(q(i))*L_cogs[i](0) + cos(q(i))*L_cogs[i](1), L_cogs[i](2);
-// 	O_cog = O_cog + T_im1.block(0, 6, 3, 1);
-
-// 	return O_cog;
-// }
-
+/* Old!! */
 // Eigen::Vector3d PandaSim::getEEPose(Eigen::Matrix<double, 7, 1> q){
 
 // 	return (Eigen::Vector3d)getTi(7, q).block(0, 6, 3, 1);

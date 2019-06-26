@@ -1,3 +1,9 @@
+/*
+File: Remote.h
+
+A Remote node class that hosts services and implements an interface
+*/
+
 
 #ifndef Remote_H
 #define Remote_H
@@ -8,7 +14,8 @@
 #include "std_msgs/Float64MultiArray.h"
 #include "panda/getConnectionsOf.h"
 #include <string>
-#include <sstream>
+#include "CustomLog.h"
+#include <memory>
 
 
 class Remote{
@@ -22,7 +29,7 @@ public:
 private:
 
 	int l, N;
-	Goals * goals;
+	std::unique_ptr<Goals> goals;
 
 	// A nodehandle
 	ros::NodeHandle n;

@@ -1,3 +1,9 @@
+/*
+File: Remote.cpp
+
+A Remote node class that hosts services and implements an interface
+*/
+
 
 #include "Remote.h"
 
@@ -5,17 +11,17 @@ Remote::Remote(int l_dim, int N_dim){
 
 	l = l_dim;
 	N = N_dim;
-	goals = new Goals();
+	goals = std::make_unique<Goals>();
 	goals->Init(N, l);
 
 	// Start a server
 	connect_server = n.advertiseService("get_connections_of", &Remote::retrieveConnectionsOf, this);
-	std::cout << "Connection server initiated\n";
+	logMsg("Remote", "Formation server initiated", 2);
 
 }
 
 Remote::~Remote(){
-	delete goals;
+
 }
 
 bool Remote::retrieveConnectionsOf(panda::getConnectionsOf::Request &req, panda::getConnectionsOf::Response &res){
@@ -32,6 +38,9 @@ bool Remote::retrieveConnectionsOf(panda::getConnectionsOf::Request &req, panda:
 	}
 
 	res.r_star = r_vec;
+
+	logMsg("Remote", "Responded to connection request between " + std::to_string(req.id_i) + " and " + std::to_string(req.id_j));
+
 
 	return true;
 }

@@ -1,7 +1,7 @@
 /*
-File: Agent.h
+File: System.h
 
-Define a connection with another agent that uses the ST and WVM to passify communication
+Defines an interface for systems controlled by IDAPBC or rPBC
 */
 
 #ifndef System_H
@@ -12,6 +12,7 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #include <eigen3/Eigen/Dense>
 
 #include "panda/getConnectionsOf.h"
+
 
 #include <vector>
 #include <string>
@@ -39,16 +40,16 @@ public:
 	virtual bool sendInput(Eigen::VectorXd tau) = 0;
 	virtual Eigen::MatrixXd getM() = 0;
 	virtual Eigen::VectorXd getdHdq() = 0;
+	virtual Eigen::VectorXd getEEPose() = 0;
 
 	bool dataReady();
 	void setDataReady(bool is_ready);
 	int getN();
 	void setState(Eigen::VectorXd new_q, Eigen::VectorXd new_qd);
-
-
 private:
 
-	bool data_rdy = true;
+	bool data_rdy = false;
+
 
 	
 

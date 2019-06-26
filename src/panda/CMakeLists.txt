@@ -52,6 +52,7 @@ add_library(${PROJECT_NAME}
   src/classes/PandaSim.cpp
   src/classes/IDAPBC.cpp
   src/classes/Controller.cpp
+  src/CustomLog.cpp
 )
 
 
@@ -59,6 +60,11 @@ add_library(${PROJECT_NAME}
 add_executable(Agent_node src/Agent_Node.cpp)
 target_link_libraries(Agent_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 add_dependencies(Agent_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+# The beacon node
+add_executable(Beacon_node src/Beacon_Node.cpp)
+target_link_libraries(Beacon_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_dependencies(Beacon_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # The remote node
 add_executable(Remote src/Remote_Node.cpp)

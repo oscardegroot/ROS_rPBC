@@ -14,6 +14,7 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #include <iostream>
 #include <string>
 #include "panda/Waves.h"
+#include "CustomLog.h"
 
 class Edge{
 public:
@@ -28,7 +29,7 @@ public:
 
 private:
 
-	int i_ID, j_ID, l_dim;
+	int i_ID, j_ID, l;
 	bool is_agent_i;
 
 	// The wave impedance B and network gain Kd
@@ -42,13 +43,13 @@ private:
 	void applyWVM(Eigen::VectorXd & wave_reference, Eigen::VectorXd r_i);
 	Eigen::VectorXd getTauST(Eigen::VectorXd s_in, Eigen::VectorXd r_i);
 	Eigen::VectorXd getWaveST(Eigen::VectorXd s_in, Eigen::VectorXd r_i);
+	Eigen::VectorXd elementSign(Eigen::VectorXd s_in);
+
 
 	// The last received timestamp
 	int timestamp = 0;
 	bool data_received = false;
 
-	//Threadlock
-	//std::unique_ptr<std::mutex> m = std::make_unique<std::mutex>();;
 	// The Ros node handle
 	ros::NodeHandle nh;
 

@@ -1,2 +1,4 @@
-l_dim: 2
+l_dim: 3
 N_dim: 2
+
+net_gain: 15.0

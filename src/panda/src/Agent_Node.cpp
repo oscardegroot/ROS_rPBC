@@ -1,20 +1,16 @@
 #include "ros/ros.h"
 
-#include "panda/Waves.h"
-#include "std_msgs/Float64MultiArray.h"
-#include "panda/getConnectionsOf.h"
-
 #include "PandaSim.h"
 #include "System.h"
 #include "Controller.h"
 #include "IDAPBC.h"
-#include "Goals.h"
 #include "CMM.h"
+#include "CustomLog.h"
 
 #include <memory>
 #include <vector>
 #include <string>
-#include <sstream>
+
 
 int i_id, l, N;
 
@@ -29,17 +25,16 @@ int main(int argc, char **argv){
 	n.getParam("i_id", i_id);
 	n.getParam("/l_dim", l);
 	n.getParam("/N_dim", N);
+
 	
 	std::unique_ptr<System> system = std::make_unique<PandaSim>();
 	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(l, system);
-	//Controller * controller = new IDAPBC(l, system);
+
 	CMM cmm;
-
-
 
 	//Maybe also define the controller here-> Agent has a system and a controller
 
-	ros::Rate loop_rate(1000);
+	ros::Rate loop_rate(100);
 
 	while(ros::ok()){
 		// If system data is available
@@ -54,6 +49,9 @@ int main(int argc, char **argv){
 			//std::cout << "Input send!\n";
 			
 			system->setDataReady(false);
+		}else{
+			//system->sendInput(Eigen::VectorXd::Zero(system->n));
+			logMsg("Agent Node", "No Data Received From the System!", 1);
 		}
 		
 		

@@ -11,10 +11,13 @@ Manages cooperative communication by managing a number of connections
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
 #include <vector>
+#include <memory>
 
 #include "Edge.h"
+#include "CustomLog.h"
 
 #include "panda/getConnectionsOf.h"
+
 
 
 /* Possibly divide this up further in a system and a controller */
@@ -30,11 +33,12 @@ public:
 private:
 
 	int i_id, l, N;
+	double gain;
 
 	ros::NodeHandlePtr n;
 
 	ros::ServiceClient connect_client;
-	std::vector<Edge*> edges;
+	std::vector<std::unique_ptr<Edge>> edges;
 
 	void initiateEdges();
 };

@@ -7,23 +7,21 @@ Externally calling sampleEdge will sample the buffer and return a wave to the ot
 i: agent id
 j: connected agent id
 gain: gain of the connection 
-l: dimension of the channel
+l_set: dimension of the channel
 */
 
-
+#define LOG(msg) std::cout << msg << std::endl
 
 #include "Edge.h"
 
 Edge::Edge(int i, int j, double gain, int l_set){
 
-	std::cout << "[Edge] Edge between " << i << " and " << j << "..";
+	logMsg("Edge", "Initiating edge between " + std::to_string(i) + " and " + std::to_string(j) + "..", 2);
 
 	//Save the connection between agents
 	i_ID = i;
 	j_ID = j;
-	l_dim = l_set;
-	
-	//std::cout << "s_" << i_ID << j_ID << "+\n";
+	l = l_set;
 
 	// If this is agent i, send on the positivily defined channel, listen to the negative channel
 	if(i < j){
@@ -38,10 +36,10 @@ Edge::Edge(int i, int j, double gain, int l_set){
 	Edge::setScatteringGain(gain);
 
 	// Initialise buffers
-	s_buffer = Eigen::VectorXd::Zero(l_dim);//Eigen::Matrix<double, l, 1>::Zero();
-	s_received = Eigen::VectorXd::Zero(l_dim);
+	s_buffer = Eigen::VectorXd::Zero(l);//Eigen::Matrix<double, l, 1>::Zero();
+	s_received = Eigen::VectorXd::Zero(l);
 
-	std::cout << " done.\n";
+	logMsg("Edge", "Done!", 2);
 
 }
 
@@ -51,17 +49,15 @@ Edge::~Edge(){}
 
 void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	
-	// Its not the message
-	std::cout << "[Edge] Data received!\n";
-	
+	logMsg("Edge", "Wave received. Timestamp = " + std::to_string(msg->timestamp) + ".", 4);
 
 	std::vector<double> s = msg->s.data;
 
 	// Print data
-	std::cout << "	[Timestamp]: " << msg->timestamp << "\n";
+	//std::cout << "	[Timestamp]: " << msg->timestamp << "\n";
 
-	for(int i = 0; i<l_dim; i++){
-		std::cout << "	[Data "<< i<< "]: " << s[i] << "\n";
+	for(int i = 0; i<l; i++){
+		//std::cout << "	[Data "<< i<< "]: " << s[i] << "\n";
 		s_received(i) = s[i];
 	}
 
@@ -74,6 +70,7 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 
 // Sample the edge, retrieving a data point for the cooperative control and returning a wave in the process
 Eigen::VectorXd Edge::sampleEdge(Eigen::VectorXd r_i){
+
 	// Reconstruct the wave if nothing was received
 	Edge::applyWVM(s_received, r_i);
 
@@ -86,8 +83,7 @@ Eigen::VectorXd Edge::sampleEdge(Eigen::VectorXd r_i){
 
 /* Reconstruct data if necessary */
 void Edge::applyWVM(Eigen::VectorXd & wave_reference, Eigen::VectorXd r_i){
-	 
-	 std::cout << "[Edge] WVM -> ";
+
 
 	/*We need to apply WVM*/
 	if(!data_received)
@@ -98,21 +94,35 @@ void Edge::applyWVM(Eigen::VectorXd & wave_reference, Eigen::VectorXd r_i){
 		// If that's allowed, use it, otherwise reconstruct by amplitude
 		if(s_HLS.transpose()*s_HLS > s_buffer.transpose()*s_buffer)
 		{
-			std::cout << " HLS applied\n";
-			wave_reference = Eigen::VectorXd::Zero(l_dim);
+		 	logMsg("Edge", "WVM applied HLS", 3);
+			wave_reference = s_buffer;
+
 		}else{
-			std::cout << " Reconstructed\n";
-			wave_reference = Eigen::VectorXd::Zero(l_dim); // Change this!
+			logMsg("Edge", "WVM applied reconstruction", 3);
+			wave_reference = elementSign(s_buffer).cwiseProduct(s_HLS.cwiseAbs());
 		}
 		
 		
 	}else{
-		std::cout << " Use received data\n";
+		logMsg("Edge", "Used received data", 5);
 		data_received = false;
+		s_buffer = s_received;
 	}
+	
+}
 
-	// Reset the buffer 
-	s_buffer = s_received;
+// Apply the element wise sign operator
+Eigen::VectorXd Edge::elementSign(Eigen::VectorXd s_in){
+
+	Eigen::VectorXd s_out = Eigen::VectorXd::Zero(s_in.size());
+	for(int i = 0; i < s_in.size(); i++){
+		if(s_in[i] > 0){
+			s_out[i] = 1;
+		}else{
+			s_out[i] = -1;
+		}
+	}
+	return s_out;
 }
 
 // Publish a returning wave
@@ -127,42 +137,45 @@ void Edge::publishWave(Eigen::VectorXd r_i){
 	Eigen::VectorXd wave = Edge::getWaveST(s_received, r_i);
 
 	// Put the wave in the messagge
-	msg_vec.data.resize(l_dim);
-	for(int i = 0; i < l_dim; i++){
+	msg_vec.data.resize(l);
+	for(int i = 0; i < l; i++){
 		msg_vec.data[i] = wave(i, 0);
 	}
 	
+	// Set the message
 	msg.s = msg_vec;
 	msg.timestamp = timestamp;
 
-	// Increase the timestamp
-	timestamp++;
-
 	// Publish the message
 	wave_pub.publish(msg);
+
+	logMsg("Edge", "Wave sent. Timestamp = " + std::to_string(timestamp) + ".", 4);
+
+	// Increase the timestamp
+	timestamp++;
 
 }
 
 // Retrieve tau from the scattering transforma)tion
 Eigen::VectorXd Edge::getTauST(Eigen::VectorXd s_in, Eigen::VectorXd r_i){
 
-	return gain_tau.block(0, 0, l_dim, l_dim) * s_in + gain_tau.block(0, l_dim, l_dim, l_dim)*r_i;
+	return gain_tau.block(0, 0, l, l) * s_in + gain_tau.block(0, l, l, l)*r_i;
 }
 
 // Retrieve the new wave from the scattering transformation
 Eigen::VectorXd Edge::getWaveST(Eigen::VectorXd s_in, Eigen::VectorXd r_i){
 
-	return gain_wave.block(0, 0, l_dim, l_dim) * s_in + gain_wave.block(0, l_dim, l_dim, l_dim)*r_i;
+	return gain_wave.block(0, 0, l, l) * s_in + gain_wave.block(0, l, l, l)*r_i;
 }
 
 
 // 
 void Edge::setScatteringGain(double gain){
 	// Define the gains on this edge and the impedance
-	Eigen::MatrixXd Kd(l_dim, l_dim);
-	Eigen::MatrixXd B(l_dim, l_dim);
-	Kd = gain*Eigen::MatrixXd::Identity(l_dim, l_dim);
- 	B = std::sqrt(gain)*Eigen::MatrixXd::Identity(l_dim, l_dim);
+	Eigen::MatrixXd Kd(l, l);
+	Eigen::MatrixXd B(l, l);
+	Kd = gain*Eigen::MatrixXd::Identity(l, l);
+ 	B = std::sqrt(gain)*Eigen::MatrixXd::Identity(l, l);
 
 	// Take into account the different ST depending on which agent this is
 	int agent_i = 1;
@@ -175,20 +188,21 @@ void Edge::setScatteringGain(double gain){
 
 
 	// Define the ST matrix
-	Eigen::MatrixXd matrix_ST(2*l_dim, 2*l_dim);
+	Eigen::MatrixXd matrix_ST(2*l, 2*l);
 	matrix_ST << agent_i*std::sqrt(2)*Binv, -Binv*Binv,
-					-Eigen::MatrixXd::Identity(l_dim, l_dim), agent_i*std::sqrt(2)*Binv;
+					-Eigen::MatrixXd::Identity(l, l), agent_i*std::sqrt(2)*Binv;
 
 	// Calculate the transfer function of the controls internally
-	Eigen::MatrixXd H = Eigen::MatrixXd::Identity(l_dim, l_dim) - Kd*matrix_ST.block(0,l_dim,l_dim,l_dim);
+	Eigen::MatrixXd H = Eigen::MatrixXd::Identity(l, l) - Kd*matrix_ST.block(0,l,l,l);
 	H = H.inverse()*Kd;
 
-	gain_tau = Eigen::MatrixXd::Zero(l_dim, 2*l_dim);	
-	gain_wave = Eigen::MatrixXd::Zero(l_dim, 2*l_dim);
+	gain_tau = Eigen::MatrixXd::Zero(l, 2*l);	
+	gain_wave = Eigen::MatrixXd::Zero(l, 2*l);
 
-	gain_tau << H*matrix_ST.block(0,0,l_dim,l_dim), -H;
-	gain_wave << matrix_ST.block(l_dim,0,l_dim,l_dim)+matrix_ST.block(l_dim,l_dim,l_dim,l_dim)*H*matrix_ST.block(0,0,l_dim, l_dim), -matrix_ST.block(l_dim, l_dim, l_dim, l_dim)*H;
+	gain_tau << H*matrix_ST.block(0,0,l,l), -H;
+	gain_wave << matrix_ST.block(l,0,l,l)+matrix_ST.block(l,l,l,l)*H*matrix_ST.block(0,0,l, l), -matrix_ST.block(l, l, l, l)*H;
 
+	//LOG(gain_wave);
 	//std::cout << "[Edge]	Scattering Initialised\n";
 }
 

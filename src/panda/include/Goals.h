@@ -14,6 +14,7 @@ Contains a number of functions describing formations and other cooperative goals
 #include <iostream>
 #include <string>
 #include "panda/Waves.h"
+#include "CustomLog.h"
 
 struct connection {
 	int id;
@@ -52,8 +53,6 @@ private:
 
 	// A bool matrix specifying connections
 	std::vector<std::vector<bool>> graph;
-
-
 
 
 };
