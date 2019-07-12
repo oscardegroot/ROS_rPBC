@@ -23,6 +23,7 @@ Defines an interface for systems controlled by IDAPBC or rPBC
 struct State{
 	Eigen::VectorXd q;
 	Eigen::VectorXd dq;
+	Eigen::VectorXd z;
 };
 
 class System{
@@ -36,21 +37,16 @@ public:
 	int m = 0;
 	State state;
 
-	virtual Eigen::VectorXd readSensors() = 0;
+	// virtual Eigen::VectorXd readSensors() = 0;
 	virtual bool sendInput(Eigen::VectorXd tau) = 0;
-	virtual Eigen::MatrixXd getM() = 0;
-	virtual Eigen::VectorXd getdHdq() = 0;
-	virtual Eigen::VectorXd getEEPose() = 0;
+	virtual Eigen::MatrixXd M() = 0;
+	virtual Eigen::VectorXd dVdq() = 0;
 
-	bool dataReady();
-	void setDataReady(bool is_ready);
-	int getN();
-	void setState(Eigen::VectorXd new_q, Eigen::VectorXd new_qd);
+	// bool dataReady();
+	// void setDataReady(bool is_ready);
+	int getN(){return n;};
+	void setState(Eigen::VectorXd new_q, Eigen::VectorXd new_qd, Eigen::VectorXd new_z);
 private:
-
-	bool data_rdy = false;
-
-
 	
 
 };

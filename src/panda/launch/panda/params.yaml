@@ -1,0 +1,19 @@
+l_dim: 3
+N_dim: 2
+
+net_gain: 15.0
+
+
+
+panda:
+  type: panda/Panda
+  joint_names:
+  - panda_joint1
+  - panda_joint2
+  - panda_joint3
+  - panda_joint4
+  - panda_joint5
+  - panda_joint6
+  - panda_joint7
+  arm_id: panda
+  # additional_example_parameter: 0.0

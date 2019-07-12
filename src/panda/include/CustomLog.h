@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-#define LOG_LEVEL 2
+#define LOG_LEVEL 3
 
 #define DEBUG 3
 #define INIT 2

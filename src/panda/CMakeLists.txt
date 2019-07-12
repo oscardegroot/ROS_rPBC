@@ -8,8 +8,19 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   sensor_msgs
+  controller_interface
+  dynamic_reconfigure
+  franka_hw
+  geometry_msgs
+  hardware_interface
   message_generation
+  pluginlib
+  realtime_tools
 )
+
+  
+find_package(Franka 0.3.0 REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -30,8 +41,23 @@ add_service_files(DIRECTORY srv
 ## Generate added messages and services with any dependencies listed here
 generate_messages(DEPENDENCIES std_msgs)
 
-catkin_package(CATKIN_DEPENDS roscpp rospy std_msgs sensor_msgs message_runtime)
-
+catkin_package(LIBRARIES panda
+ CATKIN_DEPENDS 
+ roscpp 
+ rospy 
+ std_msgs 
+ sensor_msgs 
+ message_runtime 
+ controller_interface
+ dynamic_reconfigure
+  franka_hw
+  geometry_msgs
+  hardware_interface
+  pluginlib
+  realtime_tools
+  DEPENDS Franka
+)
+ 
 ###########
 ## Build ##
 ###########
@@ -50,6 +76,7 @@ add_library(${PROJECT_NAME}
   src/classes/System.cpp
   src/classes/CMM.cpp
   src/classes/PandaSim.cpp
+  src/classes/Panda.cpp
   src/classes/IDAPBC.cpp
   src/classes/Controller.cpp
   src/CustomLog.cpp
@@ -58,17 +85,44 @@ add_library(${PROJECT_NAME}
 
 # The agent Node
 add_executable(Agent_node src/Agent_Node.cpp)
-target_link_libraries(Agent_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+target_link_libraries(Agent_node ${catkin_LIBRARIES} 
+                                 ${PROJECT_NAME}
+                                 ${Franka_LIBRARIES})
 add_dependencies(Agent_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
+# add_executable(panda )
+# target_link_libraries(panda ${catkin_LIBRARIES} 
+#                                  ${PROJECT_NAME}
+#                                  ${Franka_LIBRARIES})
+# add_dependencies(panda ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(panda PUBLIC
+  ${Franka_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
+
+target_include_directories(panda SYSTEM PUBLIC
+  ${Franka_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
+)
+target_include_directories(panda PUBLIC
+  include
+)
+
 
 # The beacon node
 add_executable(Beacon_node src/Beacon_Node.cpp)
-target_link_libraries(Beacon_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+target_link_libraries(Beacon_node ${catkin_LIBRARIES} 
+                                 ${PROJECT_NAME}
+                                 ${Franka_LIBRARIES})
 add_dependencies(Beacon_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # The remote node
 add_executable(Remote src/Remote_Node.cpp)
-target_link_libraries(Remote ${catkin_LIBRARIES} ${PROJECT_NAME})
+target_link_libraries(Remote ${catkin_LIBRARIES} 
+                                 ${PROJECT_NAME}
+                                 ${Franka_LIBRARIES})
 add_dependencies(Remote ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ###################################################################################

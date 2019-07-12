@@ -7,7 +7,8 @@ PandaSim::PandaSim()
 	:System(7, 7)
 {
 	logMsg("PandaSim", "Initialising...", 2);
-	this->setState(Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(n));
+	this->setState(Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(n),
+		getZ(Eigen::VectorXd::Zero(n)));
 
 	for(int i = 0; i < n; i++){
 		tau_pubs[i] = nh.advertise<std_msgs::Float64>("/robot1/panda_joint" +
@@ -29,14 +30,10 @@ void PandaSim::readStateCallback(const sensor_msgs::JointState::ConstPtr& msg){
       new_qd(i) = msg->velocity[i];
     }	
 
-    this->setState(new_q, new_qd);
-    this->setDataReady(true);
+    this->setState(new_q, new_qd, getZ(new_q));
+    //this->setDataReady(true);
 }
 
-Eigen::VectorXd PandaSim::readSensors(){
-	return Eigen::VectorXd::Zero(n);
-
-}
 
 bool PandaSim::sendInput(Eigen::VectorXd tau){
 	
@@ -51,21 +48,14 @@ bool PandaSim::sendInput(Eigen::VectorXd tau){
 }
 
 // Get the mass matrix at q (IMPLEMENT)
-Eigen::MatrixXd PandaSim::getM(){
+Eigen::MatrixXd PandaSim::M(){
 
 	// Hardware wise or theoretic?
 	return Eigen::MatrixXd::Zero(n, n);
 
 }
 
-Eigen::VectorXd PandaSim::getdHdq(){
-
-	// energy gradient irrelevant for fully actuated systems
-	return getdVdq();
-
-}
-
-Eigen::VectorXd PandaSim::getdVdq(){
+Eigen::VectorXd PandaSim::dVdq(){
 
 	Eigen::Matrix<double, 7, 1> dV;
 	Eigen::Matrix<double, 7, 1> q = this->state.q;
@@ -80,10 +70,9 @@ Eigen::VectorXd PandaSim::getdVdq(){
 	return dV;
 }
 
-Eigen::VectorXd PandaSim::getEEPose()
+Eigen::VectorXd PandaSim::getZ(Eigen::VectorXd q)
 {
 	Eigen::Vector3d z;
-	Eigen::Matrix<double, 7, 1> q = this->state.q;
 
 	// z as calculated in Matlab
 	z[0] = 0.316*cos(q(0))*sin(q(1)) - 0.0825*sin(q(0))*sin(q(2)) + 0.384*sin(q(0))*sin(q(2))*sin(q(3)) + 0.0825*cos(q(0))*cos(q(1))*cos(q(2)) + 0.384*cos(q(0))*cos(q(3))*sin(q(1)) - 0.0825*cos(q(0))*sin(q(1))*sin(q(3)) + 0.0825*cos(q(3))*sin(q(0))*sin(q(2)) - 0.0825*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3)) - 0.384*cos(q(0))*cos(q(1))*cos(q(2))*sin(q(3)) + 0.088*cos(q(0))*cos(q(3))*sin(q(1))*sin(q(5)) - 0.088*cos(q(2))*cos(q(5))*sin(q(0))*sin(q(4)) + 0.088*sin(q(0))*sin(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(5))*sin(q(2))*sin(q(4)) + 0.088*cos(q(0))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.088*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(2)) + 0.088*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5));

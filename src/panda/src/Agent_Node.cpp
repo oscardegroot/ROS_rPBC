@@ -28,7 +28,7 @@ int main(int argc, char **argv){
 
 	
 	std::unique_ptr<System> system = std::make_unique<PandaSim>();
-	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(l, system);
+	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(l, *system);
 
 	CMM cmm;
 
@@ -39,20 +39,20 @@ int main(int argc, char **argv){
 	while(ros::ok()){
 		// If system data is available
 
-		if(system->dataReady()){
-			Eigen::VectorXd tau_network = cmm.sample(controller->getOutput(system));
+		//if(system->dataReady()){
+			Eigen::VectorXd tau_network = cmm.sample(controller->getOutput(*system));
 			//std::cout << "Network Sampled | ";
-			Eigen::VectorXd tau = controller->computeControl(system, tau_network);
+			Eigen::VectorXd tau = controller->computeControl(*system, tau_network);
 			//std::cout << "Control Calculated | ";
 
 			system->sendInput(tau);
 			//std::cout << "Input send!\n";
 			
-			system->setDataReady(false);
-		}else{
-			//system->sendInput(Eigen::VectorXd::Zero(system->n));
-			logMsg("Agent Node", "No Data Received From the System!", 1);
-		}
+			//system->setDataReady(false);
+		// }else{
+		// 	//system->sendInput(Eigen::VectorXd::Zero(system->n));
+		// 	logMsg("Agent Node", "No Data Received From the System!", 1);
+		// }
 		
 		
 		ros::spinOnce();

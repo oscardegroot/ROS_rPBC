@@ -4,3 +4,5 @@
 /src/panda_control/
 /src/panda_simulation/
 /src/franka_description/
+/src/franka_ros/
+/src/franka_description_sim/

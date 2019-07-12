@@ -24,13 +24,14 @@ public:
 	PandaSim();
 
 	// See definitions in system.h
-	Eigen::VectorXd readSensors();
-	bool sendInput(Eigen::VectorXd tau);
-	Eigen::MatrixXd getM();
-	Eigen::VectorXd getdHdq();
+	bool sendInput(Eigen::VectorXd tau) override;
+
+	Eigen::MatrixXd M() override;
+	Eigen::VectorXd dVdq() override;
+
+	Eigen::VectorXd getZ(Eigen::VectorXd q);
+
 	void readStateCallback(const sensor_msgs::JointState::ConstPtr& msg);
-	Eigen::VectorXd getEEPose();
-	Eigen::VectorXd getdVdq();
 
 private:
 

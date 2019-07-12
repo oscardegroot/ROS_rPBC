@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+
+	<include file="$(find panda_simulation)/launch/sim.launch"/>
+
+	<rosparam command="load" file="$(find panda)/config/2Dparams.yaml" />
+
+	<node name="Remote" pkg="panda" type="Remote" output="screen"/>
+
+
+	<node name="Agent_0" pkg="panda" type="Agent_node" output="screen">
+	  	<param name="i_id" value="0"/>
+	  	<param name="robot_type" value = "panda"/>
+	  	<rosparam command="load" file="$(find panda)/config/pandaVs.yaml"/>
+	</node>
+
+	<node name="Beacon_1" pkg="panda" type="Beacon_node" output="log">
+		<param name="i_id" value="1"/>
+	  	<param name="robot_type" value = "beacon"/>
+	</node>
+
+	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] agent_z/data[1] agent_z/data[2]" />
+
+	<node name="plotjes2" pkg="rqt_plot" type="rqt_plot" args="/robot1/panda_joint1_controller/command/data /robot1/panda_joint2_controller/command/data /robot1/panda_joint3_controller/command/data" />
+
+</launch>
+

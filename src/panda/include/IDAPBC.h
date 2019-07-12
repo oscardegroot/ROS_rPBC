@@ -17,15 +17,15 @@ A standard IDA-PBC controller, implements the controller interface defined in Co
 class IDAPBC : public Controller{
 
 public:
-	IDAPBC(int l_dim, std::unique_ptr<System>& system);
+	IDAPBC(int l_dim, System& system);
 
-	Eigen::VectorXd computeControl(std::unique_ptr<System>& system, Eigen::VectorXd tau_c);
+	Eigen::VectorXd computeControl(System& system, Eigen::VectorXd tau_c);
 
 	// Get the agent output, possibly modified
-	Eigen::VectorXd getOutput(std::unique_ptr<System>& system);
+	Eigen::VectorXd getOutput(System& system);
 
 	// Set the local potential gradient as quadratic with specified gains
-	bool setdVsdq(std::unique_ptr<System>& system, Eigen::VectorXd new_dVs, Eigen::VectorXd new_theta_star);
+	bool setdVsdq(System& system, Eigen::VectorXd new_dVs, Eigen::VectorXd new_theta_star);
 
 
 private:
@@ -35,13 +35,13 @@ private:
 
 	/* Parameters necessary for IDA-PBC control */
 	// Define the local gradient
-	Eigen::VectorXd getdVsdq(std::unique_ptr<System>& system);
+	Eigen::VectorXd getdVsdq(System& system);
 
 	// Define damping
-	Eigen::MatrixXd getKv(std::unique_ptr<System>& system);
+	Eigen::MatrixXd getKv(System& system);
 
 	// Define the input matrix
-	Eigen::MatrixXd getPsi(std::unique_ptr<System>& system);
+	Eigen::MatrixXd getPsi(System& system);
 
 };
 

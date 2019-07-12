@@ -19,15 +19,17 @@ System::~System(){
 }
 
 
-bool System::dataReady(){
-	return data_rdy;
-}
+// bool System::dataReady(){
+// 	return data_rdy;
+// }
 
 
-void System::setState(Eigen::VectorXd new_q, Eigen::VectorXd new_qd){
-	state = State{new_q, new_qd};
+void System::setState(Eigen::VectorXd new_q, Eigen::VectorXd new_dq, Eigen::VectorXd new_z){
+	state.q = new_q;
+	state.dq = new_dq;
+	state.z = new_z;
 }
 
-void System::setDataReady(bool is_ready){
-	data_rdy = is_ready;
-}
+// void System::setDataReady(bool is_ready){
+// 	data_rdy = is_ready;
+// }

@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<!-- Possibly BS -->
+<library path="lib/libpanda">
+  <class name="panda/Panda"
+         type="panda::Panda"
+         base_class_type="controller_interface::ControllerBase">
+    <description>
+      Controls Panda using passivity based control
+    </description>
+  </class>
+</library>
