@@ -8,8 +8,8 @@ int main(int argc, char **argv){
 
 	// Get a nodehandle
 	ros::NodeHandle n("~");
-	n.getParam("/l_dim", l);
-	n.getParam("/N_dim", N);
+	n.getParam("/l", l);
+	n.getParam("/N_agents", N);
 
 	Remote remote(l, N);
 	

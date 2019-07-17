@@ -15,12 +15,12 @@ IDAPBC::IDAPBC(System& system)
 	logMsg("IDAPBC", "Initiating.. ", 2);
 
 	/* Retrieve controller gains */
-	ros::NodeHandle nh("/controller/");
+	ros::NodeHandle nh;
 	std::vector<double> Vs_gains_v, theta_star_v;
 
-	helpers::safelyRetrieveArray(nh, "Vs_gains", Vs_gains_v, 7);
-	helpers::safelyRetrieveArray(nh, "theta_star", theta_star_v, 7);
-	helpers::safelyRetrieve(nh, "l", l);
+	helpers::safelyRetrieveArray(nh, "/controller/Vs_gains", Vs_gains_v, 7);
+	helpers::safelyRetrieveArray(nh, "/controller/theta_star", theta_star_v, 7);
+	helpers::safelyRetrieve(nh, "/l", l);
 
 	Vs_gains = helpers::vectorToEigen(Vs_gains_v);
 	theta_star = helpers::vectorToEigen(theta_star_v);
@@ -69,7 +69,7 @@ Eigen::VectorXd IDAPBC::getdVsdq(System& system){
 
 // Define damping
 Eigen::MatrixXd IDAPBC::getKv(System& system){
-	return 0.3*Eigen::MatrixXd::Identity(system.n, system.n);
+	return 0.05*Eigen::MatrixXd::Identity(system.n, system.n);
 }
 
 

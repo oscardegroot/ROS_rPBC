@@ -14,8 +14,8 @@ CMM::CMM(){
 
 	// Get a nodehandle
 	n->getParam("i_id", i_id);
-	n->getParam("/l_dim", l);
-	n->getParam("/N_dim", N);
+	n->getParam("/l", l);
+	n->getParam("/N_agents", N);
 	n->getParam("/net_gain", gain);
 	
 	// Randomize the random seed
@@ -52,7 +52,7 @@ void CMM::initiateEdges(){
 					edges.push_back(std::make_unique<Edge>(i_id, j,gain, l));
 				}
 			}else{
-				logMsg("CMM", "Failed to obtain formations from the server!", 0);
+				//logMsg("CMM", "Failed to obtain formations from the server!", 0);
 			}
 			
 		}

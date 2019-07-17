@@ -14,8 +14,6 @@ namespace panda {
 Panda::Panda()
 	:System(7, 7)
 {
-	logMsg("Panda", "Panda Constructor", 3);
-
 }
 
 Panda::~Panda(){};
@@ -27,30 +25,30 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 
 	/* Not working yet! */
 	//Set collision behaviour
-	// connect_client = nh.serviceClient<franka_control::SetFullCollisionBehavior>("/SetFullCollisionBehavior");
+	connect_client = nh.serviceClient<franka_control::SetFullCollisionBehavior>("/franka_control/set_full_collision_behavior");
 
-	// franka_control::SetFullCollisionBehavior req;
-	// std::array<double, 7> low = {10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0};
-	// std::array<double, 7> high = {20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0};
- //  	std::copy(low.cbegin(),low.cend(), req.request.lower_torque_thresholds_acceleration.begin());
-	// std::copy(high.cbegin(),high.cend(), req.request.upper_torque_thresholds_acceleration.begin());
-	// std::copy(low.cbegin(),low.cend(), req.request.lower_torque_thresholds_nominal.begin());
-	// std::copy(high.cbegin(),high.cend(), req.request.upper_torque_thresholds_nominal.begin());
+	franka_control::SetFullCollisionBehavior req;
+	std::array<double, 7> low = {10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0};
+	std::array<double, 7> high = {20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0};
+  	std::copy(low.cbegin(),low.cend(), req.request.lower_torque_thresholds_acceleration.begin());
+	std::copy(high.cbegin(),high.cend(), req.request.upper_torque_thresholds_acceleration.begin());
+	std::copy(low.cbegin(),low.cend(), req.request.lower_torque_thresholds_nominal.begin());
+	std::copy(high.cbegin(),high.cend(), req.request.upper_torque_thresholds_nominal.begin());
 	
-	// std::array<double, 6> low_6 = {10.0, 10.0, 10.0, 10.0, 10.0, 10.0};
-	// std::array<double, 6> high_6 = {20.0, 20.0, 20.0, 20.0, 20.0, 20.0};
- //  	std::copy(low_6.cbegin(),low_6.cend(), req.request.lower_force_thresholds_acceleration.begin());
-	// std::copy(high_6.cbegin(),high_6.cend(), req.request.upper_force_thresholds_acceleration.begin());
-	// std::copy(low_6.cbegin(),low_6.cend(), req.request.lower_force_thresholds_nominal.begin());
-	// std::copy(high_6.cbegin(),high_6.cend(), req.request.upper_force_thresholds_nominal.begin());
+	std::array<double, 6> low_6 = {10.0, 10.0, 10.0, 10.0, 10.0, 10.0};
+	std::array<double, 6> high_6 = {20.0, 20.0, 20.0, 20.0, 20.0, 20.0};
+  	std::copy(low_6.cbegin(),low_6.cend(), req.request.lower_force_thresholds_acceleration.begin());
+	std::copy(high_6.cbegin(),high_6.cend(), req.request.upper_force_thresholds_acceleration.begin());
+	std::copy(low_6.cbegin(),low_6.cend(), req.request.lower_force_thresholds_nominal.begin());
+	std::copy(high_6.cbegin(),high_6.cend(), req.request.upper_force_thresholds_nominal.begin());
 
-	// // Call the service
-	// if(!connect_client.call(req)){
+	// Call the service
+	if(!connect_client.call(req)){
 
-	// 	// If not respondant return false!
-	// 	logMsg("Panda", "Failed to set collision behaviour!", 0);
-	// 	return false;
-	// }
+		// If not respondant return false!
+		logMsg("Panda", "Failed to set collision behaviour!", 0);
+		return false;
+	}
 
 	
 	/* Retrieve names */
@@ -117,7 +115,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 
 	// Initialise the controller
 	controller = std::make_unique<IDAPBC>(*this);
-	
+	cmm = std::make_unique<CMM>();
 
 	//torques_publisher_.init(nh, "torque_comparison", 1);
 	//std::fill(dq_filtered_.begin(), dq_filtered_.end(), 0); -> Check filtering in example!
@@ -145,15 +143,19 @@ void Panda::checkSafety(){
 		// Check if the velocity of the EE surpassed its bound
 	if((this->state.z - last_z).norm() > velocity_norm_bound){
 		throw EEVelocityBoundException(
-			"Panda: Panda EE velocity higher the velocity bound (" + 
+			"Panda: Panda EE velocity higher the velocity bound" + 
 			std::to_string(velocity_norm_bound) + ")");
 	}
 
 	// Check if the velocity of the EE surpassed its bound
 	for(int i = 0; i < 7; i++){
 		if(std::abs(state.dq(i)) > velocity_element_bound){
-			throw VelocityElementBoundException("Panda: Panda velocity higher the velocity bound (" + 
-			std::to_string(velocity_element_bound) + ")");
+			throw VelocityElementBoundException(
+				"Panda: Panda velocity higher the velocity bound (element=" + 
+				std::to_string(i+1) + ", bound=" + 
+			std::to_string(velocity_element_bound) + 
+			", value=" + std::to_string(std::abs(state.dq(i))) + 
+			")");
 		}
 	}
 }
@@ -177,6 +179,7 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 		// Retrieve the robot state
 		franka::RobotState robot_state = cartesian_pose_handle_->getRobotState();
 		cartesian_pose_handle_->setCommand(initial_pose_);
+
 		// Network sampled
 		Eigen::VectorXd tau_network = Eigen::VectorXd::Zero(controller->l); //cmm->sample(controller->getOutput((*this)));
 

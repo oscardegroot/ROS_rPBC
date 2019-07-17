@@ -1,26 +1,25 @@
 N_agents: 1
+l: 3
 
 net_gain: 1.0
 
 controller:
   Vs_gains:
+  - 4.0
+  - 2.0
   - 1.0
-  - 3.0
-  - 0.0
   - 1.0
-  - 0.0
-  - 0.0
-  - 0.0
+  - 1.0
+  - 0.5
+  - 0.5
   theta_star:
   - 0.0
+  - 0.2
+  - 0.0
+  - 0.15
   - 0.0
   - 0.0
   - 0.0
-  - 0.0
-  - 0.0
-  - 0.0
-  l: 3
-
 
 
 panda:
@@ -36,7 +35,9 @@ panda:
   arm_id: panda
   vel_max: 0.05
   z_lower_bound: 0.4
-  velocity_element_bound: 0.5
+  velocity_element_bound: 1.5
   velocity_norm_bound: 0.3
   torque_bound: 6.0
+  ID: 1
+
   
