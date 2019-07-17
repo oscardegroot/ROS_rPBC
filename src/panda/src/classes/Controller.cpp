@@ -8,8 +8,7 @@ An interface for controllers using IDAPBC or rPBC control.
 
 #include "Controller.h"
 
-Controller::Controller(int l_dim){
-	l = l_dim;
+Controller::Controller(){
 	z_pub = nh.advertise<std_msgs::Float64MultiArray>("agent_z", 20);
 }
 

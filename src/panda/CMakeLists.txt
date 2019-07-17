@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(panda)
 
 add_compile_options(-std=c++14)
+#set(CMAKE_BUILD_TYPE Release) -> apply later!
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -11,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   controller_interface
   dynamic_reconfigure
   franka_hw
+  franka_control
   geometry_msgs
   hardware_interface
   message_generation
@@ -50,6 +52,7 @@ catkin_package(LIBRARIES panda
  message_runtime 
  controller_interface
  dynamic_reconfigure
+ franka_control
   franka_hw
   geometry_msgs
   hardware_interface
@@ -80,6 +83,7 @@ add_library(${PROJECT_NAME}
   src/classes/IDAPBC.cpp
   src/classes/Controller.cpp
   src/CustomLog.cpp
+  src/Helpers.cpp
 )
 
 
@@ -96,6 +100,12 @@ add_dependencies(Agent_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTE
 #                                  ${PROJECT_NAME}
 #                                  ${Franka_LIBRARIES})
 # add_dependencies(panda ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_dependencies(panda
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
 target_link_libraries(panda PUBLIC
   ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
@@ -109,6 +119,8 @@ target_include_directories(panda SYSTEM PUBLIC
 target_include_directories(panda PUBLIC
   include
 )
+#add_dependencies(panda ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 
 
 # The beacon node

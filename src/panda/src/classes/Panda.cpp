@@ -7,62 +7,60 @@ System file for the real Franka Emika Panda 7DOF robotic manipulator
 #include <Panda.h>
 #include <controller_interface/controller_base.h>
 #include <pluginlib/class_list_macros.h>
-
+#include <cmath>
 
 namespace panda {
 
 Panda::Panda()
 	:System(7, 7)
 {
-	logMsg("Panda", "Panda Constructor", 2);
+	logMsg("Panda", "Panda Constructor", 3);
+
 }
 
 Panda::~Panda(){};
 
 
 bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
+	
 	logMsg("Panda", "Panda Controller Started!", 2);
 
-	// if (!node_handle.getParam("vel_max", vel_max_)) {
-	// ROS_INFO_STREAM(
-	//     "JointImpedanceExampleController: No parameter vel_max, defaulting to: " << vel_max_);
-	// }
-	// if (!node_handle.getParam("acceleration_time", acceleration_time_)) {
-	// ROS_INFO_STREAM(
-	//     "JointImpedanceExampleController: No parameter acceleration_time, defaulting to: "
-	//     << acceleration_time_);
+	/* Not working yet! */
+	//Set collision behaviour
+	// connect_client = nh.serviceClient<franka_control::SetFullCollisionBehavior>("/SetFullCollisionBehavior");
+
+	// franka_control::SetFullCollisionBehavior req;
+	// std::array<double, 7> low = {10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0};
+	// std::array<double, 7> high = {20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0};
+ //  	std::copy(low.cbegin(),low.cend(), req.request.lower_torque_thresholds_acceleration.begin());
+	// std::copy(high.cbegin(),high.cend(), req.request.upper_torque_thresholds_acceleration.begin());
+	// std::copy(low.cbegin(),low.cend(), req.request.lower_torque_thresholds_nominal.begin());
+	// std::copy(high.cbegin(),high.cend(), req.request.upper_torque_thresholds_nominal.begin());
+	
+	// std::array<double, 6> low_6 = {10.0, 10.0, 10.0, 10.0, 10.0, 10.0};
+	// std::array<double, 6> high_6 = {20.0, 20.0, 20.0, 20.0, 20.0, 20.0};
+ //  	std::copy(low_6.cbegin(),low_6.cend(), req.request.lower_force_thresholds_acceleration.begin());
+	// std::copy(high_6.cbegin(),high_6.cend(), req.request.upper_force_thresholds_acceleration.begin());
+	// std::copy(low_6.cbegin(),low_6.cend(), req.request.lower_force_thresholds_nominal.begin());
+	// std::copy(high_6.cbegin(),high_6.cend(), req.request.upper_force_thresholds_nominal.begin());
+
+	// // Call the service
+	// if(!connect_client.call(req)){
+
+	// 	// If not respondant return false!
+	// 	logMsg("Panda", "Failed to set collision behaviour!", 0);
+	// 	return false;
 	// }
 
+	
+	/* Retrieve names */
 	std::vector<std::string> joint_names;
-	if (!nh.getParam("joint_names", joint_names) || joint_names.size() != 7) {
+	std::string arm_id;
 
-		logMsg("Panda", "Invalid or no joint_names parameters provided!", 0);
-		return false;
-	}
+	helpers::safelyRetrieveArray(nh, "joint_names", joint_names, 7);
+	helpers::safelyRetrieve(nh, "arm_id", arm_id);
 
-	// double publish_rate(30.0);
-	// if (!node_handle.getParam("publish_rate", publish_rate)) {
-	// ROS_INFO_STREAM("JointImpedanceExampleController: publish_rate not found. Defaulting to "
-	//                 << publish_rate);
-	// }
-	// rate_trigger_ = franka_hw::TriggerRate(publish_rate);
-
-	// franka_hw::FrankaPoseCartesianInterface* cartesian_pose_interface = hw->get<franka_hw::FrankaPoseCartesianInterface>();
-	// if (cartesian_pose_interface == nullptr) {
-	// 	logMsg("Panda", "Error getting cartesian pose interface from hardware", 0);
-	// 	return false;
-	// }
-	// try {
-	// cartesian_pose_handle_.reset(new franka_hw::FrankaCartesianPoseHandle(
-	//     cartesian_pose_interface->getHandle(arm_id + "_robot")));
-	// } catch (hardware_interface::HardwareInterfaceException& ex) {
-	// 	logMsg("Panda", "Exception getting cartesian pose handle from interface: " << ex.what(), 0);
-	// 	return false;
-	// }
-
-	// Temporary!
-	std::string arm_id = "1";
-
+	/* Set up interfaces */
 	franka_hw::FrankaPoseCartesianInterface* cartesian_pose_interface =
 	      hw->get<franka_hw::FrankaPoseCartesianInterface>();
 	if (cartesian_pose_interface == nullptr) {
@@ -74,7 +72,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 		cartesian_pose_handle_.reset(new franka_hw::FrankaCartesianPoseHandle(
 		cartesian_pose_interface->getHandle(arm_id + "_robot")));
 	} catch (hardware_interface::HardwareInterfaceException& ex) {
-		errorRetrieving("Cartesian Pose Handle", ex.what());
+		helpers::errorRetrieving("Cartesian Pose Handle", ex.what());
 		return false;
 	}
 
@@ -90,7 +88,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	model_handle_.reset(
 	    new franka_hw::FrankaModelHandle(model_interface->getHandle(arm_id + "_model")));
 	} catch (hardware_interface::HardwareInterfaceException& ex) {
-			errorRetrieving("model handle", ex.what());
+			helpers::errorRetrieving("model handle", ex.what());
 		return false;
 	}
 
@@ -106,69 +104,99 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 		try {
 		  joint_handles_.push_back(effort_joint_interface->getHandle(joint_names[i]));
 		} catch (const hardware_interface::HardwareInterfaceException& ex) {
-			errorRetrieving("joint interface", ex.what());
+			helpers::errorRetrieving("joint interface", ex.what());
 		  	return false;
 		}
 	}
 
+	// Retrieve parameters
+	helpers::safelyRetrieve(nh, "velocity_norm_bound", velocity_norm_bound, 0.4);
+	helpers::safelyRetrieve(nh, "velocity_element_bound", velocity_element_bound, 0.3);
+	helpers::safelyRetrieve(nh, "z_lower_bound", z_lower_bound, 0.2);
+	helpers::safelyRetrieve(nh, "torque_bound", torque_bound, 2.0);
 
-	// Get a nodehandle
-	// safelyRetrieve("i_id", i_id);
-	safelyRetrieve("/l", l);
-	// safelyRetrieve("/N_dim", N);
-
-	// Define the System and the controller		
-	system = std::make_unique<PandaSim>();
-	controller = std::make_unique<IDAPBC>(l, *system);
-	cmm = std::make_unique<CMM>();
+	// Initialise the controller
+	controller = std::make_unique<IDAPBC>(*this);
+	
 
 	//torques_publisher_.init(nh, "torque_comparison", 1);
-
 	//std::fill(dq_filtered_.begin(), dq_filtered_.end(), 0); -> Check filtering in example!
 
-	return true;
-}  // mandatory
-
-// Move to general functionality later:
-template <class T> 
-bool Panda::safelyRetrieve(std::string name, T& param){
-
-	if (!nh.getParam(name, param)) {
-		logMsg("Panda", "Failed to retrieve parameter " + std::to_string(param), 0);
-		return false;
-		}
-
-	return true;
-
-}
-
-inline void Panda::errorRetrieving(std::string name, const char* ex_what){
-	logMsg("Panda", "Exception getting " + name + ex_what, 0);
-
-}
-
-
-void Panda::setState(){
-
+	// Get an initial state reading
 	franka::RobotState robot_state = cartesian_pose_handle_->getRobotState();
-	this->state.q = arrayToVector<7>(robot_state.q);
-	this->state.dq = arrayToVector<7>(robot_state.dq);
-	this->state.z = arrayToVector<16>(robot_state.O_T_EE).block(0,3,3,1);
+	retrieveState(robot_state);
 
+	logMsg("Panda", "Initialisation Completed!", 2);
+
+	return true;
+}
+
+/* Function to check if bounds are not exceeded 
+	Throws an error if they are!
+*/
+void Panda::checkSafety(){
+
+	// Check if the panda is not below its lower bound
+	if(this->state.z(2) < z_lower_bound){
+		throw BoundException(
+			"Panda: Panda fell below lower bound!");
+	}
+
+		// Check if the velocity of the EE surpassed its bound
+	if((this->state.z - last_z).norm() > velocity_norm_bound){
+		throw EEVelocityBoundException(
+			"Panda: Panda EE velocity higher the velocity bound (" + 
+			std::to_string(velocity_norm_bound) + ")");
+	}
+
+	// Check if the velocity of the EE surpassed its bound
+	for(int i = 0; i < 7; i++){
+		if(std::abs(state.dq(i)) > velocity_element_bound){
+			throw VelocityElementBoundException("Panda: Panda velocity higher the velocity bound (" + 
+			std::to_string(velocity_element_bound) + ")");
+		}
+	}
+}
+
+
+void Panda::retrieveState(franka::RobotState& robot_state){
+	this->state.q = helpers::arrayToVector<7>(robot_state.q);
+	this->state.dq = helpers::arrayToVector<7>(robot_state.dq);
+	std::array<double, 3> z{{robot_state.O_T_EE[12], robot_state.O_T_EE[13], robot_state.O_T_EE[14]}};
+	this->state.z = helpers::arrayToVector<3>(z);
+
+
+}
+
+void Panda::starting(const ros::Time& /*time*/) {
+  initial_pose_ = cartesian_pose_handle_->getRobotState().O_T_EE_d;
 }
 
 void Panda::update (const ros::Time& time, const ros::Duration& period){
 
+		// Retrieve the robot state
+		franka::RobotState robot_state = cartesian_pose_handle_->getRobotState();
+		cartesian_pose_handle_->setCommand(initial_pose_);
 		// Network sampled
-		Eigen::VectorXd tau_network = Eigen::VectorXd::Zero(l); //cmm->sample(controller->getOutput(system));
+		Eigen::VectorXd tau_network = Eigen::VectorXd::Zero(controller->l); //cmm->sample(controller->getOutput((*this)));
 
-		setState();
+		retrieveState(robot_state);
+
+		// Check for errors
+		checkSafety();
 		
 		// Calculate the control input
 		Eigen::VectorXd tau = controller->computeControl((*this), tau_network);
+		//std::cout << tau <<std::endl;
+
+		//tau = Eigen::VectorXd::Zero(7);
 		
+		// Check if the torque bound wasn't passed and saturate the torque bound
+		checkTorque(tau, robot_state.tau_J_d);
 		// Send the input
-		system->sendInput(tau);
+		sendInput(tau);
+
+		last_z = state.z;
 
 } // mandatory
 
@@ -184,33 +212,66 @@ bool Panda::sendInput(Eigen::VectorXd tau){
 }
 
 Eigen::MatrixXd Panda::M(){
-		std::array<double, 49> mass_array = model_handle_->getMass();
-		Eigen::MatrixXd mass(7, 7);
-		
-		for(int i = 0; i < 7; i++){
-			for(int j = 0; j < 7; j++){
-				mass(i, j) = mass_array[i*7 + j];
-			}
+	std::array<double, 49> mass_array = model_handle_->getMass();
+	Eigen::MatrixXd mass(7, 7);
+	
+	for(int i = 0; i < 7; i++){
+		for(int j = 0; j < 7; j++){
+			mass(i, j) = mass_array[i*7 + j];
 		}
-
-		return mass;
 	}
+
+	return mass;
+}
+
+/*
+Traceback (most recent call last):
+  File "/opt/ros/kinetic/lib/controller_manager/spawner", line 207, in <module>
+    if __name__ == '__main__': main()
+  File "/opt/ros/kinetic/lib/controller_manager/spawner", line 199, in main
+    resp = switch_controller(loaded, [], 2)
+  File "/opt/ros/kinetic/lib/python2.7/dist-packages/rospy/impl/tcpros_service.py", line 435, in __call__
+    return self.call(*args, **kwds)
+  File "/opt/ros/kinetic/lib/python2.7/dist-packages/rospy/impl/tcpros_service.py", line 525, in call
+    raise ServiceException("transport error completing service call: %s"%(str(e)))
+rospy.service.ServiceException: transport error completing service call: unable to receive data from sender, check sender's logs for details
+*/
+
+/* From Franka Emika: Saturates the torque rate (not torque itself)*/
+std::array<double, 7> Panda::saturateTorqueRate(
+    const Eigen::VectorXd& torques,
+    const std::array<double, 7>& tau_J_d) {
+
+  std::array<double, 7> tau_d_saturated{};
+
+  for (size_t i = 0; i < 7; i++) {
+    double difference = torques[i] - tau_J_d[i];
+    tau_d_saturated[i] = tau_J_d[i] + std::max(std::min(difference, kDeltaTauMax), -kDeltaTauMax);
+  }
+
+  return tau_d_saturated;
+}
+
+std::array<double, 7> Panda::checkTorque(const Eigen::VectorXd& torques, const std::array<double, 7>& tau_J_d){
+	
+	// If one of the torques is out of bounds, throw an error
+	for(int i = 0; i < 7; i++){
+		if(std::abs(torques[i]) > torque_bound){
+			throw TorqueBoundException("Panda: Torque "
+				 + std::to_string(i) + " out of bounds! (bound=" 
+				 + std::to_string(torque_bound) + ", value= " 
+				 + std::to_string(torques[i]) + ")");
+		}
+	}
+
+	// Otherwise saturate the torque rate and return
+	return saturateTorqueRate(torques, tau_J_d);
+}
+
 
 Eigen::VectorXd Panda::dVdq(){
-		return arrayToVector<7>(model_handle_->getGravity());
-	}
-
-template <int N>
-Eigen::VectorXd Panda::arrayToVector(std::array<double, N> input){
-
-		Eigen::VectorXd result(N);
-
-		for(int i = 0; i < N; i++){
-			result(i) = input[i];
-		}
-
-		return result;
-	}
+	return helpers::arrayToVector<7>(model_handle_->getGravity());
+}
 
 }
 

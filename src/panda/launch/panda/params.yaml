@@ -1,7 +1,25 @@
-l_dim: 3
-N_dim: 2
+N_agents: 1
 
-net_gain: 15.0
+net_gain: 1.0
+
+controller:
+  Vs_gains:
+  - 1.0
+  - 3.0
+  - 0.0
+  - 1.0
+  - 0.0
+  - 0.0
+  - 0.0
+  theta_star:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  l: 3
 
 
 
@@ -16,4 +34,9 @@ panda:
   - panda_joint6
   - panda_joint7
   arm_id: panda
-  # additional_example_parameter: 0.0
+  vel_max: 0.05
+  z_lower_bound: 0.4
+  velocity_element_bound: 0.5
+  velocity_norm_bound: 0.3
+  torque_bound: 6.0
+  

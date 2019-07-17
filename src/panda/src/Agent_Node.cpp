@@ -28,7 +28,7 @@ int main(int argc, char **argv){
 
 	
 	std::unique_ptr<System> system = std::make_unique<PandaSim>();
-	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(l, *system);
+	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*system);
 
 	CMM cmm;
 

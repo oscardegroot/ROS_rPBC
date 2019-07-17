@@ -30,6 +30,10 @@ void System::setState(Eigen::VectorXd new_q, Eigen::VectorXd new_dq, Eigen::Vect
 	state.z = new_z;
 }
 
+void System::checkSafety(){
+	return;
+}
+
 // void System::setDataReady(bool is_ready){
 // 	data_rdy = is_ready;
 // }

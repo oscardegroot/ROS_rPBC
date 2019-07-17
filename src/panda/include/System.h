@@ -46,6 +46,9 @@ public:
 	// void setDataReady(bool is_ready);
 	int getN(){return n;};
 	void setState(Eigen::VectorXd new_q, Eigen::VectorXd new_qd, Eigen::VectorXd new_z);
+
+	virtual void checkSafety();
+
 private:
 	
 

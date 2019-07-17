@@ -19,7 +19,7 @@ An interface for controllers using IDAPBC or rPBC control.
 class Controller{
 
 public:
-	Controller(int l_dim);
+	Controller();
 	~Controller();
 
 	int l;

@@ -10,22 +10,20 @@ Implements an IDAPBC controller for the panda robotic arm.
 #include "IDAPBC.h"
 
 /* Possibly: Use a shared pointer where the system is shared between the agent_node and the controller*/
-IDAPBC::IDAPBC(int l_dim, System& system) : 
-	Controller(l_dim)
+IDAPBC::IDAPBC(System& system)
 {
 	logMsg("IDAPBC", "Initiating.. ", 2);
 
-	Eigen::VectorXd Vs = Eigen::VectorXd::Zero(system.n);
-	Eigen::VectorXd ts = Eigen::VectorXd::Zero(system.n);
+	/* Retrieve controller gains */
+	ros::NodeHandle nh("/controller/");
+	std::vector<double> Vs_gains_v, theta_star_v;
 
+	helpers::safelyRetrieveArray(nh, "Vs_gains", Vs_gains_v, 7);
+	helpers::safelyRetrieveArray(nh, "theta_star", theta_star_v, 7);
+	helpers::safelyRetrieve(nh, "l", l);
 
-	ros::NodeHandle n_private("~");
-	for(int i = 0; i < system.n; i++){
-		n_private.getParam("Vs/" + std::to_string(i), Vs[i]);
-		n_private.getParam("ts/" + std::to_string(i), ts[i]);
-	}
-
-	setdVsdq(system, Vs, ts);
+	Vs_gains = helpers::vectorToEigen(Vs_gains_v);
+	theta_star = helpers::vectorToEigen(theta_star_v);
 
 	logMsg("IDAPBC", "Done!", 2);
 
@@ -36,12 +34,12 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
 
-	// Apply IDA-PBC
-	tau = system.dVdq() - 1.0*getKv(system)*system.state.dq - getdVsdq(system);
+	// Apply IDA-PBC (The robot autocompensates for gravity?)
+	tau = -getdVsdq(system)- getKv(system)*system.state.dq; //0.1*system.dVdq();//  - getVs_gainsdq(system);
 
 
 	// Add the cooperative input
-	tau = tau + getPsi(system) * tau_c;// - psi*psi.transpose()*system.state.dq;
+	//tau = tau + getPsi(system) * tau_c;// - psi*psi.transpose()*system.state.dq;
 
 	return tau;
 }
@@ -62,32 +60,16 @@ Eigen::VectorXd IDAPBC::getOutput(System& system){
 	return r;
 }
 
-
-bool IDAPBC::setdVsdq(System& system, Eigen::VectorXd new_dVs, Eigen::VectorXd new_theta_star){
-	
-	// Catch bad inputs
-	if(new_dVs.size() != system.n || new_theta_star.size() != system.n){
-		logMsg("IDAPBC", "dVs size does not match the system size\n Changes were not applied!\n", 1);
-
-		return false;
-	}
-
-	// If inputs where correct apply them
-	dVs = new_dVs;
-	theta_star = new_theta_star;
-
-	return true;
-}
-
 // Define the local gradient
 Eigen::VectorXd IDAPBC::getdVsdq(System& system){
+
 	// Return a linear gradient w.r.t. local coordinates
-	return -dVs.cwiseProduct(theta_star - system.state.q);
+	return -Vs_gains.cwiseProduct(theta_star - system.state.q);
 }
 
 // Define damping
 Eigen::MatrixXd IDAPBC::getKv(System& system){
-	return Eigen::MatrixXd::Identity(system.n, system.n);
+	return 0.3*Eigen::MatrixXd::Identity(system.n, system.n);
 }
 
 

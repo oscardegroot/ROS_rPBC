@@ -11,27 +11,26 @@ A standard IDA-PBC controller, implements the controller interface defined in Co
 #include <ros/console.h>
 #include "Controller.h"
 #include "CustomLog.h"
+#include "Helpers.h"
+
 
 #include <sstream>
 
 class IDAPBC : public Controller{
 
 public:
-	IDAPBC(int l_dim, System& system);
+	IDAPBC(System& system);
 
 	Eigen::VectorXd computeControl(System& system, Eigen::VectorXd tau_c);
 
 	// Get the agent output, possibly modified
 	Eigen::VectorXd getOutput(System& system);
 
-	// Set the local potential gradient as quadratic with specified gains
-	bool setdVsdq(System& system, Eigen::VectorXd new_dVs, Eigen::VectorXd new_theta_star);
-
-
 private:
 
 	// Gains
-	Eigen::VectorXd dVs, theta_star;
+	Eigen::VectorXd Vs_gains, theta_star;
+	//std::vector<double> Vs_gains, theta_star;
 
 	/* Parameters necessary for IDA-PBC control */
 	// Define the local gradient

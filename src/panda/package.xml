@@ -53,7 +53,7 @@
   <depend>libfranka</depend>
   <depend>pluginlib</depend>
   <depend>realtime_tools</depend>
-  <exec_depend>franka_control</exec_depend>
+  <depend>franka_control</depend>
   <exec_depend>franka_description</exec_depend>
   <exec_depend>panda_moveit_config</exec_depend>
 
