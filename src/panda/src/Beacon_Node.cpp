@@ -16,45 +16,71 @@ Thanks to the CMM the communication and convergence properties remain stable.
 
 #include "Goals.h"
 #include "CMM.h"
+#include "Helpers.h"
 
 #include <memory>
 #include <vector>
 #include <string>
 #include <sstream>
 
-int i_id, l, N;
+int agent_id, l, N;
+
+void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref);
 
 int main(int argc, char **argv){
 	
 	// Initialise ROS
 	ros::init(argc, argv, "Agent");
 
-	ros::NodeHandle n = ros::NodeHandle("~");
+	ros::NodeHandle n;// = ros::NodeHandle("~");
 
 	// Get a nodehandle
-	n.getParam("i_id", i_id);
-	n.getParam("/l_dim", l);
-	n.getParam("/N_dim", N);
+	helpers::safelyRetrieve(n, "/beacon/ID", agent_id);
+	helpers::safelyRetrieve(n, "/l", l);
+	helpers::safelyRetrieve(n, "/N_agents", N);
 	
-	Eigen::Vector3d ref;
-	ref << 0.3, 0.3, 0.4;
+	// Retrieve the goal
+	std::vector<double> ref_v;
+	helpers::safelyRetrieveArray(n, "/beacon/goal", ref_v, 3);
 
-	CMM cmm;
 
-	//Maybe also define the controller here-> Agent has a system and a controller
+	Eigen::VectorXd ref = helpers::vectorToEigen(ref_v);
+	//ref << 0.0, 0.3, 0.8;
+	
+	ros::Publisher pub;
+	pub = n.advertise<std_msgs::Float64MultiArray>("/reference", 20);
 
-	ros::Rate loop_rate(100);
+	CMM cmm(agent_id);
+
+	ros::Rate loop_rate(1000);
 
 	while(ros::ok()){
 
 		// Sample the network
 		Eigen::VectorXd tau_network = cmm.sample(ref);
 		
+		publishReference(pub, ref);
+
 		ros::spinOnce();
 
 		loop_rate.sleep();
 	}
 
 	return 0;
+
+}
+
+void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref){
+
+	std_msgs::Float64MultiArray msg;
+
+	// Put the wave in the messagge
+	msg.data.resize(ref.size());
+	for(int i = 0; i < l; i++){
+		msg.data[i] = ref(i);
+	}
+
+	// Publish the message
+	pub.publish(msg);
 
 }

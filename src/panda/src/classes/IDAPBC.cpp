@@ -16,14 +16,38 @@ IDAPBC::IDAPBC(System& system)
 
 	/* Retrieve controller gains */
 	ros::NodeHandle nh;
-	std::vector<double> Vs_gains_v, theta_star_v;
+	std::vector<double> Vs_gains_v, theta_star_v; 
+	std::vector<double> limit_avoidance_gains_v, limits_min_array, limits_max_array;
 
-	helpers::safelyRetrieveArray(nh, "/controller/Vs_gains", Vs_gains_v, 7);
-	helpers::safelyRetrieveArray(nh, "/controller/theta_star", theta_star_v, 7);
+	helpers::safelyRetrieve(nh, "/controller/kv", kv, 1.0);
+
+	helpers::safelyRetrieve(nh, "/controller/integral/ki", kv, 1.0);
+	helpers::safelyRetrieve(nh, "/controller/integral/enabled", integral_enabled, false);
+
+	helpers::safelyRetrieve(nh, "/controller/gravity_compensation/enabled", gravity_enabled, false);
+
+	helpers::safelyRetrieve(nh, "/controller/local_potential/enabled", local_enabled, false);
+	helpers::safelyRetrieveArray(nh, "/controller/local_potential/gains", Vs_gains_v, 7);
+	helpers::safelyRetrieveArray(nh, "/controller/local_potential/goals", theta_star_v, 7);
+	
+	helpers::safelyRetrieve(nh, "/controller/joint_limit_avoidance/enabled", limit_avoidance_enabled, false);
+	helpers::safelyRetrieveArray(nh, "/controller/joint_limit_avoidance/gains", limit_avoidance_gains_v, 7);
+
+	// Calculate the mid point of the joints
+	helpers::safelyRetrieveArray(nh, "/controller/joint_limit_avoidance/limits_min", limits_min_array, 7);
+	helpers::safelyRetrieveArray(nh, "/controller/joint_limit_avoidance/limits_max", limits_max_array, 7);
+	
+	//Convert to eigen
+	limits_avg = 0.5*(helpers::vectorToEigen(limits_min_array) +
+						helpers::vectorToEigen(limits_max_array));
+
 	helpers::safelyRetrieve(nh, "/l", l);
 
 	Vs_gains = helpers::vectorToEigen(Vs_gains_v);
 	theta_star = helpers::vectorToEigen(theta_star_v);
+	limit_avoidance_gains = helpers::vectorToEigen(limit_avoidance_gains_v);
+
+	integral_state = Eigen::VectorXd::Zero(system.m);
 
 	logMsg("IDAPBC", "Done!", 2);
 
@@ -34,13 +58,24 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
 
+	// Compensate gravity if necessary
+	if(gravity_enabled){
+		tau += system.dVdq();
+	}
+
+	// if(integral_enabled){
+	// 	tau += integral_state;
+	// 	integral_state -= ki*(system.state.dq - )
+	// 	//ki*system.state.dq; // Assumes
+	// }
+
 	// Apply IDA-PBC (The robot autocompensates for gravity?)
-	tau = -getdVsdq(system)- getKv(system)*system.state.dq; //0.1*system.dVdq();//  - getVs_gainsdq(system);
-
-
+	tau += -getdVsdq(system) - getKv(system)*system.state.dq; //0.1*system.dVdq();//  - getVs_gainsdq(system);
+	//std::cout<<system.Psi().block(0, 0, 7, 3)*tau_c <<std::endl;
 	// Add the cooperative input
-	//tau = tau + getPsi(system) * tau_c;// - psi*psi.transpose()*system.state.dq;
-
+	Eigen::Matrix<double, 7, 3> psi(system.Psi().block(0, 0, 7, 3));
+	tau += psi * tau_c;//; - system.Psi().block(0,0,7,3).transpose()*system.state.dq;// - psi*psi.transpose()*system.state.dq;
+	tau -= psi*psi.transpose()*system.state.dq;
 	return tau;
 }
 
@@ -63,38 +98,23 @@ Eigen::VectorXd IDAPBC::getOutput(System& system){
 // Define the local gradient
 Eigen::VectorXd IDAPBC::getdVsdq(System& system){
 
+	Eigen::VectorXd dVsdq = Eigen::VectorXd::Zero(system.n);
+
+	if(local_enabled){
+		dVsdq -= Vs_gains.cwiseProduct(theta_star - system.state.q);
+	}
+
+	if(limit_avoidance_enabled){
+		dVsdq -= limit_avoidance_gains.cwiseProduct(limits_avg - system.state.q);
+	}
+
 	// Return a linear gradient w.r.t. local coordinates
-	return -Vs_gains.cwiseProduct(theta_star - system.state.q);
+	return dVsdq;
 }
 
 // Define damping
 Eigen::MatrixXd IDAPBC::getKv(System& system){
-	return 0.05*Eigen::MatrixXd::Identity(system.n, system.n);
+	return kv*Eigen::MatrixXd::Identity(system.n, system.n);
 }
 
 
-// Define dzdq
-Eigen::MatrixXd IDAPBC::getPsi(System& system){
-	Eigen::MatrixXd Psi = Eigen::MatrixXd::Zero(system.n, l);
-	Eigen::Matrix<double, 7, 1> q = system.state.q;
-Psi(0,0) = 0.0825*sin(q(0))*sin(q(1))*sin(q(3)) - 0.316*sin(q(0))*sin(q(1)) - 0.0825*cos(q(0))*sin(q(2)) - 0.0825*cos(q(1))*cos(q(2))*sin(q(0)) + 0.0825*cos(q(0))*cos(q(3))*sin(q(2)) - 0.384*cos(q(3))*sin(q(0))*sin(q(1)) + 0.384*cos(q(0))*sin(q(2))*sin(q(3)) + 0.0825*cos(q(1))*cos(q(2))*cos(q(3))*sin(q(0)) - 0.088*cos(q(0))*cos(q(2))*cos(q(5))*sin(q(4)) + 0.384*cos(q(1))*cos(q(2))*sin(q(0))*sin(q(3)) - 0.088*cos(q(3))*sin(q(0))*sin(q(1))*sin(q(5)) + 0.088*cos(q(0))*sin(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(2)) + 0.088*cos(q(1))*cos(q(2))*sin(q(0))*sin(q(3))*sin(q(5)) + 0.088*cos(q(1))*cos(q(5))*sin(q(0))*sin(q(2))*sin(q(4)) - 0.088*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(1))*sin(q(3)) - 0.088*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(0));
-Psi(0, 1) = 0.316*cos(q(0))*sin(q(1)) - 0.0825*sin(q(0))*sin(q(2)) + 0.384*sin(q(0))*sin(q(2))*sin(q(3)) + 0.0825*cos(q(0))*cos(q(1))*cos(q(2)) + 0.384*cos(q(0))*cos(q(3))*sin(q(1)) - 0.0825*cos(q(0))*sin(q(1))*sin(q(3)) + 0.0825*cos(q(3))*sin(q(0))*sin(q(2)) - 0.0825*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3)) - 0.384*cos(q(0))*cos(q(1))*cos(q(2))*sin(q(3)) + 0.088*cos(q(0))*cos(q(3))*sin(q(1))*sin(q(5)) - 0.088*cos(q(2))*cos(q(5))*sin(q(0))*sin(q(4)) + 0.088*sin(q(0))*sin(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(5))*sin(q(2))*sin(q(4)) + 0.088*cos(q(0))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.088*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(2)) + 0.088*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5));
-Psi(0, 2) = 0;
-Psi(1, 0) = 0.316*cos(q(0))*cos(q(1)) + 0.384*cos(q(0))*cos(q(1))*cos(q(3)) - 0.0825*cos(q(0))*cos(q(2))*sin(q(1)) - 0.0825*cos(q(0))*cos(q(1))*sin(q(3)) + 0.0825*cos(q(0))*cos(q(2))*cos(q(3))*sin(q(1)) + 0.088*cos(q(0))*cos(q(1))*cos(q(3))*sin(q(5)) + 0.384*cos(q(0))*cos(q(2))*sin(q(1))*sin(q(3)) + 0.088*cos(q(0))*cos(q(1))*cos(q(4))*cos(q(5))*sin(q(3)) + 0.088*cos(q(0))*cos(q(2))*sin(q(1))*sin(q(3))*sin(q(5)) + 0.088*cos(q(0))*cos(q(5))*sin(q(1))*sin(q(2))*sin(q(4)) - 0.088*cos(q(0))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1));
-Psi(1, 1) = 0.316*cos(q(1))*sin(q(0)) + 0.384*cos(q(1))*cos(q(3))*sin(q(0)) - 0.0825*cos(q(2))*sin(q(0))*sin(q(1)) - 0.0825*cos(q(1))*sin(q(0))*sin(q(3)) + 0.0825*cos(q(2))*cos(q(3))*sin(q(0))*sin(q(1)) + 0.088*cos(q(1))*cos(q(3))*sin(q(0))*sin(q(5)) + 0.384*cos(q(2))*sin(q(0))*sin(q(1))*sin(q(3)) + 0.088*cos(q(1))*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(3)) + 0.088*cos(q(2))*sin(q(0))*sin(q(1))*sin(q(3))*sin(q(5)) + 0.088*cos(q(5))*sin(q(0))*sin(q(1))*sin(q(2))*sin(q(4)) - 0.088*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(1));
-Psi(1, 2) = 0.0825*sin(q(1))*sin(q(3)) - 0.0825*cos(q(1))*cos(q(2)) - 0.384*cos(q(3))*sin(q(1)) - 0.316*sin(q(1)) + 0.0825*cos(q(1))*cos(q(2))*cos(q(3)) + 0.384*cos(q(1))*cos(q(2))*sin(q(3)) - 0.088*cos(q(3))*sin(q(1))*sin(q(5)) + 0.088*cos(q(1))*cos(q(2))*sin(q(3))*sin(q(5)) + 0.088*cos(q(1))*cos(q(5))*sin(q(2))*sin(q(4)) - 0.088*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.088*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5));
-Psi(2, 0) = 0.0825*cos(q(2))*cos(q(3))*sin(q(0)) - 0.0825*cos(q(0))*cos(q(1))*sin(q(2)) - 0.0825*cos(q(2))*sin(q(0)) + 0.384*cos(q(2))*sin(q(0))*sin(q(3)) + 0.0825*cos(q(0))*cos(q(1))*cos(q(3))*sin(q(2)) + 0.384*cos(q(0))*cos(q(1))*sin(q(2))*sin(q(3)) + 0.088*cos(q(2))*sin(q(0))*sin(q(3))*sin(q(5)) + 0.088*cos(q(5))*sin(q(0))*sin(q(2))*sin(q(4)) - 0.088*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(5))*sin(q(4)) - 0.088*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(0)) + 0.088*cos(q(0))*cos(q(1))*sin(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(2));
-Psi(2, 1) = 0.0825*cos(q(0))*cos(q(2)) - 0.0825*cos(q(0))*cos(q(2))*cos(q(3)) - 0.384*cos(q(0))*cos(q(2))*sin(q(3)) - 0.0825*cos(q(1))*sin(q(0))*sin(q(2)) + 0.0825*cos(q(1))*cos(q(3))*sin(q(0))*sin(q(2)) - 0.088*cos(q(0))*cos(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(5))*sin(q(2))*sin(q(4)) + 0.384*cos(q(1))*sin(q(0))*sin(q(2))*sin(q(3)) + 0.088*cos(q(0))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5)) - 0.088*cos(q(1))*cos(q(2))*cos(q(5))*sin(q(0))*sin(q(4)) + 0.088*cos(q(1))*sin(q(0))*sin(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(1))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(2));
-Psi(2, 2) = 0.0825*sin(q(1))*sin(q(2)) - 0.384*sin(q(1))*sin(q(2))*sin(q(3)) - 0.0825*cos(q(3))*sin(q(1))*sin(q(2)) + 0.088*cos(q(2))*cos(q(5))*sin(q(1))*sin(q(4)) - 0.088*sin(q(1))*sin(q(2))*sin(q(3))*sin(q(5)) + 0.088*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(2));
-Psi(3, 0) = 0.384*cos(q(3))*sin(q(0))*sin(q(2)) - 0.0825*cos(q(0))*cos(q(3))*sin(q(1)) - 0.384*cos(q(0))*sin(q(1))*sin(q(3)) - 0.0825*sin(q(0))*sin(q(2))*sin(q(3)) - 0.384*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3)) + 0.0825*cos(q(0))*cos(q(1))*cos(q(2))*sin(q(3)) - 0.088*cos(q(0))*sin(q(1))*sin(q(3))*sin(q(5)) + 0.088*cos(q(3))*sin(q(0))*sin(q(2))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3))*sin(q(5)) + 0.088*cos(q(0))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1)) + 0.088*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(2))*sin(q(3)) - 0.088*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(4))*cos(q(5))*sin(q(3));
-Psi(3, 1) = 0.0825*cos(q(0))*sin(q(2))*sin(q(3)) - 0.384*cos(q(0))*cos(q(3))*sin(q(2)) - 0.0825*cos(q(3))*sin(q(0))*sin(q(1)) - 0.384*sin(q(0))*sin(q(1))*sin(q(3)) - 0.384*cos(q(1))*cos(q(2))*cos(q(3))*sin(q(0)) + 0.0825*cos(q(1))*cos(q(2))*sin(q(0))*sin(q(3)) - 0.088*cos(q(0))*cos(q(3))*sin(q(2))*sin(q(5)) - 0.088*sin(q(0))*sin(q(1))*sin(q(3))*sin(q(5)) - 0.088*cos(q(1))*cos(q(2))*cos(q(3))*sin(q(0))*sin(q(5)) + 0.088*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(1)) - 0.088*cos(q(0))*cos(q(4))*cos(q(5))*sin(q(2))*sin(q(3)) - 0.088*cos(q(1))*cos(q(2))*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(3));
-Psi(3, 2) = 0.384*cos(q(2))*cos(q(3))*sin(q(1)) - 0.384*cos(q(1))*sin(q(3)) - 0.0825*cos(q(1))*cos(q(3)) - 0.0825*cos(q(2))*sin(q(1))*sin(q(3)) - 0.088*cos(q(1))*sin(q(3))*sin(q(5)) + 0.088*cos(q(1))*cos(q(3))*cos(q(4))*cos(q(5)) + 0.088*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(5)) + 0.088*cos(q(2))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3));
-Psi(4, 0) = 0.088*cos(q(3))*cos(q(5))*sin(q(0))*sin(q(2))*sin(q(4)) - 0.088*cos(q(0))*cos(q(1))*cos(q(4))*cos(q(5))*sin(q(2)) - 0.088*cos(q(0))*cos(q(5))*sin(q(1))*sin(q(3))*sin(q(4)) - 0.088*cos(q(2))*cos(q(4))*cos(q(5))*sin(q(0)) - 0.088*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(5))*sin(q(4));
-Psi(4, 1) = 0.088*cos(q(0))*cos(q(2))*cos(q(4))*cos(q(5)) - 0.088*cos(q(1))*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(2)) - 0.088*cos(q(0))*cos(q(3))*cos(q(5))*sin(q(2))*sin(q(4)) - 0.088*cos(q(5))*sin(q(0))*sin(q(1))*sin(q(3))*sin(q(4)) - 0.088*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(5))*sin(q(0))*sin(q(4));
-Psi(4, 2) = 0.088*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(2)) - 0.088*cos(q(1))*cos(q(5))*sin(q(3))*sin(q(4)) + 0.088*cos(q(2))*cos(q(3))*cos(q(5))*sin(q(1))*sin(q(4));
-Psi(5, 0) = 0.088*cos(q(0))*cos(q(3))*cos(q(5))*sin(q(1)) + 0.088*cos(q(5))*sin(q(0))*sin(q(2))*sin(q(3)) + 0.088*cos(q(2))*sin(q(0))*sin(q(4))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(5))*sin(q(3)) + 0.088*cos(q(0))*cos(q(1))*sin(q(2))*sin(q(4))*sin(q(5)) - 0.088*cos(q(0))*cos(q(4))*sin(q(1))*sin(q(3))*sin(q(5)) + 0.088*cos(q(3))*cos(q(4))*sin(q(0))*sin(q(2))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(5));
-Psi(5, 1) = 0.088*cos(q(3))*cos(q(5))*sin(q(0))*sin(q(1)) - 0.088*cos(q(0))*cos(q(5))*sin(q(2))*sin(q(3)) - 0.088*cos(q(0))*cos(q(2))*sin(q(4))*sin(q(5)) - 0.088*cos(q(1))*cos(q(2))*cos(q(5))*sin(q(0))*sin(q(3)) - 0.088*cos(q(0))*cos(q(3))*cos(q(4))*sin(q(2))*sin(q(5)) + 0.088*cos(q(1))*sin(q(0))*sin(q(2))*sin(q(4))*sin(q(5)) - 0.088*cos(q(4))*sin(q(0))*sin(q(1))*sin(q(3))*sin(q(5)) - 0.088*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(0))*sin(q(5));
-Psi(5, 2) = 0.088*cos(q(1))*cos(q(3))*cos(q(5)) + 0.088*cos(q(2))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.088*cos(q(1))*cos(q(4))*sin(q(3))*sin(q(5)) - 0.088*sin(q(1))*sin(q(2))*sin(q(4))*sin(q(5)) + 0.088*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(5));
-	//std::cout << "Psi: \n" << Psi << "\n";
-	return Psi;
-}

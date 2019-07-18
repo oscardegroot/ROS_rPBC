@@ -113,16 +113,20 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	helpers::safelyRetrieve(nh, "z_lower_bound", z_lower_bound, 0.2);
 	helpers::safelyRetrieve(nh, "torque_bound", torque_bound, 2.0);
 
+	int id;
+	helpers::safelyRetrieve(nh, "ID", id);
+
+
 	// Initialise the controller
 	controller = std::make_unique<IDAPBC>(*this);
-	cmm = std::make_unique<CMM>();
+	cmm = std::make_unique<CMM>(id);
 
 	//torques_publisher_.init(nh, "torque_comparison", 1);
 	//std::fill(dq_filtered_.begin(), dq_filtered_.end(), 0); -> Check filtering in example!
 
 	// Get an initial state reading
-	franka::RobotState robot_state = cartesian_pose_handle_->getRobotState();
-	retrieveState(robot_state);
+	robot_state = cartesian_pose_handle_->getRobotState();
+	retrieveState();
 
 	logMsg("Panda", "Initialisation Completed!", 2);
 
@@ -161,7 +165,13 @@ void Panda::checkSafety(){
 }
 
 
-void Panda::retrieveState(franka::RobotState& robot_state){
+void Panda::retrieveState(){
+	// Eigen::Map<const Eigen::Matrix<double, 7, 1> > q(robot_state.q.data());
+	// Eigen::Map<const Eigen::Matrix<double, 7, 1> > dq(robot_state.dq.data());
+	// Eigen::Affine3d transform(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
+	// Eigen::Vector3d position(transform.translation());
+	// Eigen::Quaterniond orientation(transform.linear());
+
 	this->state.q = helpers::arrayToVector<7>(robot_state.q);
 	this->state.dq = helpers::arrayToVector<7>(robot_state.dq);
 	std::array<double, 3> z{{robot_state.O_T_EE[12], robot_state.O_T_EE[13], robot_state.O_T_EE[14]}};
@@ -177,17 +187,18 @@ void Panda::starting(const ros::Time& /*time*/) {
 void Panda::update (const ros::Time& time, const ros::Duration& period){
 
 		// Retrieve the robot state
-		franka::RobotState robot_state = cartesian_pose_handle_->getRobotState();
+		robot_state = cartesian_pose_handle_->getRobotState();
 		cartesian_pose_handle_->setCommand(initial_pose_);
 
 		// Network sampled
-		Eigen::VectorXd tau_network = Eigen::VectorXd::Zero(controller->l); //cmm->sample(controller->getOutput((*this)));
-
-		retrieveState(robot_state);
+		retrieveState();
 
 		// Check for errors
 		checkSafety();
-		
+
+		//Eigen::VectorXd tau_network = Eigen::VectorXd::Zero(controller->l); //
+		Eigen::VectorXd tau_network = cmm->sample(controller->getOutput(*this));
+		//logTmp(tau_network);
 		// Calculate the control input
 		Eigen::VectorXd tau = controller->computeControl((*this), tau_network);
 		//std::cout << tau <<std::endl;
@@ -205,6 +216,15 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 
 
 
+// Eigen::Map<const Eigen::Matrix<double, 7, 1> > coriolis(coriolis_array.data());
+// Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
+// Eigen::Map<const Eigen::Matrix<double, 7, 1> > q(robot_state.q.data());
+// Eigen::Map<const Eigen::Matrix<double, 7, 1> > dq(robot_state.dq.data());
+// Eigen::Affine3d transform(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
+// Eigen::Vector3d position(transform.translation());
+// Eigen::Quaterniond orientation(transform.linear());
+
+
 // void starting (const ros::Time& time);   // optional
 // void stopping (const ros::Time& time);  // optional
 
@@ -218,27 +238,41 @@ Eigen::MatrixXd Panda::M(){
 	std::array<double, 49> mass_array = model_handle_->getMass();
 	Eigen::MatrixXd mass(7, 7);
 	
-	for(int i = 0; i < 7; i++){
-		for(int j = 0; j < 7; j++){
-			mass(i, j) = mass_array[i*7 + j];
-		}
-	}
+	//Check column Major!
+	// for(int i = 0; i < 7; i++){
+	// 	for(int j = 0; j < 7; j++){
+	// 		mass(j, i) = mass_array[j*7 + i];
+	// 	}
+	// }
 
 	return mass;
 }
 
-/*
-Traceback (most recent call last):
-  File "/opt/ros/kinetic/lib/controller_manager/spawner", line 207, in <module>
-    if __name__ == '__main__': main()
-  File "/opt/ros/kinetic/lib/controller_manager/spawner", line 199, in main
-    resp = switch_controller(loaded, [], 2)
-  File "/opt/ros/kinetic/lib/python2.7/dist-packages/rospy/impl/tcpros_service.py", line 435, in __call__
-    return self.call(*args, **kwds)
-  File "/opt/ros/kinetic/lib/python2.7/dist-packages/rospy/impl/tcpros_service.py", line 525, in call
-    raise ServiceException("transport error completing service call: %s"%(str(e)))
-rospy.service.ServiceException: transport error completing service call: unable to receive data from sender, check sender's logs for details
-*/
+Eigen::MatrixXd Panda::Psi(){
+	// std::array<double, 42> jacobian = model_handle_->getZeroJacobian(
+	// 					franka::Frame::kEndEffector);
+
+	// Eigen::MatrixXd result(6, 7);
+	
+	// for(int i = 0; i < 7; i++){
+	// 	for(int j = 0; j < 6; j++){
+
+	// 		//Column major!
+	// 		result(j, i) = jacobian[j*7 + i];
+	// 	}
+	// }
+
+	// // Account for Psi definition
+	// return result.transpose();
+	std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(
+	 					franka::Frame::kEndEffector);
+
+	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(
+						jacobian_array.data());
+
+	return jacobian.transpose();
+}
+
 
 /* From Franka Emika: Saturates the torque rate (not torque itself)*/
 std::array<double, 7> Panda::saturateTorqueRate(

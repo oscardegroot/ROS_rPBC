@@ -28,6 +28,8 @@ public:
 
 	Eigen::MatrixXd M() override;
 	Eigen::VectorXd dVdq() override;
+	Eigen::MatrixXd Psi() override;
+
 
 	Eigen::VectorXd getZ(Eigen::VectorXd q);
 

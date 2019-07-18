@@ -15,27 +15,26 @@ Manages cooperative communication by managing a number of connections
 
 #include "Edge.h"
 #include "CustomLog.h"
+#include "Helpers.h"
 
 #include "panda/getConnectionsOf.h"
-
-
 
 /* Possibly divide this up further in a system and a controller */
 
 class CMM{
 
 public:
-	CMM();
+	CMM(int set_id);
 	~CMM();
 
 	Eigen::VectorXd sample(Eigen::VectorXd r_i);
 	
 private:
 
-	int i_id, l, N;
+	int agent_id, l, N;
 	double gain;
 
-	ros::NodeHandlePtr n;
+	ros::NodeHandle n;
 
 	ros::ServiceClient connect_client;
 	std::vector<std::unique_ptr<Edge>> edges;

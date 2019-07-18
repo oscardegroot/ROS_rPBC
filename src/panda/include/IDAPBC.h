@@ -29,7 +29,12 @@ public:
 private:
 
 	// Gains
-	Eigen::VectorXd Vs_gains, theta_star;
+	Eigen::VectorXd Vs_gains, theta_star, limit_avoidance_gains, limits_avg;
+	bool local_enabled, limit_avoidance_enabled, gravity_enabled,integral_enabled;
+	double kv, ki;
+
+	Eigen::VectorXd integral_state;
+
 	//std::vector<double> Vs_gains, theta_star;
 
 	/* Parameters necessary for IDA-PBC control */
@@ -38,9 +43,6 @@ private:
 
 	// Define damping
 	Eigen::MatrixXd getKv(System& system);
-
-	// Define the input matrix
-	Eigen::MatrixXd getPsi(System& system);
 
 };
 

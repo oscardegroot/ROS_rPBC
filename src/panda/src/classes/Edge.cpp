@@ -94,11 +94,11 @@ void Edge::applyWVM(Eigen::VectorXd & wave_reference, Eigen::VectorXd r_i){
 		// If that's allowed, use it, otherwise reconstruct by amplitude
 		if(s_HLS.transpose()*s_HLS > s_buffer.transpose()*s_buffer)
 		{
-		 	logMsg("Edge", "WVM applied HLS", 3);
+		 	logMsg("Edge", "WVM applied HLS", 5);
 			wave_reference = s_buffer;
 
 		}else{
-			logMsg("Edge", "WVM applied reconstruction", 3);
+			logMsg("Edge", "WVM applied reconstruction", 5);
 			wave_reference = elementSign(s_buffer).cwiseProduct(s_HLS.cwiseAbs());
 		}
 		

@@ -9,7 +9,7 @@
     <arg name="load_gripper" value="$(arg load_gripper)" />
   </include>
 
-  <rosparam command="load" file="$(find panda)/launch/panda/params.yaml" />
+  <rosparam command="load" file="$(find panda)/launch/single_panda/params.yaml" />
 
   <node name="remote" pkg="panda" type="Remote" respawn="false" output="screen"/>
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="panda"/>

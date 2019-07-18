@@ -54,6 +54,7 @@ public:
 	// Mass and potential
 	Eigen::MatrixXd M();
 	Eigen::VectorXd dVdq();
+	Eigen::MatrixXd Psi();
 
 	// Ros Control functions
 	bool init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh) override;  // mandatory
@@ -62,7 +63,7 @@ public:
 
 	// Wrappers for communication
 	bool sendInput(Eigen::VectorXd tau);
-	void retrieveState(franka::RobotState& robot_state);
+	void retrieveState();
 
 	// Safety functions
 	void checkSafety() override;
@@ -79,6 +80,8 @@ private:
 	// Get a nodehandle
 	ros::NodeHandle nh;
 	ros::ServiceClient connect_client;
+
+	franka::RobotState robot_state;
 
 	// Bounds for safety
 	double z_lower_bound, torque_bound;

@@ -15,15 +15,17 @@ A Remote node class that hosts services and implements an interface
 #include "panda/getConnectionsOf.h"
 #include <string>
 #include "CustomLog.h"
+#include "Helpers.h"
 #include <memory>
 
 
 class Remote{
 public:
-	Remote(int l_dim, int N_dim);
+	Remote();
 	~Remote();
 
-	bool retrieveConnectionsOf(panda::getConnectionsOf::Request &req, panda::getConnectionsOf::Response &res);
+	bool retrieveConnectionsOf(panda::getConnectionsOf::Request &req,
+		 panda::getConnectionsOf::Response &res);
 
 
 private:

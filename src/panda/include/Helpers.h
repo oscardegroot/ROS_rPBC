@@ -10,6 +10,7 @@
 #include <eigen3/Eigen/Dense>
 
 #include "CustomLog.h"
+#include "Exceptions.h"
 
 namespace helpers {
 
@@ -21,7 +22,7 @@ bool safelyRetrieve(ros::NodeHandle& nh, const std::string name, T& param){
 
 
 	if (!nh.getParam(name, param)) {
-		logMsg("Panda", "Failed to retrieve parameter " + name, 0);
+		throw RetrievalException("Helpers: Failed to retrieve parameter " + name);
 		return false;
 	}
 
@@ -35,7 +36,7 @@ bool safelyRetrieve(ros::NodeHandle& nh, const std::string name,
 
 	if(!safelyRetrieve(nh, name, param)){
 		param = default_value;
-		logMsg("Panda", "Set " + name + " to default value: " + std::to_string(default_value), 0);
+		logMsg("Helpers", "Set " + name + " to default value: " + std::to_string(default_value), 0);
 	}
 
 	return true;
@@ -47,13 +48,14 @@ bool safelyRetrieveArray(ros::NodeHandle& nh, const std::string name,
 
 	if (!nh.getParam(name, param))
 	{
-		logMsg("Panda", "Failed to retrieve array " + name, 0);
+		throw RetrievalException("Helpers: Failed to retrieve array " + name);
 		return false;
 	}
 	if(param.size() != expected_size){
-		logMsg("Panda", "Size of parameter " + name +
-			 	" incorrect (size=" + std::to_string(param.size()) +
-			 	", expected=" + std::to_string(expected_size) + ")", 0);
+		throw RetrievalException("Helpers: Size of parameter " + name +
+	 	" incorrect (size=" + std::to_string(param.size()) +
+	 	", expected=" + std::to_string(expected_size) + ")");
+
 		return false;
 	}
 
@@ -62,7 +64,7 @@ bool safelyRetrieveArray(ros::NodeHandle& nh, const std::string name,
 }
 
 inline void errorRetrieving(std::string name, const char* ex_what){
-	logMsg("Panda", "Exception getting " + name + ex_what, 0);
+	logMsg("Helpers", "Exception getting " + name + ex_what, 0);
 }
 
 template <int N>

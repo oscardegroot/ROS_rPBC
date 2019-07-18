@@ -41,6 +41,7 @@ public:
 	virtual bool sendInput(Eigen::VectorXd tau) = 0;
 	virtual Eigen::MatrixXd M() = 0;
 	virtual Eigen::VectorXd dVdq() = 0;
+	virtual Eigen::MatrixXd Psi() = 0;
 
 	// bool dataReady();
 	// void setDataReady(bool is_ready);

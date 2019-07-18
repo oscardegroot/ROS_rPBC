@@ -15,7 +15,6 @@ struct SafetyException : public franka::Exception{
 	using franka::Exception::Exception;
 };
 
-
 struct BoundException : public SafetyException{
 	using SafetyException::SafetyException;
 };
@@ -31,3 +30,14 @@ struct EEVelocityBoundException : public SafetyException{
 struct TorqueBoundException : public SafetyException{
 	using SafetyException::SafetyException;
 };
+
+
+/* Other Exceptions */
+struct OperationalException : public std::runtime_error {
+  using std::runtime_error::runtime_error;
+};
+
+struct RetrievalException : public OperationalException {
+  using OperationalException::OperationalException;
+};
+

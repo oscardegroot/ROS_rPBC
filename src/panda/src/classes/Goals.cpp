@@ -72,6 +72,7 @@ std::vector<connection> Goals::retrieveConnectionsOf(int agent_id){
 }
 
 bool Goals::retrieveConnectionBetween(u_int id_i, u_int id_j, Eigen::VectorXd & r_star){
+	
 	std::vector<connection> connects = retrieveConnectionsOf(id_i);
 
 	for(int j = 0; j < N; j++){

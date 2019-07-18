@@ -7,14 +7,13 @@ int main(int argc, char **argv){
 	ros::init(argc, argv, "Remote");
 
 	// Get a nodehandle
-	ros::NodeHandle n("~");
-	n.getParam("/l", l);
-	n.getParam("/N_agents", N);
+	ros::NodeHandle n;
+	// helpers::safelyRetrieve(n, "/l", l);
+	// helpers::safelyRetrieve(n, "/N_agents", N);
 
-	Remote remote(l, N);
+	Remote remote;
 	
 	ros::spin();
-
 
 	return 0;
 

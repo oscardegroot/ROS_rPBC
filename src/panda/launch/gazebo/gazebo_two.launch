@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+
+	<include file="$(find panda_simulation)/launch/sim.launch"/>
+
+	<rosparam command="load" file="$(find panda)/launch/gazebo/params.yaml" />
+
+	<node name="Remote" pkg="panda" type="Remote" output="screen"/>
+
+
+	<node name="Agent_0" pkg="panda" type="Agent_node" output="screen"/>
+
+	<node name="Beacon_1" pkg="panda" type="Beacon_node" output="screen"/>
+
+	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] agent_z/data[1] agent_z/data[2] reference/data[0] reference/data[1] reference/data[2]"/>
+<!-- 
+	<node name="plotjes2" pkg="rqt_plot" type="rqt_plot" args="/robot1/panda_joint1_controller/command/data /robot1/panda_joint2_controller/command/data /robot1/panda_joint3_controller/command/data" /> -->
+
+</launch>
+

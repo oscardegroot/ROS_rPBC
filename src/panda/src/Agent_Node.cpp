@@ -12,25 +12,25 @@
 #include <string>
 
 
-int i_id, l, N;
+int id, l, N;
 
 int main(int argc, char **argv){
 	
 	// Initialise ROS
 	ros::init(argc, argv, "Agent");
 
-	ros::NodeHandle n = ros::NodeHandle("~");
+	ros::NodeHandle nh = ros::NodeHandle("~");
 
 	// Get a nodehandle
-	n.getParam("i_id", i_id);
-	n.getParam("/l_dim", l);
-	n.getParam("/N_dim", N);
+	helpers::safelyRetrieve(nh, "/panda/ID", id);
+	helpers::safelyRetrieve(nh, "/l", l);
+	helpers::safelyRetrieve(nh, "/N_agents", N);
 
 	
 	std::unique_ptr<System> system = std::make_unique<PandaSim>();
 	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*system);
 
-	CMM cmm;
+	CMM cmm(id);
 
 	//Maybe also define the controller here-> Agent has a system and a controller
 
