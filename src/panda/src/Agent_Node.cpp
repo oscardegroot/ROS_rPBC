@@ -4,6 +4,7 @@
 #include "System.h"
 #include "Controller.h"
 #include "IDAPBC.h"
+#include "rPBC.h"
 #include "CMM.h"
 #include "CustomLog.h"
 
@@ -34,7 +35,7 @@ int main(int argc, char **argv){
 
 	//Maybe also define the controller here-> Agent has a system and a controller
 
-	ros::Rate loop_rate(100);
+	ros::Rate loop_rate(1000);
 
 	while(ros::ok()){
 		// If system data is available

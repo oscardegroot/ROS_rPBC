@@ -8,13 +8,9 @@ A standard IDA-PBC controller, implements the controller interface defined in Co
 #define IDAPBC_H
 
 #include "ros/ros.h"
-#include <ros/console.h>
 #include "Controller.h"
 #include "CustomLog.h"
 #include "Helpers.h"
-
-
-#include <sstream>
 
 class IDAPBC : public Controller{
 
@@ -26,7 +22,12 @@ public:
 	// Get the agent output, possibly modified
 	Eigen::VectorXd getOutput(System& system);
 
-private:
+	/* Parameters necessary for IDA-PBC control */
+	// Define the local gradient
+	Eigen::VectorXd getdVsdq(System& system);
+
+	// Define damping
+	Eigen::MatrixXd getKv(System& system);
 
 	// Gains
 	Eigen::VectorXd Vs_gains, theta_star, limit_avoidance_gains, limits_avg;
@@ -35,14 +36,10 @@ private:
 
 	Eigen::VectorXd integral_state;
 
-	//std::vector<double> Vs_gains, theta_star;
 
-	/* Parameters necessary for IDA-PBC control */
-	// Define the local gradient
-	Eigen::VectorXd getdVsdq(System& system);
+private:
 
-	// Define damping
-	Eigen::MatrixXd getKv(System& system);
+	Eigen::MatrixXd rightPseudoInverse(Eigen::MatrixXd A);
 
 };
 

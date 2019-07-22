@@ -19,6 +19,10 @@ CMM::CMM(int set_id){
 	helpers::safelyRetrieve(n, "/l", l);
 	helpers::safelyRetrieve(n, "/N_agents", N);
 	helpers::safelyRetrieve(n, "/network_gain", gain);
+
+	helpers::safelyRetrieve(n, "/controller/integral/enabled", integral_enabled, false);
+	helpers::safelyRetrieve(n, "/controller/integral/gain", integral_gain, 1.0);
+
 	
 	// Randomize the random seed
 	srand((unsigned int) agent_id + time(0));
@@ -51,7 +55,12 @@ void CMM::initiateEdges(){
 				if(srv.response.is_connected){
 
 					// Create a communication edge
-					edges.push_back(std::make_unique<Edge>(agent_id, j,gain, l));
+					edges.push_back(std::make_unique<Edge>(agent_id, j,gain, l, false));
+
+					if(integral_enabled){
+						integral_edges.push_back(std::make_unique<Edge>(agent_id, j, integral_gain, l, true));
+						integral_states.push_back(Eigen::VectorXd::Zero(l));
+					}
 				}
 			}else{
 				logMsg("CMM", "Failed to obtain formations from the server!", 0);
@@ -72,8 +81,15 @@ Eigen::VectorXd CMM::sample(Eigen::VectorXd r){
 
 	// Sample all edges
 	for(int i = 0; i < edges.size(); i++){
-		tau += edges[i]->sampleEdge(r);
+		Eigen::VectorXd cur_tau = edges[i]->sample(r);
+		tau += cur_tau;
+
+		if(integral_enabled){
+			integral_states[i] += cur_tau;
+			tau += integral_edges[i]->sample(integral_states[i]);
+		}
 	}
+
 
 	// Return the combined input
 	return tau;

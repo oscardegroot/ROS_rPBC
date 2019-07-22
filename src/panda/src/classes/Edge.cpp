@@ -14,7 +14,7 @@ l_set: dimension of the channel
 
 #include "Edge.h"
 
-Edge::Edge(int i, int j, double gain, int l_set){
+Edge::Edge(int i, int j, double gain_set, int l_set, bool is_integral){
 
 	logMsg("Edge", "Initiating edge between " + std::to_string(i) + " and " + std::to_string(j) + "..", 2);
 
@@ -22,14 +22,20 @@ Edge::Edge(int i, int j, double gain, int l_set){
 	i_ID = i;
 	j_ID = j;
 	l = l_set;
+	gain = gain_set;
+
+	std::string integral_add = "";
+	if(is_integral){
+		integral_add = "_i";
+	}
 
 	// If this is agent i, send on the positivily defined channel, listen to the negative channel
 	if(i < j){
-		wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "p", 100);
-		wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "m", 100, &Edge::waveCallback, this);
+		wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "p" + integral_add, 100);
+		wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "m" + integral_add, 100, &Edge::waveCallback, this);
 	}else /* Otherwise invert these */{
-		wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "m", 100);
-		wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "p", 100, &Edge::waveCallback, this);
+		wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "m" + integral_add, 100);
+		wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "p" + integral_add, 100, &Edge::waveCallback, this);
 	}
 
 	// Set the scattering gain
@@ -69,13 +75,18 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 
 
 // Sample the edge, retrieving a data point for the cooperative control and returning a wave in the process
-Eigen::VectorXd Edge::sampleEdge(Eigen::VectorXd r_i){
+Eigen::VectorXd Edge::sample(Eigen::VectorXd r_i){
 
 	// Reconstruct the wave if nothing was received
 	Edge::applyWVM(s_received, r_i);
 
 	// Publish the returning wave
 	publishWave(r_i);
+
+	// Eigen::VectorXd tau = Eigen::VectorXd::Zero(l);
+	// if(data_received){
+	// 	tau = r_i - s_received;
+	// }
 
 	// Return the input for this edge
 	return Edge::getTauST(s_received, r_i);
@@ -133,7 +144,7 @@ void Edge::publishWave(Eigen::VectorXd r_i){
 	// The sub message containing the data
 	std_msgs::Float64MultiArray msg_vec;
 
-	// Calculate the input
+	// Calculate the input (I forgot to disable this!)
 	Eigen::VectorXd wave = Edge::getWaveST(s_received, r_i);
 
 	// Put the wave in the messagge

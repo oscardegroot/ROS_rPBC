@@ -30,6 +30,7 @@ System file for the real Franka Emika Panda 7DOF robotic manipulator
 #include "System.h"
 #include "Controller.h"
 #include "IDAPBC.h"
+#include "rPBC.h"
 #include "PandaSim.h"
 #include "Panda.h"
 #include "CMM.h"
@@ -64,6 +65,7 @@ public:
 	// Wrappers for communication
 	bool sendInput(Eigen::VectorXd tau);
 	void retrieveState();
+	void retrieveMatrices();
 
 	// Safety functions
 	void checkSafety() override;
@@ -82,11 +84,14 @@ private:
 	ros::ServiceClient connect_client;
 
 	franka::RobotState robot_state;
+	ros::Time start_time;
 
 	// Bounds for safety
 	double z_lower_bound, torque_bound;
 	double velocity_element_bound, velocity_norm_bound;
 	Eigen::VectorXd last_z;
+
+	Eigen::MatrixXd psi, m;
 
 	// Torque rate limit
 	static constexpr double kDeltaTauMax{1.0};

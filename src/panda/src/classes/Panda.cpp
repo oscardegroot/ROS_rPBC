@@ -166,36 +166,35 @@ void Panda::checkSafety(){
 
 
 void Panda::retrieveState(){
-	// Eigen::Map<const Eigen::Matrix<double, 7, 1> > q(robot_state.q.data());
-	// Eigen::Map<const Eigen::Matrix<double, 7, 1> > dq(robot_state.dq.data());
-	// Eigen::Affine3d transform(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
-	// Eigen::Vector3d position(transform.translation());
-	// Eigen::Quaterniond orientation(transform.linear());
 
 	this->state.q = helpers::arrayToVector<7>(robot_state.q);
 	this->state.dq = helpers::arrayToVector<7>(robot_state.dq);
 	std::array<double, 3> z{{robot_state.O_T_EE[12], robot_state.O_T_EE[13], robot_state.O_T_EE[14]}};
 	this->state.z = helpers::arrayToVector<3>(z);
 
+	retrieveMatrices();
 
 }
 
 void Panda::starting(const ros::Time& /*time*/) {
   initial_pose_ = cartesian_pose_handle_->getRobotState().O_T_EE_d;
+  start_time = ros::Time::now();
 }
 
 void Panda::update (const ros::Time& time, const ros::Duration& period){
 
-		// Retrieve the robot state
-		robot_state = cartesian_pose_handle_->getRobotState();
-		cartesian_pose_handle_->setCommand(initial_pose_);
+	// Retrieve the robot state
+	robot_state = cartesian_pose_handle_->getRobotState();
+	cartesian_pose_handle_->setCommand(initial_pose_);
 
-		// Network sampled
-		retrieveState();
+	// Network sampled
+	retrieveState();
 
-		// Check for errors
-		checkSafety();
+	// Check for errors
+	checkSafety();
 
+	//if(time - start_time > ros::Duration(1)){
+	
 		//Eigen::VectorXd tau_network = Eigen::VectorXd::Zero(controller->l); //
 		Eigen::VectorXd tau_network = cmm->sample(controller->getOutput(*this));
 		//logTmp(tau_network);
@@ -211,6 +210,7 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 		sendInput(tau);
 
 		last_z = state.z;
+	//}
 
 } // mandatory
 
@@ -234,45 +234,29 @@ bool Panda::sendInput(Eigen::VectorXd tau){
 	}
 }
 
-Eigen::MatrixXd Panda::M(){
-	std::array<double, 49> mass_array = model_handle_->getMass();
-	Eigen::MatrixXd mass(7, 7);
+void Panda::retrieveMatrices(){
 	
-	//Check column Major!
-	// for(int i = 0; i < 7; i++){
-	// 	for(int j = 0; j < 7; j++){
-	// 		mass(j, i) = mass_array[j*7 + i];
-	// 	}
-	// }
-
-	return mass;
-}
-
-Eigen::MatrixXd Panda::Psi(){
-	// std::array<double, 42> jacobian = model_handle_->getZeroJacobian(
-	// 					franka::Frame::kEndEffector);
-
-	// Eigen::MatrixXd result(6, 7);
-	
-	// for(int i = 0; i < 7; i++){
-	// 	for(int j = 0; j < 6; j++){
-
-	// 		//Column major!
-	// 		result(j, i) = jacobian[j*7 + i];
-	// 	}
-	// }
-
-	// // Account for Psi definition
-	// return result.transpose();
+	// Get the Jacobian of the EE
 	std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(
 	 					franka::Frame::kEndEffector);
 
-	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(
-						jacobian_array.data());
+	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
+	psi = jacobian.transpose().block(0, 0, 7, 3);
 
-	return jacobian.transpose();
+	// Get the mass matrix
+	std::array<double, 49> mass_array = model_handle_->getMass();
+	m = Eigen::Map<const Eigen::Matrix<double, 7, 7> >(mass_array.data());
+
 }
 
+Eigen::MatrixXd Panda::M(){
+	return m;
+}
+
+
+Eigen::MatrixXd Panda::Psi(){
+	return psi;
+}
 
 /* From Franka Emika: Saturates the torque rate (not torque itself)*/
 std::array<double, 7> Panda::saturateTorqueRate(

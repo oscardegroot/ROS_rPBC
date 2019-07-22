@@ -74,6 +74,7 @@ include
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
   src/classes/Edge.cpp
+  src/classes/FlexibleEdge.cpp
   src/classes/Goals.cpp
   src/classes/Remote.cpp
   src/classes/System.cpp
@@ -81,6 +82,7 @@ add_library(${PROJECT_NAME}
   src/classes/PandaSim.cpp
   src/classes/Panda.cpp
   src/classes/IDAPBC.cpp
+  src/classes/rPBC.cpp
   src/classes/Controller.cpp
   src/CustomLog.cpp
   src/Helpers.cpp

@@ -1,11 +1,11 @@
 /*
-File: Edge.h
+File: FlexibleEdge.h
 
 Define a connection with another agent that uses the ST and WVM to passify communication
 */
 
-#ifndef Edge_H
-#define Edge_H
+#ifndef FlexibleEdge_H
+#define FlexibleEdge_H
 
 #include "ros/ros.h"
 #include <eigen3/Eigen/Core>
@@ -16,40 +16,42 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #include "panda/Waves.h"
 #include "CustomLog.h"
 
-class Edge{
+class FlexibleEdge{
 public:
 	// Constructor and destructor
-	Edge(int i, int j, double gain_set, int l_set, bool is_integral);
-	~Edge();
+	FlexibleEdge(int i, int j, double gain_set, int l_set);
+	~FlexibleEdge();
 
 	void waveCallback(const panda::Waves::ConstPtr& msg);
 
 	Eigen::VectorXd sample(Eigen::VectorXd r_i);
+	void setScatteringGain();
+	void publishWave(Eigen::VectorXd s_out);
+ 	void applyWVM(Eigen::VectorXd r_i);
+	Eigen::VectorXd applyControls(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
 
+
+ 	Eigen::VectorXd getRjs(Eigen::VectorXd s_in, Eigen::VectorXd tau);
+	Eigen::VectorXd getWave(Eigen::VectorXd r_js, Eigen::VectorXd tau_in);
+
+	Eigen::VectorXd elementSign(Eigen::VectorXd s_in);
 
 private:
 
 	int i_ID, j_ID, l;
-	bool is_agent_i;
-	double gain;
+	double agent_i;
+	double gain, b;
 
-	// The wave impedance B and network gain Kd
-	Eigen::MatrixXd gain_tau, gain_wave;
+	// The network transformation
+	Eigen::MatrixXd T;
+	Eigen::VectorXd last_tau;
 
 	// The buffer for WVM purposes
 	Eigen::VectorXd s_buffer, s_received;
 
-	void setScatteringGain(double gain);
-	void publishWave(Eigen::VectorXd r_i);
-	void applyWVM(Eigen::VectorXd & wave_reference, Eigen::VectorXd r_i);
-	Eigen::VectorXd getTauST(Eigen::VectorXd s_in, Eigen::VectorXd r_i);
-	Eigen::VectorXd getWaveST(Eigen::VectorXd s_in, Eigen::VectorXd r_i);
-	Eigen::VectorXd elementSign(Eigen::VectorXd s_in);
-
-
 	// The last received timestamp
 	int timestamp = 0;
-	bool data_received = false;
+	bool data_received;
 
 	// The Ros node handle
 	ros::NodeHandle nh;

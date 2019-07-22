@@ -32,12 +32,16 @@ public:
 private:
 
 	int agent_id, l, N;
-	double gain;
+	double gain, integral_gain;
+	bool integral_enabled;
+
+	std::vector<Eigen::VectorXd> integral_states;
 
 	ros::NodeHandle n;
 
 	ros::ServiceClient connect_client;
 	std::vector<std::unique_ptr<Edge>> edges;
+	std::vector<std::unique_ptr<Edge>> integral_edges;
 
 	void initiateEdges();
 };

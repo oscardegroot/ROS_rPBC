@@ -40,8 +40,10 @@ int main(int argc, char **argv){
 	helpers::safelyRetrieve(n, "/N_agents", N);
 	
 	// Retrieve the goal
+	double lambda;
 	std::vector<double> ref_v;
 	helpers::safelyRetrieveArray(n, "/beacon/goal", ref_v, 3);
+	helpers::safelyRetrieve(n, "/lambda", lambda, 1.0);
 
 
 	Eigen::VectorXd ref = helpers::vectorToEigen(ref_v);
@@ -57,7 +59,7 @@ int main(int argc, char **argv){
 	while(ros::ok()){
 
 		// Sample the network
-		Eigen::VectorXd tau_network = cmm.sample(ref);
+		Eigen::VectorXd tau_network = cmm.sample(lambda*ref);
 		
 		publishReference(pub, ref);
 

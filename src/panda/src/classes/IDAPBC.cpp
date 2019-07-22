@@ -21,8 +21,8 @@ IDAPBC::IDAPBC(System& system)
 
 	helpers::safelyRetrieve(nh, "/controller/kv", kv, 1.0);
 
-	helpers::safelyRetrieve(nh, "/controller/integral/ki", kv, 1.0);
-	helpers::safelyRetrieve(nh, "/controller/integral/enabled", integral_enabled, false);
+	//helpers::safelyRetrieve(nh, "/controller/integral/ki", ki, 1.0);
+	//helpers::safelyRetrieve(nh, "/controller/integral/enabled", integral_enabled, false);
 
 	helpers::safelyRetrieve(nh, "/controller/gravity_compensation/enabled", gravity_enabled, false);
 
@@ -63,19 +63,14 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 		tau += system.dVdq();
 	}
 
-	// if(integral_enabled){
-	// 	tau += integral_state;
-	// 	integral_state -= ki*(system.state.dq - )
-	// 	//ki*system.state.dq; // Assumes
-	// }
-
 	// Apply IDA-PBC (The robot autocompensates for gravity?)
-	tau += -getdVsdq(system) - getKv(system)*system.state.dq; //0.1*system.dVdq();//  - getVs_gainsdq(system);
-	//std::cout<<system.Psi().block(0, 0, 7, 3)*tau_c <<std::endl;
+	tau += -getdVsdq(system); //- getKv(system)*system.state.dq; //0.1*system.dVdq();//  - getVs_gainsdq(system);
+
 	// Add the cooperative input
 	Eigen::Matrix<double, 7, 3> psi(system.Psi().block(0, 0, 7, 3));
-	tau += psi * tau_c;//; - system.Psi().block(0,0,7,3).transpose()*system.state.dq;// - psi*psi.transpose()*system.state.dq;
-	tau -= psi*psi.transpose()*system.state.dq;
+	tau += psi * (tau_c - kv*psi.transpose()*system.state.dq);// - psi*psi.transpose()*system.state.dq;
+
+	//logTmp(tau);
 	return tau;
 }
 
@@ -115,6 +110,10 @@ Eigen::VectorXd IDAPBC::getdVsdq(System& system){
 // Define damping
 Eigen::MatrixXd IDAPBC::getKv(System& system){
 	return kv*Eigen::MatrixXd::Identity(system.n, system.n);
+}
+
+Eigen::MatrixXd IDAPBC::rightPseudoInverse(Eigen::MatrixXd A){
+	return A*(A.transpose()*A).inverse();
 }
 
 
