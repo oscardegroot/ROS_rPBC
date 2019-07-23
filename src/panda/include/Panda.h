@@ -77,11 +77,15 @@ public:
 		const Eigen::VectorXd& torques,
 		const std::array<double, 7>& tau_J_d);
 
+	void filterVelocity(std::array<double, 7> input_v);
+
+
 private:
 
 	// Get a nodehandle
 	ros::NodeHandle nh;
 	ros::ServiceClient connect_client;
+	ros::Publisher yolo_pub;
 
 	franka::RobotState robot_state;
 	ros::Time start_time;
@@ -89,6 +93,11 @@ private:
 	// Bounds for safety
 	double z_lower_bound, torque_bound;
 	double velocity_element_bound, velocity_norm_bound;
+
+	// Filter coefficient (LPF)
+	double alpha;
+	std::array<double, 7> dq_filtered;
+
 	Eigen::VectorXd last_z;
 
 	Eigen::MatrixXd psi, m;
@@ -107,6 +116,7 @@ private:
 
   	// Necessary for the cartesian handle
   	std::array<double, 16> initial_pose_;
+
 
   	// Classes for control
 	std::unique_ptr<CMM> cmm;

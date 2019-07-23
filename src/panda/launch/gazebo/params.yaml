@@ -1,10 +1,14 @@
 N_agents: 2
 l: 3
-network_gain: 5.0
+network_gain:
+  - 20.0
+  - 15.0
+  - 35.0
 lambda: 14.0
 
 controller:
-  kv: 7
+  kq: 1.0
+  kz: 3.0
   gravity_compensation:
     enabled: true
   local_potential:
@@ -59,6 +63,7 @@ panda:
   velocity_element_bound: 1.5
   velocity_norm_bound: 0.3
   torque_bound: 6.0
+  alpha: 0.99
   ID: 0
 
 beacon:

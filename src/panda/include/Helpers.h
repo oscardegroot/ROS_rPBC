@@ -42,6 +42,7 @@ bool safelyRetrieve(ros::NodeHandle& nh, const std::string name,
 	return true;
 }
 
+/* Turn this into vector! */
 template <class T>
 bool safelyRetrieveArray(ros::NodeHandle& nh, const std::string name,
 						 T& param, const int expected_size){
@@ -58,6 +59,20 @@ bool safelyRetrieveArray(ros::NodeHandle& nh, const std::string name,
 
 		return false;
 	}
+
+	return true;
+		
+}
+
+/* Turn this into vector! */
+template <class T>
+bool safelyRetrieveEigen(ros::NodeHandle& nh, const std::string name,
+						 T& param, const int expected_size){
+
+	std::vector<double> result_v;
+	safelyRetrieveArray(nh, name, result_v, expected_size);
+
+	param = vectorToEigen(result_v);
 
 	return true;
 		

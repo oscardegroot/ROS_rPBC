@@ -15,12 +15,13 @@ find_package(catkin REQUIRED COMPONENTS
   franka_control
   geometry_msgs
   hardware_interface
+  visualization_msgs
   message_generation
   pluginlib
   realtime_tools
 )
 
-  
+
 find_package(Franka 0.3.0 REQUIRED)
 find_package(Eigen3 REQUIRED)
 
@@ -49,6 +50,7 @@ catkin_package(LIBRARIES panda
  rospy 
  std_msgs 
  sensor_msgs 
+ visualization_msgs
  message_runtime 
  controller_interface
  dynamic_reconfigure
@@ -74,7 +76,9 @@ include
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
   src/classes/Edge.cpp
-  src/classes/FlexibleEdge.cpp
+  src/classes/EdgeDirect.cpp
+  src/classes/EdgeDelayFree.cpp
+  src/classes/EdgeFlexDelayFree.cpp
   src/classes/Goals.cpp
   src/classes/Remote.cpp
   src/classes/System.cpp

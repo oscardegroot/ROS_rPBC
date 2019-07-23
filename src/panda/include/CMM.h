@@ -14,6 +14,9 @@ Manages cooperative communication by managing a number of connections
 #include <memory>
 
 #include "Edge.h"
+#include "EdgeDirect.h"
+#include "EdgeDelayFree.h"
+#include "EdgeFlexDelayFree.h"
 #include "CustomLog.h"
 #include "Helpers.h"
 
@@ -32,7 +35,7 @@ public:
 private:
 
 	int agent_id, l, N;
-	double gain, integral_gain;
+	Eigen::MatrixXd gain, integral_gain;
 	bool integral_enabled;
 
 	std::vector<Eigen::VectorXd> integral_states;
@@ -41,6 +44,7 @@ private:
 
 	ros::ServiceClient connect_client;
 	std::vector<std::unique_ptr<Edge>> edges;
+	//std::vector<Edge*> edges;
 	std::vector<std::unique_ptr<Edge>> integral_edges;
 
 	void initiateEdges();

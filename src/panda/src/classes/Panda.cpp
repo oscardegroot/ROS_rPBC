@@ -14,6 +14,8 @@ namespace panda {
 Panda::Panda()
 	:System(7, 7)
 {
+	//yolo_pub = nh.advertise<std_msgs::Float64MultiArray>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "p" + integral_add, 100);
+
 }
 
 Panda::~Panda(){};
@@ -112,6 +114,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	helpers::safelyRetrieve(nh, "velocity_element_bound", velocity_element_bound, 0.3);
 	helpers::safelyRetrieve(nh, "z_lower_bound", z_lower_bound, 0.2);
 	helpers::safelyRetrieve(nh, "torque_bound", torque_bound, 2.0);
+	helpers::safelyRetrieve(nh, "alpha", alpha, 0.99);
 
 	int id;
 	helpers::safelyRetrieve(nh, "ID", id);
@@ -122,7 +125,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	cmm = std::make_unique<CMM>(id);
 
 	//torques_publisher_.init(nh, "torque_comparison", 1);
-	//std::fill(dq_filtered_.begin(), dq_filtered_.end(), 0); -> Check filtering in example!
+	std::fill(dq_filtered.begin(), dq_filtered.end(), 0);
 
 	// Get an initial state reading
 	robot_state = cartesian_pose_handle_->getRobotState();
@@ -168,7 +171,10 @@ void Panda::checkSafety(){
 void Panda::retrieveState(){
 
 	this->state.q = helpers::arrayToVector<7>(robot_state.q);
-	this->state.dq = helpers::arrayToVector<7>(robot_state.dq);
+
+	filterVelocity(robot_state.dq);
+	this->state.dq = helpers::arrayToVector<7>(dq_filtered);
+
 	std::array<double, 3> z{{robot_state.O_T_EE[12], robot_state.O_T_EE[13], robot_state.O_T_EE[14]}};
 	this->state.z = helpers::arrayToVector<3>(z);
 
@@ -289,6 +295,12 @@ std::array<double, 7> Panda::checkTorque(const Eigen::VectorXd& torques, const s
 	return saturateTorqueRate(torques, tau_J_d);
 }
 
+void Panda::filterVelocity(std::array<double, 7> input_v){
+
+  	for (size_t i = 0; i < 7; i++) {
+    	dq_filtered[i] = (1 - alpha) * dq_filtered[i] + alpha * input_v[i];
+  	}
+}
 
 Eigen::VectorXd Panda::dVdq(){
 	return helpers::arrayToVector<7>(model_handle_->getGravity());

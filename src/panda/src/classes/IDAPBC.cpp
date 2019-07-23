@@ -19,7 +19,8 @@ IDAPBC::IDAPBC(System& system)
 	std::vector<double> Vs_gains_v, theta_star_v; 
 	std::vector<double> limit_avoidance_gains_v, limits_min_array, limits_max_array;
 
-	helpers::safelyRetrieve(nh, "/controller/kv", kv, 1.0);
+	helpers::safelyRetrieve(nh, "/controller/kq", kq, 1.0);
+	helpers::safelyRetrieve(nh, "/controller/kz", kz, 1.0);
 
 	//helpers::safelyRetrieve(nh, "/controller/integral/ki", ki, 1.0);
 	//helpers::safelyRetrieve(nh, "/controller/integral/enabled", integral_enabled, false);
@@ -65,11 +66,11 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 
 	// Apply IDA-PBC (The robot autocompensates for gravity?)
 	tau += -getdVsdq(system); //- getKv(system)*system.state.dq; //0.1*system.dVdq();//  - getVs_gainsdq(system);
-
+	tau += - kq * system.state.dq;
 	// Add the cooperative input
 	Eigen::Matrix<double, 7, 3> psi(system.Psi().block(0, 0, 7, 3));
-	tau += psi * (tau_c - kv*psi.transpose()*system.state.dq);// - psi*psi.transpose()*system.state.dq;
-
+	tau += psi * (tau_c - kz*psi.transpose()*system.state.dq);// - psi*psi.transpose()*system.state.dq;
+	publishTau(tau);
 	//logTmp(tau);
 	return tau;
 }
@@ -107,9 +108,9 @@ Eigen::VectorXd IDAPBC::getdVsdq(System& system){
 	return dVsdq;
 }
 
-// Define damping
+// Define damping (Not correct atm since kq / kz differ)
 Eigen::MatrixXd IDAPBC::getKv(System& system){
-	return kv*Eigen::MatrixXd::Identity(system.n, system.n);
+	return Eigen::MatrixXd::Identity(system.n, system.n);
 }
 
 Eigen::MatrixXd IDAPBC::rightPseudoInverse(Eigen::MatrixXd A){

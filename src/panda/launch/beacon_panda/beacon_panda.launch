@@ -4,8 +4,8 @@
   <arg name="robot_ip" default="172.16.0.2"/>
   <arg name="load_gripper" default="false" />
 
-  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] agent_z/data[1] agent_z/data[2] reference/data[0] reference/data[1] reference/data[2]"  />
-
+  <!-- node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] agent_z/data[1] agent_z/data[2] reference/data[0] reference/data[1] reference/data[2]"  />
+  <node name="tau" pkg="rqt_plot" type="rqt_plot" args="agent_tau/data[0] agent_tau/data[1] agent_tau/data[2] agent_tau/data[3] agent_tau/data[4] agent_tau/data[5] agent_tau/data[6]" /> -->
 
   <include file="$(find franka_control)/launch/franka_control.launch">
     <arg name="robot_ip" value="$(arg robot_ip)" />
@@ -20,5 +20,5 @@
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="panda"/>
 
 
-  <!-- <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot.rviz"/> -->
+  <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot_w_marker.rviz"/>
 </launch>

@@ -32,7 +32,7 @@ public:
 	// Gains
 	Eigen::VectorXd Vs_gains, theta_star, limit_avoidance_gains, limits_avg;
 	bool local_enabled, limit_avoidance_enabled, gravity_enabled,integral_enabled;
-	double kv, ki;
+	double kq, kz, ki;
 
 	Eigen::VectorXd integral_state;
 

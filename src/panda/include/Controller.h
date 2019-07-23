@@ -24,7 +24,7 @@ public:
 
 	int l;
 
-	ros::Publisher z_pub;	
+	ros::Publisher z_pub, tau_pub;	
 	ros::NodeHandle nh;
 
 	// Get the agent output, possibly modified
@@ -34,6 +34,7 @@ public:
 	virtual Eigen::VectorXd computeControl(System& system, Eigen::VectorXd tau_c) = 0;
 	
 	void publishZ(Eigen::VectorXd z);
+	void publishTau(Eigen::VectorXd tau);
 
 
 
