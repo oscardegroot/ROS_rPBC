@@ -17,9 +17,7 @@ EdgeDelayFree::EdgeDelayFree(int i, int j, Eigen::MatrixXd gain_set, int l_set, 
 
 	setScatteringGain(gain_set);
 
-	std::vector<double> goal_v;
-	helpers::safelyRetrieveArray(nh, "/beacon/goal", goal_v, 3);
-	goal = helpers::vectorToEigen(goal_v);
+	helpers::safelyRetrieveEigen(nh, "/beacon/goal", goal, 3);
 }
 
 
@@ -104,16 +102,11 @@ void EdgeDelayFree::setScatteringGain(Eigen::MatrixXd gain){
 	Eigen::MatrixXd H_beacon = Eigen::MatrixXd::Identity(l, l) - Kd*matrix_ST_beacon.block(0,l,l,l);
 	H_beacon = H_beacon.inverse()*Kd;
 
-	//gain_tau = Eigen::MatrixXd::Zero(l, 2*l);	
 	gain_wave_beacon = Eigen::MatrixXd::Zero(l, 2*l);
 
-	//gain_tau << H_beacon*matrix_ST_beacon.block(0,0,l,l), -H_beacon;
 	gain_wave_beacon << matrix_ST_beacon.block(l,0,l,l)+
 	matrix_ST_beacon.block(l,l,l,l)*H_beacon*matrix_ST_beacon.block(0,0,l, l),
 	 -matrix_ST_beacon.block(l, l, l, l)*H_beacon;
 
-
-	//LOG(gain_wave);
-	//std::cout << "[Edge]	Scattering Initialised\n";
 }
 

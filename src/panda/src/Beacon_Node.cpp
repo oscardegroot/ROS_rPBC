@@ -42,8 +42,6 @@ int main(int argc, char **argv){
 	helpers::safelyRetrieve(n, "/N_agents", N);
 	
 	// Retrieve the goal
-	//double lambda;
-	//std::vector<double> ref_v;
 	int goal_type;
 	helpers::safelyRetrieve(n, "/beacon/goal_type", goal_type, -1);
 
@@ -52,14 +50,12 @@ int main(int argc, char **argv){
 	}else{
 		setGoalType(goal_type);
 	}
-
-	//helpers::safelyRetrieve(n, "/lambda", lambda, 1.0);
-
-	//ref = helpers::vectorToEigen(ref_v);
 	
+	/* Initialise publishers */
 	ros::Publisher pub, marker_pub;
 	pub = n.advertise<std_msgs::Float64MultiArray>("/reference", 20);
 	marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+	
 	CMM cmm(agent_id);
 
 	ros::Rate loop_rate(1000);

@@ -54,7 +54,7 @@ private:
 	ros::ServiceClient connect_client;
 	std::vector<std::unique_ptr<Edge>> edges;
 	//std::vector<Edge*> edges;
-	std::vector<std::unique_ptr<Edge>> integral_edges;
+	std::vector<std::unique_ptr<EdgeIntegral>> integral_edges;
 
 	void initiateEdges();
 

@@ -108,15 +108,3 @@ void Edge::publishWave(Eigen::VectorXd s_out){
 	timestamp++;
 
 }
-
-void Edge::reset(){
-	return;
-}
-
-void Edge::activate(){
-	return;
-}
-
-void Edge::deactivate(){
-	return;
-}

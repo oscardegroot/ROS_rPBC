@@ -23,9 +23,11 @@ public:
 	void saturateIntegral();
 	Eigen::VectorXd iterateST(Eigen::VectorXd s_in, Eigen::VectorXd r_i);
 	Eigen::VectorXd sample(Eigen::VectorXd r_i) override;
-	void reset() override;
-	void activate() override;
-	void deactivate() override;
+
+	// Functions for integrator windup schemes
+	void reset();
+	void activate();
+	void deactivate();
 
 private:
 
@@ -36,6 +38,10 @@ private:
 
 	double agent_i;
 	double saturation;
+
+	
+
+
 
 
 };

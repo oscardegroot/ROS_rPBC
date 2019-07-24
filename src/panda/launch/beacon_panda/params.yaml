@@ -50,6 +50,9 @@ controller:
       - 0.9
     saturation: 3.0
     torque_enable: 3.0
+  wang:
+    Rw: 1.0
+    eps: 0.1
 
     
 

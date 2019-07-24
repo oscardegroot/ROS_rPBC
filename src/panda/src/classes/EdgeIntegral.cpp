@@ -33,13 +33,16 @@ Eigen::VectorXd EdgeIntegral::sample(Eigen::VectorXd r_i){
 	// Set the input by iteration
 	Eigen::VectorXd r_js = iterateST(s_received, r_i);
 
+	// Update the integral state
 	integral_state += r_js - r_i;
 
+	// Saturate if necessary
 	saturateIntegral();
 
+	// Caculate the control input
 	Eigen::VectorXd tau = calculateControls(r_i, r_js);
 
-	// Calculate the input
+	// Calculate the outgoing waves
 	Eigen::VectorXd s_out = calculateWaves(tau, r_js);
 	
 	// Publish the returning wave

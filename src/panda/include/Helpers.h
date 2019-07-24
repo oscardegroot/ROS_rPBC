@@ -4,6 +4,7 @@
 #define Helpers_H
 #include <string>
 #include <vector>
+#include <cmath>
 #include "ros/ros.h"
 #include <franka/exception.h>
 #include <eigen3/Eigen/Core>
@@ -15,7 +16,7 @@
 namespace helpers {
 
 Eigen::VectorXd vectorToEigen(const std::vector<double> values);
-
+double normOf(const Eigen::VectorXd input);
 
 template <class T> 
 bool safelyRetrieve(ros::NodeHandle& nh, const std::string name, T& param){

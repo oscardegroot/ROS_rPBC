@@ -16,39 +16,28 @@ IDAPBC::IDAPBC(System& system)
 
 	/* Retrieve controller gains */
 	ros::NodeHandle nh;
-	std::vector<double> Vs_gains_v, theta_star_v; 
-	std::vector<double> limit_avoidance_gains_v, limits_min_array, limits_max_array;
+	Eigen::VectorXd limits_min_array, limits_max_array;
 
 	helpers::safelyRetrieve(nh, "/controller/kq", kq, 1.0);
 	helpers::safelyRetrieve(nh, "/controller/kz", kz, 1.0);
 
-	//helpers::safelyRetrieve(nh, "/controller/integral/ki", ki, 1.0);
-	//helpers::safelyRetrieve(nh, "/controller/integral/enabled", integral_enabled, false);
-
 	helpers::safelyRetrieve(nh, "/controller/gravity_compensation/enabled", gravity_enabled, false);
 
 	helpers::safelyRetrieve(nh, "/controller/local_potential/enabled", local_enabled, false);
-	helpers::safelyRetrieveArray(nh, "/controller/local_potential/gains", Vs_gains_v, 7);
-	helpers::safelyRetrieveArray(nh, "/controller/local_potential/goals", theta_star_v, 7);
+	helpers::safelyRetrieveEigen(nh, "/controller/local_potential/gains", Vs_gains, 7);
+	helpers::safelyRetrieveEigen(nh, "/controller/local_potential/goals", theta_star, 7);
 	
 	helpers::safelyRetrieve(nh, "/controller/joint_limit_avoidance/enabled", limit_avoidance_enabled, false);
-	helpers::safelyRetrieveArray(nh, "/controller/joint_limit_avoidance/gains", limit_avoidance_gains_v, 7);
+	helpers::safelyRetrieveEigen(nh, "/controller/joint_limit_avoidance/gains", limit_avoidance_gains, 7);
 
 	// Calculate the mid point of the joints
-	helpers::safelyRetrieveArray(nh, "/controller/joint_limit_avoidance/limits_min", limits_min_array, 7);
-	helpers::safelyRetrieveArray(nh, "/controller/joint_limit_avoidance/limits_max", limits_max_array, 7);
+	helpers::safelyRetrieveEigen(nh, "/controller/joint_limit_avoidance/limits_min", limits_min_array, 7);
+	helpers::safelyRetrieveEigen(nh, "/controller/joint_limit_avoidance/limits_max", limits_max_array, 7);
 	
 	//Convert to eigen
-	limits_avg = 0.5*(helpers::vectorToEigen(limits_min_array) +
-						helpers::vectorToEigen(limits_max_array));
+	limits_avg = 0.5*(limits_min_array + limits_max_array);
 
 	helpers::safelyRetrieve(nh, "/l", l);
-
-	Vs_gains = helpers::vectorToEigen(Vs_gains_v);
-	theta_star = helpers::vectorToEigen(theta_star_v);
-	limit_avoidance_gains = helpers::vectorToEigen(limit_avoidance_gains_v);
-
-	integral_state = Eigen::VectorXd::Zero(system.m);
 
 	logMsg("IDAPBC", "Done!", 2);
 

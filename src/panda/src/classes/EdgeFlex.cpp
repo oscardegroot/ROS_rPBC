@@ -15,11 +15,21 @@ l_set: dimension of the channel
 EdgeFlex::EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, bool is_integral)
 	: Edge(i, j, gain_set, l_set, is_integral){
 
+	helpers::safelyRetrieve(nh, "/controller/wang/eps", eps);
+	helpers::safelyRetrieve(nh, "/controller/wang/Rw", Rw);
+
+	initWang();
+
+
 	// Set the scattering gain
 	setScatteringGain(gain_set);
 
+	// Initialise r_js at some non-zero point
+	r_js_last = Eigen::VectorXd::Zero(l);
+	r_js_last << 1, 1, 1;
+
 	tau_last = Eigen::VectorXd::Zero(l_set);
-	r_js_filtered = Eigen::VectorXd::Zero(l_set);
+	//r_js_filtered = Eigen::VectorXd::Zero(l_set);
 }
 
 
@@ -48,17 +58,18 @@ Eigen::VectorXd EdgeFlex::iterateST(Eigen::VectorXd &s_in, Eigen::VectorXd tau, 
 
 	Eigen::VectorXd r_js, tau_result;
 	tau_result = tau;
-	r_js = Eigen::VectorXd::Zero(l);
-	r_js << 1, 1, 1;
+	r_js = r_js_last;
 
 	int k = 0;
 	double gamma;
 	double diff = 10.0;
 	Eigen::VectorXd r_js_new = Eigen::VectorXd::Zero(l);
 
-	while (diff > 0.001 && k < 100){
 
-		gamma = gamma_wang(r_i, r_js);
+	/* Possibly efficiency by iterating 3 times always */
+	while (diff > 0.1 && k < 100){
+
+		gamma = gammaWang(r_i, r_js);
 
 		for(int i = 0; i < l; i++){
 			r_js_new(i, 0) = (matrix_ST(i, i)*s_in(i) - matrix_ST(i, l+i)*gamma*gain(i,i)*r_i(i))
@@ -67,10 +78,10 @@ Eigen::VectorXd EdgeFlex::iterateST(Eigen::VectorXd &s_in, Eigen::VectorXd tau, 
 
 		k++;
 
-		diff = std::sqrt((r_js - r_js_new).transpose()*(r_js - r_js_new));
+		diff = helpers::normOf(r_js - r_js_new);
+
 		r_js = r_js_new;
 		r_js_new = Eigen::VectorXd::Zero(l);
-		//std::cout << "diff: \n" << diff << std::endl;
 	}
 	
 	if(k > 80){
@@ -78,26 +89,15 @@ Eigen::VectorXd EdgeFlex::iterateST(Eigen::VectorXd &s_in, Eigen::VectorXd tau, 
 	}
 
 	tau_result = calculateControls(r_js, r_i);
-
+	r_js_last = r_js;
 	return tau_result;
 
 }
 
-double EdgeFlex::gamma_wang(Eigen::VectorXd r_i, Eigen::VectorXd r_js){
+double EdgeFlex::gammaWang(Eigen::VectorXd r_i, Eigen::VectorXd r_js){
 
-	double d = std::sqrt((r_js - r_i).transpose()*(r_js - r_i));
-	double dgammadd = 0.0;
-
-	//logTmp(d);
-	double Rw = 1.0;
-	double eps = 0.1;	
-	double r = 2*Rw*eps;
-
-	double a1 = (4*eps*Rw*Rw + 4*eps*Rw*r - 3*r*r) / (4*Rw*std::pow(r, 3)*(r-2*Rw));
-	double b1 = (3*r*r-12*eps*Rw*Rw)/(4*Rw*r*r*(r-2*Rw));
-	double a2 = (4*eps*Rw*r-3*r*r+8*Rw*r-12*eps*Rw*Rw)/(4*Rw*r*std::pow(r-2*Rw, 3));
-	double b2 = (-12*eps*Rw*Rw*r-24*Rw*Rw*r+3*std::pow(r, 3) + 48*eps*std::pow(Rw, 3))/(4*Rw*r*std::pow(r-2*Rw, 3));
-	double c2 = (9*Rw*r*r-12*eps*std::pow(Rw, 3) - 3*std::pow(r, 3))/(r*std::pow(r-2*Rw, 3));
+	double d = helpers::normOf(r_js - r_i);
+	double dgammadd = 0.0;	
 
 	if(d >= 2*Rw){
 		dgammadd = 0.0;
@@ -112,6 +112,16 @@ double EdgeFlex::gamma_wang(Eigen::VectorXd r_i, Eigen::VectorXd r_js){
 	return dgammadd;
 
 
+}
+
+void EdgeFlex::initWang(){
+	r = 2*Rw*eps;
+
+	a1 = (4*eps*Rw*Rw + 4*eps*Rw*r - 3*r*r) / (4*Rw*std::pow(r, 3)*(r-2*Rw));
+	b1 = (3*r*r-12*eps*Rw*Rw)/(4*Rw*r*r*(r-2*Rw));
+	a2 = (4*eps*Rw*r-3*r*r+8*Rw*r-12*eps*Rw*Rw)/(4*Rw*r*std::pow(r-2*Rw, 3));
+	b2 = (-12*eps*Rw*Rw*r-24*Rw*Rw*r+3*std::pow(r, 3) + 48*eps*std::pow(Rw, 3))/(4*Rw*r*std::pow(r-2*Rw, 3));
+	c2 = (9*Rw*r*r-12*eps*std::pow(Rw, 3) - 3*std::pow(r, 3))/(r*std::pow(r-2*Rw, 3));
 }
 
 void EdgeFlex::lowpassFilter(Eigen::VectorXd& filtered_data, Eigen::VectorXd new_data, double alpha){
@@ -150,7 +160,7 @@ Eigen::VectorXd EdgeFlex::elementSign(Eigen::VectorXd s_in){
 // Apply controls (this will vary)
 Eigen::VectorXd EdgeFlex::calculateControls(Eigen::VectorXd r_js, Eigen::VectorXd r_i){
 
-	return gamma_wang(r_i, r_js)*gain*(r_js - r_i);
+	return gammaWang(r_i, r_js)*gain*(r_js - r_i);
 	//return 1.0*(r_js - r_i);
 }
 

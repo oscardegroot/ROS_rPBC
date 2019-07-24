@@ -31,16 +31,19 @@ public:
 	void lowpassFilter(Eigen::VectorXd& filtered_data,
 					 Eigen::VectorXd new_data, double alpha);
 
-	double gamma_wang(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
-
+	double gammaWang(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
+	void initWang();
 
 private:
 
 	// Save of the iterated tau and tau in the last loop
 	Eigen::VectorXd tau_last;
+	
+	double Rw, eps, r;
+	double a1, b1, a2, b2, c2;
 
 	// The wave impedance B and network gain Kd
 	Eigen::MatrixXd matrix_ST;
 
-	Eigen::VectorXd r_js_filtered;
+	Eigen::VectorXd r_js_last;
 };

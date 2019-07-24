@@ -209,15 +209,13 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 
 		//Eigen::VectorXd tau_network = Eigen::VectorXd::Zero(controller->l); //
 		Eigen::VectorXd tau_network = cmm->sample(controller->getOutput(*this));
-		//logTmp(tau_network);
+
 		// Calculate the control input
 		Eigen::VectorXd tau = controller->computeControl((*this), tau_network);
-		//std::cout << tau <<std::endl;
-
-		//tau = Eigen::VectorXd::Zero(7);
 		
 		// Check if the torque bound wasn't passed and saturate the torque bound
 		checkTorque(tau, robot_state.tau_J_d);
+
 		// Send the input
 		sendInput(tau);
 
@@ -235,10 +233,6 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 // Eigen::Affine3d transform(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
 // Eigen::Vector3d position(transform.translation());
 // Eigen::Quaterniond orientation(transform.linear());
-
-
-// void starting (const ros::Time& time);   // optional
-// void stopping (const ros::Time& time);  // optional
 
 bool Panda::sendInput(Eigen::VectorXd tau){
 	for (size_t i = 0; i < 7; ++i) {

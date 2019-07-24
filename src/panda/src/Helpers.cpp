@@ -15,4 +15,11 @@ namespace helpers {
 
 	}
 
+	double normOf(const Eigen::VectorXd input){
+
+		return std::sqrt(input.transpose()*input);
+
+	}
+
+
 }
