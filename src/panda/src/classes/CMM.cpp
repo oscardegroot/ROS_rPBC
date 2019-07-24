@@ -18,16 +18,18 @@ CMM::CMM(int set_id){
 	// Retrieve parameters
 	helpers::safelyRetrieve(n, "/l", l);
 	helpers::safelyRetrieve(n, "/N_agents", N);
+	helpers::safelyRetrieve(n, "/controller/integral/torque_enable", torque_enable);
 
 
 	Eigen::VectorXd gain_e;
 	helpers::safelyRetrieveEigen(n, "/network_gain", gain_e, l);
 	gain = Eigen::MatrixXd(gain_e.asDiagonal());
 
-	// helpers::safelyRetrieve(n, "/controller/integral/enabled", integral_enabled, false);
-	// helpers::safelyRetrieve(n, "/controller/integral/gain", integral_gain, 1.0);
-
+	helpers::safelyRetrieve(n, "/controller/integral/enabled", integral_enabled, false);
 	
+	Eigen::VectorXd gain_i;
+	helpers::safelyRetrieveEigen(n, "/controller/integral/gain", gain_i, l);
+	integral_gain = Eigen::MatrixXd(gain_i.asDiagonal());
 	// Randomize the random seed
 	srand((unsigned int) agent_id + time(0));
 
@@ -36,6 +38,8 @@ CMM::CMM(int set_id){
 
 	// Retrieve connections and create communication edges
 	CMM::initiateEdges();
+
+	initial_time = ros::Time::now();
 
 	logMsg("CMM", "Done!", 2);
 }
@@ -59,11 +63,12 @@ void CMM::initiateEdges(){
 				if(srv.response.is_connected){
 
 					// Create a communication edge
-					edges.push_back(std::make_unique<EdgeFlexDelayFree>(agent_id, j, gain, l, false));
-					// if(integral_enabled){
-					// 	integral_edges.push_back(std::make_unique<EdgeFlexDelayFree>(agent_id, j, integral_gain, l, true));
-					// 	integral_states.push_back(Eigen::VectorXd::Zero(l));
-					// }
+					edges.push_back(std::make_unique<EdgeFlex>(agent_id, j, gain, l, false));
+					
+					if(integral_enabled){
+						integral_edges.push_back(std::make_unique<EdgeIntegral>(agent_id, j, integral_gain, l, true));
+						//integral_states.push_back(Eigen::VectorXd::Zero(l));
+					}
 				}
 			}else{
 				logMsg("CMM", "Failed to obtain formations from the server!", 0);
@@ -87,14 +92,56 @@ Eigen::VectorXd CMM::sample(Eigen::VectorXd r){
 		Eigen::VectorXd cur_tau = edges[i]->sample(r);
 		tau += cur_tau;
 
-		// if(integral_enabled){
-		// 	integral_states[i] += cur_tau;
-		// 	tau += integral_edges[i]->sample(integral_states[i]);
-		// }
-	}
+		if(integral_enabled && ros::Time::now() - initial_time > ros::Duration(8.0) && cur_tau.transpose()*cur_tau < torque_enable && integral_edges[i]->is_activated == false){
+			logMsg("CMM", "Integral Action Activated", 3);
+			activateIntegral();
+		}
 
+		if(integral_enabled && integral_edges[i]->is_activated){
+			//integral_states[i] += r;
+			tau += integral_edges[i]->sample(r);
+		}
+	}
 
 	// Return the combined input
 	return tau;
 
+}
+
+void CMM::resetIntegrators(){
+
+	if(!integral_enabled){
+		return;
+	}
+
+	for(int i = 0; i < integral_edges.size(); i++){
+
+		integral_edges[i]->reset();
+
+	}
+}
+
+void CMM::activateIntegral(){
+
+	if(!integral_enabled){
+		return;
+	}
+
+	for(int i = 0; i < integral_edges.size(); i++){
+
+		integral_edges[i]->activate();
+
+	}
+}
+
+void CMM::deactivateIntegral(){
+
+	if(!integral_enabled){
+		return;
+	}
+
+	for(int i = 0; i < integral_edges.size(); i++){
+		integral_edges[i]->deactivate();
+
+	}
 }

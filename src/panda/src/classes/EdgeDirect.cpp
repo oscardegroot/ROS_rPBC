@@ -27,7 +27,7 @@ void EdgeDirect::applyReconstruction(Eigen::VectorXd& wave_reference, Eigen::Vec
 	if(!data_received)
 	{
 		// Calculate the wave when we apply HLS
-		Eigen::VectorXd s_HLS = calculateControls(s_buffer, r_i);
+		Eigen::VectorXd s_HLS = calculateWaves(s_buffer, r_i);
 
 		// If that's allowed, use it, otherwise reconstruct by amplitude
 		if(s_HLS.transpose()*s_HLS > s_buffer.transpose()*s_buffer)

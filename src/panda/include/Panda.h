@@ -94,6 +94,9 @@ private:
 	double z_lower_bound, torque_bound;
 	double velocity_element_bound, velocity_norm_bound;
 
+	double initial_pause;
+	double has_run = false;
+
 	// Filter coefficient (LPF)
 	double alpha;
 	std::array<double, 7> dq_filtered;

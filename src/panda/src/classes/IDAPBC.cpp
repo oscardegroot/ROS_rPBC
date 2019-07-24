@@ -68,8 +68,13 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 	tau += -getdVsdq(system); //- getKv(system)*system.state.dq; //0.1*system.dVdq();//  - getVs_gainsdq(system);
 	tau += - kq * system.state.dq;
 	// Add the cooperative input
-	Eigen::Matrix<double, 7, 3> psi(system.Psi().block(0, 0, 7, 3));
-	tau += psi * (tau_c - kz*psi.transpose()*system.state.dq);// - psi*psi.transpose()*system.state.dq;
+	Eigen::MatrixXd psi(system.Psi().block(0, 0, 7, 3));
+	Eigen::MatrixXd pinv_psi;
+	pinv_psi = pseudoInverse(psi.transpose());
+	//logTmp(pinv_psi);
+	//pseudoInverse(psi.transpose(), pinv_psi, 0.01);
+	tau += pinv_psi * (tau_c- kz*psi.transpose()*system.state.dq);//- kz*psi.transpose()*system.state.dq);
+	// tau += psi * (tau_c - kz*psi.transpose()*system.state.dq);// - psi*psi.transpose()*system.state.dq;
 	publishTau(tau);
 	//logTmp(tau);
 	return tau;
@@ -114,7 +119,6 @@ Eigen::MatrixXd IDAPBC::getKv(System& system){
 }
 
 Eigen::MatrixXd IDAPBC::rightPseudoInverse(Eigen::MatrixXd A){
+	
 	return A*(A.transpose()*A).inverse();
 }
-
-

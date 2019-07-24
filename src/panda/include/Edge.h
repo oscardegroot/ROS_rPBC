@@ -28,6 +28,8 @@ public:
 	// The last received timestamp
 	int timestamp = 0;
 	bool data_received = false;
+	
+	bool is_activated;
 
 	// The Ros node handle
 	ros::NodeHandle nh;
@@ -43,8 +45,8 @@ public:
 	virtual void waveCallback(const panda::Waves::ConstPtr& msg);
 	virtual void publishWave(Eigen::VectorXd r_i);
 
-	Eigen::VectorXd sample(Eigen::VectorXd r_i);
-
+	virtual Eigen::VectorXd sample(Eigen::VectorXd r_i);
+	virtual void reset();
 	
 	virtual void applyReconstruction(Eigen::VectorXd & wave_reference,
 									 Eigen::VectorXd r_i) = 0;
@@ -52,6 +54,9 @@ public:
 											Eigen::VectorXd r_i) = 0;
 	virtual Eigen::VectorXd calculateWaves(Eigen::VectorXd s_in,
 										Eigen::VectorXd r_i) = 0;
+
+	virtual void activate();
+	virtual void deactivate();
 
 private:
 

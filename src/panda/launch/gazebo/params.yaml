@@ -1,9 +1,9 @@
 N_agents: 2
 l: 3
 network_gain:
-  - 20.0
   - 15.0
-  - 35.0
+  - 15.0
+  - 15.0
 lambda: 14.0
 
 controller:
@@ -30,20 +30,25 @@ controller:
     - 0.0
     - 0.0
   joint_limit_avoidance:
-    enabled: false 
+    enabled: true 
     gains:
-    - 0.1
-    - 0.1
-    - 0.1
-    - 0.1
-    - 0.1
-    - 0.1
-    - 0.1
+    - 0.25
+    - 0.25
+    - 0.25
+    - 0.25
+    - 0.25
+    - 0.25
+    - 0.25
     limits_min: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
     limits_max: [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
   integral:
-    enabled: false
-    gain: 0.000001
+    enabled: true
+    gain: 
+      - 0.9
+      - 0.9
+      - 0.9
+    saturation: 3.0
+    torque_enable: 3.0
 
     
 
@@ -68,9 +73,6 @@ panda:
 
 beacon:
   ID: 1
-  goal:
-    - 0.45
-    - -0.3
-    - 0.8
+  goal_type: 1
 
   

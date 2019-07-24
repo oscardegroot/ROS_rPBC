@@ -71,7 +71,8 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 
 	std::vector<double> s = msg->s.data;
 
-	for(int i = 0; i<l; i++){
+	s_received = Eigen::VectorXd::Zero(l);
+	for(int i = 0; i < l; i++){
 
 		s_received(i, 0) = s[i];
 	}
@@ -106,4 +107,16 @@ void Edge::publishWave(Eigen::VectorXd s_out){
 	// Increase the timestamp
 	timestamp++;
 
+}
+
+void Edge::reset(){
+	return;
+}
+
+void Edge::activate(){
+	return;
+}
+
+void Edge::deactivate(){
+	return;
 }

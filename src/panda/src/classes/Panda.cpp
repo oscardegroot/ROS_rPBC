@@ -115,6 +115,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	helpers::safelyRetrieve(nh, "z_lower_bound", z_lower_bound, 0.2);
 	helpers::safelyRetrieve(nh, "torque_bound", torque_bound, 2.0);
 	helpers::safelyRetrieve(nh, "alpha", alpha, 0.99);
+	helpers::safelyRetrieve(nh, "initial_pause", initial_pause, 0.0);
 
 	int id;
 	helpers::safelyRetrieve(nh, "ID", id);
@@ -199,8 +200,13 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 	// Check for errors
 	checkSafety();
 
-	//if(time - start_time > ros::Duration(1)){
+	if(time - start_time > ros::Duration(initial_pause)){
 	
+		if(!has_run){
+			//cmm->resetIntegrators();
+			has_run = true;
+		}
+
 		//Eigen::VectorXd tau_network = Eigen::VectorXd::Zero(controller->l); //
 		Eigen::VectorXd tau_network = cmm->sample(controller->getOutput(*this));
 		//logTmp(tau_network);
@@ -216,7 +222,7 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 		sendInput(tau);
 
 		last_z = state.z;
-	//}
+	}
 
 } // mandatory
 

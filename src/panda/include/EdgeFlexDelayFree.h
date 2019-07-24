@@ -23,7 +23,7 @@ public:
 	void applyReconstruction(Eigen::VectorXd & wave_reference,
 									 Eigen::VectorXd r_i);
 
-	double gamma_wang(double d);
+	double gamma_wang(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
 
 
 private:

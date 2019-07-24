@@ -101,13 +101,14 @@ Eigen::VectorXd EdgeFlexDelayFree::calculateControls(Eigen::VectorXd s_in,
 											Eigen::VectorXd r_i){
 
 	// For now simple and linear
-	double d = std::sqrt((s_in - r_i).transpose()*(s_in - r_i));
 	//
-	return gamma_wang(d)*gain*(s_in - r_i);
+	return gamma_wang(r_i, s_in)*gain*(s_in - r_i);
 
 }
 
-double EdgeFlexDelayFree::gamma_wang(double d){
+double EdgeFlexDelayFree::gamma_wang(Eigen::VectorXd r_i, Eigen::VectorXd r_js){
+
+	double d = std::sqrt((r_js - r_i).transpose()*(r_js - r_i));
 
 	//logTmp(d);
 	double Rw = 1.0;

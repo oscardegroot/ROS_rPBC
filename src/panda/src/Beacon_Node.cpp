@@ -6,8 +6,6 @@ Thanks to the CMM the communication and convergence properties remain stable.
 
 */
 
-
-
 #include "ros/ros.h"
 
 #include "panda/Waves.h"
@@ -29,6 +27,7 @@ Eigen::VectorXd ref;
 
 void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref);
 void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref);
+void setGoalType(int goal_type);
 
 int main(int argc, char **argv){
 	
@@ -45,8 +44,15 @@ int main(int argc, char **argv){
 	// Retrieve the goal
 	//double lambda;
 	//std::vector<double> ref_v;
+	int goal_type;
+	helpers::safelyRetrieve(n, "/beacon/goal_type", goal_type, -1);
 
-	helpers::safelyRetrieveEigen(n, "/beacon/goal", ref, 3);
+	if(goal_type == -1){
+		helpers::safelyRetrieveEigen(n, "/beacon/goal", ref, 3);
+	}else{
+		setGoalType(goal_type);
+	}
+
 	//helpers::safelyRetrieve(n, "/lambda", lambda, 1.0);
 
 	//ref = helpers::vectorToEigen(ref_v);
@@ -124,3 +130,37 @@ void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref){
 
 }
 
+void setGoalType(int goal_type){
+
+
+	switch(goal_type){
+		case 1:
+			ref = Eigen::VectorXd::Zero(l);
+			ref << 0.45, -0.3, 0.8;
+			break;
+
+		case 2:
+			ref = Eigen::VectorXd::Zero(l);
+			ref << -0.3, 0.3, 0.7;
+			break;
+
+		default:
+			throw RetrievalException("Unknown goal type!");
+			break;
+
+	}
+		
+	std::string goal_string = "(";
+
+	for (int i = 0; i < l; i++){
+		goal_string += std::to_string(ref(i, 0));
+		if(i < l - 1){
+			goal_string += ", ";
+		}else{
+			goal_string += ")";
+		}
+	}
+
+	logMsg("Beacon Node", "Goal set to " + goal_string + " (type=" + std::to_string(goal_type) + ")", 2);
+
+}

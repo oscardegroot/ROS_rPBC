@@ -77,6 +77,8 @@ include
 add_library(${PROJECT_NAME}
   src/classes/Edge.cpp
   src/classes/EdgeDirect.cpp
+  src/classes/EdgeFlex.cpp
+  src/classes/EdgeIntegral.cpp
   src/classes/EdgeDelayFree.cpp
   src/classes/EdgeFlexDelayFree.cpp
   src/classes/Goals.cpp
