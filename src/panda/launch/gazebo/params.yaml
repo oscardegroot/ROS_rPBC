@@ -1,14 +1,15 @@
 N_agents: 2
 l: 3
 network_gain:
-  - 15.0
-  - 15.0
-  - 15.0
+  - 2.0
+  - 2.0
+  - 2.0
 lambda: 14.0
 
 controller:
+  publish_rate: 30
   kq: 1.0
-  kz: 3.0
+  kz: 6.0
   gravity_compensation:
     enabled: true
   local_potential:
@@ -30,7 +31,7 @@ controller:
     - 0.0
     - 0.0
   joint_limit_avoidance:
-    enabled: true 
+    enabled: true
     gains:
     - 0.25
     - 0.25
@@ -49,9 +50,15 @@ controller:
       - 0.9
     saturation: 3.0
     torque_enable: 3.0
-  wang:
-    Rw: 1.0
-    eps: 0.1
+  NF:
+    alpha: 5.0
+    goal:
+      Rw: 1.0
+      eps: 0.13
+    constraints:
+      lower_bound:
+        R_z: 0.1
+        delta_z: 0.15
     
 
 panda:
@@ -65,8 +72,9 @@ panda:
   - panda_joint6
   - panda_joint7
   arm_id: panda
+  publish_rate: 100
   vel_max: 0.05
-  z_lower_bound: 0.3
+  z_lower_bound: 0.2
   velocity_element_bound: 1.5
   velocity_norm_bound: 0.3
   torque_bound: 6.0
@@ -75,6 +83,10 @@ panda:
 
 beacon:
   ID: 1
-  goal_type: 1
+  goal_type: 3
+  goal:
+    - 0.1
+    - 0.2
+    - 0.4
 
   

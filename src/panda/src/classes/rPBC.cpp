@@ -65,7 +65,7 @@ Eigen::VectorXd rPBC::getOutput(System& system){
 	r = lambda*system.state.z + system.Psi().transpose()*system.state.dq;
 
 	// Publish it for debugging
-	this->publishZ(system.state.z);
+	publishValue(z_pub, z_rate, system.state.z);
 
 	// Return the output
 	return r;

@@ -16,6 +16,11 @@ An interface for controllers using IDAPBC or rPBC control.
 #include <eigen3/Eigen/Dense>
 #include "std_msgs/Float64MultiArray.h"
 
+#include <realtime_tools/realtime_publisher.h>
+#include <franka_hw/trigger_rate.h>
+
+#include "Helpers.h"
+
 class Controller{
 
 public:
@@ -24,8 +29,14 @@ public:
 
 	int l;
 
-	ros::Publisher z_pub, tau_pub;	
 	ros::NodeHandle nh;
+
+	// Realtime publishing
+	franka_hw::TriggerRate tau_rate{1.0};
+	franka_hw::TriggerRate z_rate{1.0};
+	realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray> tau_pub, z_pub;
+
+	//ros::Publisher z_pub, tau_pub;	
 
 	// Get the agent output, possibly modified
 	virtual Eigen::VectorXd getOutput(System& system) = 0;
@@ -33,12 +44,14 @@ public:
 	// Compute the input (POSSIBLY AT A ROBOTSTATE HERE)
 	virtual Eigen::VectorXd computeControl(System& system, Eigen::VectorXd tau_c) = 0;
 	
-	void publishZ(Eigen::VectorXd z);
-	void publishTau(Eigen::VectorXd tau);
-
-
-
+	void publishValue(realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray>& pub,
+	franka_hw::TriggerRate trigger_rate, const Eigen::VectorXd values);
+	// void publishZ(Eigen::VectorXd z);
+	// void publishTau(Eigen::VectorXd tau);
+	
 private:
+
+
 
 
 

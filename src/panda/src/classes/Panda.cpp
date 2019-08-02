@@ -56,6 +56,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	/* Retrieve names */
 	std::vector<std::string> joint_names;
 	std::string arm_id;
+	double publish_rate;
 
 	helpers::safelyRetrieveArray(nh, "joint_names", joint_names, 7);
 	helpers::safelyRetrieve(nh, "arm_id", arm_id);
@@ -117,6 +118,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	helpers::safelyRetrieve(nh, "alpha", alpha, 0.99);
 	helpers::safelyRetrieve(nh, "initial_pause", initial_pause, 0.0);
 
+
 	int id;
 	helpers::safelyRetrieve(nh, "ID", id);
 
@@ -131,6 +133,8 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	// Get an initial state reading
 	robot_state = cartesian_pose_handle_->getRobotState();
 	retrieveState();
+
+	//tau_pub.init(nh, "panda/tau", 1);
 
 	logMsg("Panda", "Initialisation Completed!", 2);
 
@@ -294,6 +298,21 @@ std::array<double, 7> Panda::checkTorque(const Eigen::VectorXd& torques, const s
 	// Otherwise saturate the torque rate and return
 	return saturateTorqueRate(torques, tau_J_d);
 }
+
+// void Panda::publishTau(const Eigen::VectorXd torques){
+
+// 	if (rate_trigger() && tau_pub.trylock()) {
+
+// 		tau_pub.msg_.data.resize(7);
+
+// 		for(int i = 0; i < 7; i++){
+// 			tau_pub.msg_.data[i] = torques(i);
+// 		}
+
+// 		tau_pub.unlockAndPublish();
+// 	}
+
+// }
 
 void Panda::filterVelocity(std::array<double, 7> input_v){
 

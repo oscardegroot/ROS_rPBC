@@ -140,6 +140,11 @@ void setGoalType(int goal_type){
 			ref << -0.3, 0.3, 0.7;
 			break;
 
+	    case 3:
+            ref = Eigen::VectorXd::Zero(l);
+            ref << -0.3, 0.3, 0.4;
+            break;
+
 		default:
 			throw RetrievalException("Unknown goal type!");
 			break;

@@ -81,6 +81,12 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	data_received = true;
 }
 
+	
+void Edge::applyReconstruction(Eigen::VectorXd & wave_reference,
+									 Eigen::VectorXd r_i){
+	return;
+}
+
 // Publish a returning wave
 void Edge::publishWave(Eigen::VectorXd s_out){
 	// The message to send

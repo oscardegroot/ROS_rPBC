@@ -14,7 +14,9 @@
 
 	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] agent_z/data[1] agent_z/data[2] reference/data[0] reference/data[1] reference/data[2]"/>
 
+<!--
 	<node name="plotjes2" pkg="rqt_plot" type="rqt_plot" args="/robot1/panda_joint1_controller/command/data /robot1/panda_joint2_controller/command/data /robot1/panda_joint3_controller/command/data" />
+ -->
 
 </launch>
 

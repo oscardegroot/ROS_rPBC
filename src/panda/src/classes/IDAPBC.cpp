@@ -64,7 +64,7 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 	//pseudoInverse(psi.transpose(), pinv_psi, 0.01);
 	tau += pinv_psi * (tau_c- kz*psi.transpose()*system.state.dq);//- kz*psi.transpose()*system.state.dq);
 	// tau += psi * (tau_c - kz*psi.transpose()*system.state.dq);// - psi*psi.transpose()*system.state.dq;
-	publishTau(tau);
+	publishValue(tau_pub, tau_rate, tau);
 	//logTmp(tau);
 	return tau;
 }
@@ -79,7 +79,7 @@ Eigen::VectorXd IDAPBC::getOutput(System& system){
 	r = system.state.z;//+ getPsi(system).transpose()*system.state.dq;
 
 	// Publish it for debugging
-	this->publishZ(r);
+	publishValue(z_pub, z_rate, r);
 
 	// Return the output
 	return r;

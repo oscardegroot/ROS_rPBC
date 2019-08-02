@@ -49,7 +49,7 @@ public:
 	virtual Eigen::VectorXd sample(Eigen::VectorXd r_i);
 	
 	virtual void applyReconstruction(Eigen::VectorXd & wave_reference,
-									 Eigen::VectorXd r_i) = 0;
+									 Eigen::VectorXd r_i);
 	virtual Eigen::VectorXd calculateControls(Eigen::VectorXd s_in,
 											Eigen::VectorXd r_i) = 0;
 	virtual Eigen::VectorXd calculateWaves(Eigen::VectorXd s_in,

@@ -24,6 +24,7 @@ System file for the real Franka Emika Panda 7DOF robotic manipulator
 #include <franka_hw/trigger_rate.h>
 
 #include <sensor_msgs/JointState.h>
+#include <std_msgs/Float64MultiArray.h>
 #include "CustomLog.h"
 #include <string>
 
@@ -78,6 +79,7 @@ public:
 		const std::array<double, 7>& tau_J_d);
 
 	void filterVelocity(std::array<double, 7> input_v);
+	//void publishTau(const Eigen::VectorXd torques);
 
 
 private:
@@ -120,9 +122,14 @@ private:
   	// Necessary for the cartesian handle
   	std::array<double, 16> initial_pose_;
 
-
   	// Classes for control
 	std::unique_ptr<CMM> cmm;
 	std::unique_ptr<Controller> controller;
+
+	// Realtime publishing
+	franka_hw::TriggerRate rate_trigger{1.0};
+	realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray> tau_pub;
+
+
 };
 }
