@@ -10,6 +10,7 @@ Thanks to the CMM the communication and convergence properties remain stable.
 
 #include "panda/Waves.h"
 #include "std_msgs/Float64MultiArray.h"
+#include "std_msgs/Int16.h"
 #include <visualization_msgs/Marker.h>
 #include "panda/getConnectionsOf.h"
 
@@ -23,8 +24,9 @@ Thanks to the CMM the communication and convergence properties remain stable.
 #include <sstream>
 
 int agent_id, l, N;
-Eigen::VectorXd ref;
-
+Eigen::VectorXd ref, valued_goal;
+//ros::NodeHandle nh;
+void goalCallback(const std_msgs::Int16::ConstPtr & msg);
 void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref);
 void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref);
 void setGoalType(int goal_type);
@@ -34,29 +36,30 @@ int main(int argc, char **argv){
 	// Initialise ROS
 	ros::init(argc, argv, "Agent");
 
-	ros::NodeHandle n;// = ros::NodeHandle("~");
+	// = ros::NodeHandle("~");
+    ros::NodeHandle nh;
 
 	// Get a nodehandle
-	helpers::safelyRetrieve(n, "/beacon/ID", agent_id);
-	helpers::safelyRetrieve(n, "/l", l);
-	helpers::safelyRetrieve(n, "/N_agents", N);
-	
+	helpers::safelyRetrieve(nh, "/beacon/ID", agent_id);
+	helpers::safelyRetrieve(nh, "/l", l);
+	helpers::safelyRetrieve(nh, "/N_agents", N);
+	helpers::safelyRetrieveEigen(nh, "/beacon/goal", valued_goal, l);
+
 	// Retrieve the goal
 	int goal_type;
-	helpers::safelyRetrieve(n, "/beacon/goal_type", goal_type, -1);
+	helpers::safelyRetrieve(nh, "/beacon/goal_type", goal_type, -1);
 
-	if(goal_type == -1){
-		helpers::safelyRetrieveEigen(n, "/beacon/goal", ref, 3);
-	}else{
-		setGoalType(goal_type);
-	}
+	setGoalType(goal_type);
 	
 	/* Initialise publishers */
 	ros::Publisher pub, marker_pub;
-	pub = n.advertise<std_msgs::Float64MultiArray>("/reference", 20);
-	marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 10);
-	
-	CMM cmm(agent_id);
+	pub = nh.advertise<std_msgs::Float64MultiArray>("/reference", 20);
+	marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+
+	ros::Subscriber sub;
+    sub = nh.subscribe<std_msgs::Int16>("/goal", 1, &goalCallback);
+
+    CMM cmm(agent_id);
 
 	ros::Rate loop_rate(1000);
 
@@ -77,6 +80,11 @@ int main(int argc, char **argv){
 	return 0;
 
 }
+
+void goalCallback(const std_msgs::Int16::ConstPtr & msg){
+    setGoalType(msg->data);
+}
+
 
 void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref){
 
@@ -127,7 +135,11 @@ void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref){
 }
 
 void setGoalType(int goal_type){
-
+    
+    if(goal_type == -1){
+        ref = valued_goal;
+        return;
+    }
 
 	switch(goal_type){
 		case 1:

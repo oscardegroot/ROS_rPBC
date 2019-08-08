@@ -18,13 +18,15 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   message_generation
   pluginlib
+  tf
+  cv_bridge
   realtime_tools
 )
 
 
-find_package(Franka 0.3.0 REQUIRED)
+find_package(Franka 0.4.0 REQUIRED)
 find_package(Eigen3 REQUIRED)
-
+#find_package(OpenCV REQUIRED)
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
@@ -69,78 +71,94 @@ catkin_package(LIBRARIES panda
 
 # Add libraries
 include_directories(
-include
-  ${catkin_INCLUDE_DIRS}
+	include
+	${catkin_INCLUDE_DIRS}
+	#${OpenCV_INCLUDE_DIRS}
+	src/pc-side-elisa3-library
 )
+
+# Add the Elisa3 Library Directory
+link_directories(src/pc-side-elisa3-library/linux)
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-  src/classes/Edge.cpp
-  src/classes/EdgeDirect.cpp
-  src/classes/EdgeFlex.cpp
-  src/classes/EdgeIntegral.cpp
-  src/classes/EdgeDelayFree.cpp
-  src/classes/EdgeFlexDelayFree.cpp
-  src/classes/Goals.cpp
-  src/classes/Remote.cpp
-  src/classes/System.cpp
-  src/classes/CMM.cpp
-  src/classes/PandaSim.cpp
-  src/classes/Panda.cpp
-  src/classes/IDAPBC.cpp
-  src/classes/rPBC.cpp
-  src/classes/Controller.cpp
-  src/CustomLog.cpp
-  src/Helpers.cpp
+	src/classes/Edge.cpp
+	src/classes/EdgeDirect.cpp
+	src/classes/EdgeFlex.cpp
+	src/classes/EdgeIntegral.cpp
+	src/classes/EdgeDelayFree.cpp
+	src/classes/EdgeFlexDelayFree.cpp
+	src/classes/Goals.cpp
+	src/classes/Remote.cpp
+	src/classes/System.cpp
+	src/classes/CMM.cpp
+	src/classes/Elisa3.cpp
+	src/classes/PandaSim.cpp
+	src/classes/Panda.cpp
+	src/classes/IDAPBC.cpp
+	src/classes/rPBC.cpp
+	src/pc-side-elisa3-library/elisa3-lib.c
+	src/pc-side-elisa3-library/usb-comm.c
+	src/classes/Controller.cpp
+	src/CustomLog.cpp
+	src/Helpers.cpp
 )
 
 
+# copy pasta
+#link_directories(src/pc-side-elisa3-library/linux)
+add_executable(Elisa3_Node src/Elisa3_Node.cpp)
+target_link_libraries(Elisa3_Node ${catkin_LIBRARIES} ${PROJECT_NAME} elisa3 pthread usb-1.0)
+
 # The agent Node
 add_executable(Agent_node src/Agent_Node.cpp)
-target_link_libraries(Agent_node ${catkin_LIBRARIES} 
-                                 ${PROJECT_NAME}
-                                 ${Franka_LIBRARIES})
+target_link_libraries(Agent_node ${catkin_LIBRARIES}
+	 ${PROJECT_NAME}
+	 ${Franka_LIBRARIES}
+)
 add_dependencies(Agent_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-
-# add_executable(panda )
-# target_link_libraries(panda ${catkin_LIBRARIES} 
-#                                  ${PROJECT_NAME}
-#                                  ${Franka_LIBRARIES})
-# add_dependencies(panda ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+# The Panda Node
 add_dependencies(panda
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
-
+target_include_directories(panda SYSTEM PUBLIC
+		${Franka_INCLUDE_DIRS}
+		${EIGEN3_INCLUDE_DIRS}
+		${catkin_INCLUDE_DIRS}
+)
 target_link_libraries(panda PUBLIC
   ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
+	elisa3
+	pthread
+	usb-1.0
 )
 
-target_include_directories(panda SYSTEM PUBLIC
-  ${Franka_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
-)
+
 target_include_directories(panda PUBLIC
   include
 )
 #add_dependencies(panda ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-
+# The text interface
+add_executable(TextInterface_Node src/TextInterface.cpp)
+target_link_libraries(TextInterface_Node ${catkin_LIBRARIES}
+		${PROJECT_NAME}
+		${Franka_LIBRARIES})
+add_dependencies(TextInterface_Node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # The beacon node
 add_executable(Beacon_node src/Beacon_Node.cpp)
-target_link_libraries(Beacon_node ${catkin_LIBRARIES} 
+target_link_libraries(Beacon_node ${catkin_LIBRARIES}
                                  ${PROJECT_NAME}
                                  ${Franka_LIBRARIES})
 add_dependencies(Beacon_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # The remote node
 add_executable(Remote src/Remote_Node.cpp)
-target_link_libraries(Remote ${catkin_LIBRARIES} 
+target_link_libraries(Remote ${catkin_LIBRARIES}
                                  ${PROJECT_NAME}
                                  ${Franka_LIBRARIES})
 add_dependencies(Remote ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
