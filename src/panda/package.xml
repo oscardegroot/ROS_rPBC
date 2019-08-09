@@ -55,6 +55,8 @@
   <depend>realtime_tools</depend>
   <depend>visualization_msgs</depend>
   <depend>franka_control</depend>
+  <depend>tf</depend>
+  <depend>cv_bridge</depend>
   <exec_depend>franka_description</exec_depend>
   <exec_depend>panda_moveit_config</exec_depend>
 

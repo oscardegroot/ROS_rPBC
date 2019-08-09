@@ -30,14 +30,14 @@ class System{
 
 public:
 	System(int n_set, int m_set);
-	~System();
+	virtual ~System();
 
 	// Coordinate count, actuated count
 	int n = 0;
 	int m = 0;
 	State state;
 
-	// virtual Eigen::VectorXd readSensors() = 0;
+	virtual void readSensors();
 	virtual bool sendInput(Eigen::VectorXd tau) = 0;
 	virtual Eigen::MatrixXd M() = 0;
 	virtual Eigen::VectorXd dVdq() = 0;

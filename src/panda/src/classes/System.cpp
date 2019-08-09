@@ -34,6 +34,10 @@ void System::checkSafety(){
 	return;
 }
 
+void System::readSensors(){
+    return;
+}
+
 // void System::setDataReady(bool is_ready){
 // 	data_rdy = is_ready;
 // }

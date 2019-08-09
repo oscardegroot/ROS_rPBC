@@ -38,23 +38,13 @@ int main(int argc, char **argv){
 	ros::Rate loop_rate(1000);
 
 	while(ros::ok()){
-		// If system data is available
+        Eigen::VectorXd tau_network = cmm.sample(controller->getOutput(*system));
+        //std::cout << "Network Sampled | ";
+        Eigen::VectorXd tau = controller->computeControl(*system, tau_network);
+        //std::cout << "Control Calculated | ";
 
-		//if(system->dataReady()){
-			Eigen::VectorXd tau_network = cmm.sample(controller->getOutput(*system));
-			//std::cout << "Network Sampled | ";
-			Eigen::VectorXd tau = controller->computeControl(*system, tau_network);
-			//std::cout << "Control Calculated | ";
-
-			system->sendInput(tau);
-			//std::cout << "Input send!\n";
-			
-			//system->setDataReady(false);
-		// }else{
-		// 	//system->sendInput(Eigen::VectorXd::Zero(system->n));
-		// 	logMsg("Agent Node", "No Data Received From the System!", 1);
-		// }
-		
+        system->sendInput(tau);
+        //std::cout << "Input send!\n";
 		
 		ros::spinOnce();
 		// ros::Duration(0.1).sleep();

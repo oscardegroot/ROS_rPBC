@@ -23,9 +23,9 @@ EdgeFlex::EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, bool is_in
 	helpers::safelyRetrieve(nh, "/controller/NF/goal/Rw", Rw);
 
 	// Retrieve the lower bound on z
-    helpers::safelyRetrieve(nh, "/panda/z_lower_bound", b_z);
-    helpers::safelyRetrieve(nh, "/controller/NF/constraints/lower_bound/R_z", R_z);
-    helpers::safelyRetrieve(nh, "/controller/NF/constraints/lower_bound/delta_z", delta_z);
+    helpers::safelyRetrieve(nh, "/panda/z_lower_bound", b_z, -10.0);
+    helpers::safelyRetrieve(nh, "/controller/NF/constraints/lower_bound/R_z", R_z, 0.1);
+    helpers::safelyRetrieve(nh, "/controller/NF/constraints/lower_bound/delta_z", delta_z, 0.15);
 
     // Initialise NF gains
     initGamma();

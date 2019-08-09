@@ -1,0 +1,40 @@
+# depslib dependency file v1.0
+1402902218 source:g:\lavoro\local-repo\elisaiii-working\pc-side-elisa3-library\usb-comm.c
+	"usb-comm.h"
+	"libusb.h"
+	</opt/local/include/libusb-1.0/libusb.h>
+	<libusb-1.0/libusb.h>
+
+1402573096 g:\lavoro\local-repo\elisaiii-working\pc-side-elisa3-library\usb-comm.h
+	<stdio.h>
+
+1309988946 g:\lavoro\_libraries\libusb\libusb_2011.07.06\include\libusb-1.0\libusb.h
+	<stdint.h>
+	<sys/types.h>
+	<time.h>
+	<limits.h>
+	<sys/time.h>
+	<windows.h>
+
+1403513648 source:g:\lavoro\local-repo\elisaiii-working\pc-side-elisa3-library\elisa3-lib.c
+	"elisa3-lib.h"
+	"windows.h"
+	"pthread.h"
+	<time.h>
+	<sys/time.h>
+
+1403679304 g:\lavoro\local-repo\elisaiii-working\pc-side-elisa3-library\elisa3-lib.h
+	<stdio.h>
+	<sys/types.h>
+	<math.h>
+	<unistd.h>
+	"usb-comm.h"
+
+1309992546 c:\libraries\libusb_2011.07.06\include\libusb-1.0\libusb.h
+	<stdint.h>
+	<sys/types.h>
+	<time.h>
+	<limits.h>
+	<sys/time.h>
+	<windows.h>
+

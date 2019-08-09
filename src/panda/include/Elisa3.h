@@ -2,18 +2,26 @@
 // Created by omdegroot on 06-08-19.
 //
 
-#ifndef SRC_ELISA3_H
-#define SRC_ELISA3_H
+#ifndef ELISA3_H
+#define ELISA3_H
 /*
 File: Elisa3.h
 
 */
 
 #include "ros/ros.h"
+#include "System.h"
+#include "Helpers.h"
+#include "Exceptions.h"
 
+#include <realtime_tools/realtime_publisher.h>
+#include "std_msgs/Float64MultiArray.h"
+
+#include "elisa3-lib.h"
+#include <cmath>
 /* Possibly divide this up further in a system and a controller */
 
-class Elisa3{
+class Elisa3 : public System{
 
 public:
     Elisa3(int set_address, int set_sampling_rate);
@@ -21,37 +29,57 @@ public:
 
     // Coordinate count, actuated count
     bool sendInput(Eigen::VectorXd tau);
+    void readSensors() override;
     Eigen::MatrixXd M();
     Eigen::VectorXd dVdq();
     Eigen::MatrixXd Psi();
 
-    void checkSafety();
+    void checkSafety() override;
 
-    void initWheelMatrix();
+    void initMatrices();
     Eigen::VectorXd feedbackLinearisation(const Eigen::VectorXd tau);
     Eigen::VectorXd velocityToWheelSpeed(const Eigen::VectorXd vel);
-
+    void saturateSpeed(signed int & v_r, signed int & v_l);
+    void lowpassFilter(Eigen::VectorXd filtered_value,
+                        const Eigen::VectorXd & value,
+                        const double alpha);
 
 private:
 
     int address, sampling_rate;
     bool accelerometer_enabled, motor_position_enabled;
-    Eigen::VectorXd last_speed_setpoint;
+    Eigen::VectorXi last_speed_setpoint;
+
+    realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray> test_pub;
+
+    // We need to make a distinction between feedback linerised and general
+    Eigen::VectorXd actual_dq;
+    Eigen::VectorXd actual_q;
+
     // Yolo value
     double L{0.03};
+    double Ts;
 
-    static constexpr double r{0.009}; // Wheel radius (9mm)
+    // Filtering
+    double alpha = 0.99;
+    //Eigen::VectorXd filtered_dq;
+
+    static constexpr double r{0.0045}; // Wheel radius (9mm/2)
     static constexpr double l{0.0408}; // Distance between wheels (40.8mm)
     static constexpr double m{0.039}; // Total weight (39 g)
+    static constexpr double J{0.000012187}; // Inertia (calculated as 0.5mr^2 for massive cylinder
+
+    // Actual max/min at 127
+    static constexpr signed int max_speed{50}, min_speed{-30}, max_speed_rate{50};
     // For later
-    // d = 50mm
+    // d = 50mm (body, not wheel!)
     // max speed 60cm/s
 
 
-    Eigen::MatrixXd wheel_matrix;
+    Eigen::MatrixXd wheel_matrix, F;
 
 
 };
 
 
-#endif //SRC_ELISA3_H
+#endif

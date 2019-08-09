@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="pc-side-elisa3-library" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="bin\Release\libpc-side-elisa3-library" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Release\" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add directory="C:\libraries\libusb_2011.07.06\include\libusb-1.0" />
+		</Compiler>
+		<Linker>
+			<Add library="libusb-1.0" />
+			<Add directory="C:\libraries\libusb_2011.07.06\MinGW32\static" />
+		</Linker>
+		<Unit filename="elisa3-lib.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="elisa3-lib.h" />
+		<Unit filename="usb-comm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="usb-comm.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

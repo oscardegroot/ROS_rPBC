@@ -57,6 +57,12 @@ void logTmp(T msg){
 	std::cout << "Tmp Logging: \n" << msg << std::endl;
 }
 
+template <class T>
+void logTmp(std::string name, T msg){
+
+    std::cout << name + "\n" << msg << std::endl;
+}
+
 void logMsg(std::string from_class, std::string msg, int level=3);
 
 #endif

@@ -35,9 +35,11 @@ template <class T>
 bool safelyRetrieve(ros::NodeHandle& nh, const std::string name,
 					 T& param, const T default_value){
 
-	if(!safelyRetrieve(nh, name, param)){
+    try{
+        safelyRetrieve(nh, name, param);
+    }catch(RetrievalException){
 		param = default_value;
-		logMsg("Helpers", "Set " + name + " to default value: " + std::to_string(default_value), 0);
+		logMsg("Helpers", "Set " + name + " to default value: " + std::to_string(default_value), 1);
 	}
 
 	return true;

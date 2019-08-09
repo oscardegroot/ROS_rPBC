@@ -16,7 +16,6 @@ IDAPBC::IDAPBC(System& system)
 
 	/* Retrieve controller gains */
 	ros::NodeHandle nh;
-	Eigen::VectorXd limits_min_array, limits_max_array;
 
 	helpers::safelyRetrieve(nh, "/controller/kq", kq, 1.0);
 	helpers::safelyRetrieve(nh, "/controller/kz", kz, 1.0);
@@ -24,19 +23,25 @@ IDAPBC::IDAPBC(System& system)
 	helpers::safelyRetrieve(nh, "/controller/gravity_compensation/enabled", gravity_enabled, false);
 
 	helpers::safelyRetrieve(nh, "/controller/local_potential/enabled", local_enabled, false);
-	helpers::safelyRetrieveEigen(nh, "/controller/local_potential/gains", Vs_gains, 7);
-	helpers::safelyRetrieveEigen(nh, "/controller/local_potential/goals", theta_star, 7);
-	
+
+	if(local_enabled){
+	    helpers::safelyRetrieveEigen(nh, "/controller/local_potential/gains", Vs_gains, 7);
+	    helpers::safelyRetrieveEigen(nh, "/controller/local_potential/goals", theta_star, 7);
+	}
+
 	helpers::safelyRetrieve(nh, "/controller/joint_limit_avoidance/enabled", limit_avoidance_enabled, false);
-	helpers::safelyRetrieveEigen(nh, "/controller/joint_limit_avoidance/gains", limit_avoidance_gains, 7);
 
-	// Calculate the mid point of the joints
-	helpers::safelyRetrieveEigen(nh, "/controller/joint_limit_avoidance/limits_min", limits_min_array, 7);
-	helpers::safelyRetrieveEigen(nh, "/controller/joint_limit_avoidance/limits_max", limits_max_array, 7);
-	
-	//Convert to eigen
-	limits_avg = 0.5*(limits_min_array + limits_max_array);
+	if(limit_avoidance_enabled) {
+        Eigen::VectorXd limits_min_array, limits_max_array;
+        helpers::safelyRetrieveEigen(nh, "/controller/joint_limit_avoidance/gains", limit_avoidance_gains, 7);
 
+        // Calculate the mid point of the joints
+        helpers::safelyRetrieveEigen(nh, "/controller/joint_limit_avoidance/limits_min", limits_min_array, 7);
+        helpers::safelyRetrieveEigen(nh, "/controller/joint_limit_avoidance/limits_max", limits_max_array, 7);
+
+        //Convert to eigen
+        limits_avg = 0.5 * (limits_min_array + limits_max_array);
+    }
 	helpers::safelyRetrieve(nh, "/l", l);
 
 	logMsg("IDAPBC", "Done!", 2);
@@ -44,7 +49,7 @@ IDAPBC::IDAPBC(System& system)
 }
 
 Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
-	
+
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
 
@@ -57,15 +62,15 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 	tau += -getdVsdq(system); //- getKv(system)*system.state.dq; //0.1*system.dVdq();//  - getVs_gainsdq(system);
 	tau += - kq * system.state.dq;
 	// Add the cooperative input
-	Eigen::MatrixXd psi(system.Psi().block(0, 0, 7, 3));
+	Eigen::MatrixXd psi(system.Psi().block(0, 0, system.n, l));
 	Eigen::MatrixXd pinv_psi;
 	pinv_psi = pseudoInverse(psi.transpose());
-	//logTmp(pinv_psi);
+
 	//pseudoInverse(psi.transpose(), pinv_psi, 0.01);
 	tau += pinv_psi * (tau_c- kz*psi.transpose()*system.state.dq);//- kz*psi.transpose()*system.state.dq);
 	// tau += psi * (tau_c - kz*psi.transpose()*system.state.dq);// - psi*psi.transpose()*system.state.dq;
 	publishValue(tau_pub, tau_rate, tau);
-	//logTmp(tau);
+
 	return tau;
 }
 

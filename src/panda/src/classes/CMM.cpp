@@ -18,18 +18,23 @@ CMM::CMM(int set_id){
 	// Retrieve parameters
 	helpers::safelyRetrieve(n, "/l", l);
 	helpers::safelyRetrieve(n, "/N_agents", N);
-	helpers::safelyRetrieve(n, "/controller/integral/torque_enable", torque_enable);
 
+    helpers::safelyRetrieve(n, "/controller/integral/enabled", integral_enabled, false);
+
+    if(integral_enabled) {
+        Eigen::VectorXd gain_i;
+        helpers::safelyRetrieveEigen(n, "/controller/integral/gain", gain_i, l);
+        integral_gain = Eigen::MatrixXd(gain_i.asDiagonal());
+
+        helpers::safelyRetrieve(n, "/controller/integral/torque_enable", torque_enable, 4.0);
+    }
 
 	Eigen::VectorXd gain_e;
 	helpers::safelyRetrieveEigen(n, "/network_gain", gain_e, l);
 	gain = Eigen::MatrixXd(gain_e.asDiagonal());
 
-	helpers::safelyRetrieve(n, "/controller/integral/enabled", integral_enabled, false);
-	
-	Eigen::VectorXd gain_i;
-	helpers::safelyRetrieveEigen(n, "/controller/integral/gain", gain_i, l);
-	integral_gain = Eigen::MatrixXd(gain_i.asDiagonal());
+
+
 	// Randomize the random seed
 	srand((unsigned int) agent_id + time(0));
 

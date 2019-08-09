@@ -1,3 +1,30 @@
+N_agents: 2
+l: 2
+network_gain:
+  - 1.0
+  - 1.0
+
 elisa3:
-  - sampling_rate: 100
-  - address: 3656
+  ID: 0
+  address: 3656
+  sampling_rate: 100
+  initial_delay: 2.0
+
+controller:
+  NF:
+    alpha: 30.0
+    goal:
+      Rw: 1.5
+      eps: 0.10
+#    constraints:
+#      lower_bound:
+#        R_z: 0.1
+#        delta_z: 0.15
+
+beacon:
+  ID: 1
+  goal:
+    - 0.4
+    - 0.3
+  goal_type: -1
+

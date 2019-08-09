@@ -1,14 +1,27 @@
 <?xml version="1.0" ?>
 <launch>
 
-	<rosparam command="load" file="$(find elisa3_node_cpp)/launch/params.yaml" />
+	<rosparam command="load" file="$(find panda)/launch/Elisa3/params.yaml" />
 
-    <node pkg="elisa3_node_cpp" type="elisa3" name="elisa3_1" output="screen"/>
+    <node pkg="panda" type="Remote" name="remote" output="screen" />
 
-    <param name="robot_description" textfile="$(find elisa3_node_cpp)/urdf/elisa3_urdf.xml"/>
+    <node pkg="panda" type="Elisa3_Node" name="elisa3_1" output="screen"/>
+    <node pkg="panda" type="Beacon_node" name="beacon" output="screen"/>
+
+
+   <node name="plotjes2" pkg="rqt_plot" type="rqt_plot" args="/Elisa3/q/data[0] /Elisa3/q/data[1] /Elisa3/q/data[2]"  />
+
+  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] agent_z/data[1] reference/data[0] reference/data[1]"  />
+
+<!--
+    <node pkg="panda" type="TextInterface_Node" name="text" output="screen"/>
+ -->
+<!--
+    <param name="robot_description" textfile="$(find panda)/urdf/elisa3_urdf.xml"/>
     <node name="elisa3_state_publisher" pkg="robot_state_publisher" type="state_publisher">
-        <param name="tf_prefix" value="$(arg elisa3_name)" />
+        <param name="tf_prefix" value="elisa3_1" />
     </node>
-    <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find elisa3_node_cpp)/config/elisa3_single_rviz.rviz"/>
+    <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find panda)/config/elisa3_single_rviz.rviz"/>
+ -->
 
 </launch>

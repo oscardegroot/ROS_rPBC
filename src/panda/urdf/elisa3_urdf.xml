@@ -1,0 +1,257 @@
+<?xml version="1.0"?>
+
+<robot name="elisa3">
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <cylinder length="0.002" radius="0.025"/>
+            </geometry>
+            <origin xyz="0.0 0.0 0.009"/>
+            <material name="green_pcb">
+                <color rgba="0.23 0.4 0.16 1.0"/>
+            </material>
+        </visual>
+    </link>
+
+    <link name="right_wheel">
+        <visual>
+            <geometry>
+                <cylinder length="0.002" radius="0.0045"/>
+            </geometry>
+            <origin rpy="0 1.57075 0"/>
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_right_wheel" type="fixed">
+        <parent link="base_link"/>
+        <child link="right_wheel"/>
+        <origin rpy="0 0 1.57075" xyz="0.0 -0.02 0.0045"/>
+    </joint>
+
+    <link name="left_wheel">
+        <visual>
+            <geometry>
+                <cylinder length="0.002" radius="0.0045"/>
+            </geometry>
+            <origin rpy="0 1.57075 0"/>
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_left_wheel" type="fixed">
+        <parent link="base_link"/>
+        <child link="left_wheel"/>
+        <origin rpy="0 0 1.57075" xyz="0.0 0.02 0.0045"/>
+    </joint>
+	
+    <link name="prox0">
+        <visual>
+            <geometry>
+                <box size="0.0025 0.007 0.004"/>
+            </geometry>
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_prox0" type="fixed">
+        <parent link="base_link"/>
+        <child link="prox0"/>
+        <origin rpy="0 0 0" xyz="0.024 0.0 0.013"/>
+    </joint>
+
+    <link name="prox1">
+        <visual>
+            <geometry>
+                <box size="0.0025 0.007 0.004"/>
+            </geometry>						
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_prox1" type="fixed">
+        <parent link="base_link"/>
+        <child link="prox1"/>
+        <origin rpy="0 0 -0.7854" xyz="0.017 -0.017 0.013"/>
+    </joint>
+
+    <link name="prox2">
+        <visual>
+            <geometry>
+                <box size="0.0025 0.007 0.004"/>
+            </geometry>						
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_prox2" type="fixed">
+        <parent link="base_link"/>
+        <child link="prox2"/>
+        <origin rpy="0 0 -1.57075" xyz="0.0 -0.024 0.013"/>
+    </joint>
+
+    <link name="prox3">
+        <visual>
+            <geometry>
+                <box size="0.0025 0.007 0.004"/>
+            </geometry>						
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_prox3" type="fixed">
+        <parent link="base_link"/>
+        <child link="prox3"/>
+        <origin rpy="0 0 -2.3561" xyz="-0.017 -0.017 0.013"/>
+    </joint>
+
+    <link name="prox4">
+        <visual>
+            <geometry>
+                <box size="0.0025 0.007 0.004"/>
+            </geometry>						
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_prox4" type="fixed">
+        <parent link="base_link"/>
+        <child link="prox4"/>
+        <origin rpy="0 0 -3.1415" xyz="-0.024 -0.0 0.013"/>
+    </joint>
+
+    <link name="prox5">
+        <visual>
+            <geometry>
+                <box size="0.0025 0.007 0.004"/>
+            </geometry>						
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_prox5" type="fixed">
+        <parent link="base_link"/>
+        <child link="prox5"/>
+        <origin rpy="0 0 2.3561" xyz="-0.017 0.017 0.013"/>
+    </joint>
+
+    <link name="prox6">
+        <visual>
+            <geometry>
+                <box size="0.0025 0.007 0.004"/>
+            </geometry>						
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_prox6" type="fixed">
+        <parent link="base_link"/>
+        <child link="prox6"/>
+        <origin rpy="0 0 1.57075" xyz="0.0 0.024 0.013"/>
+    </joint>
+
+    <link name="prox7">
+        <visual>
+            <geometry>
+                <box size="0.0025 0.007 0.004"/>
+            </geometry>						
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_prox7" type="fixed">
+        <parent link="base_link"/>
+        <child link="prox7"/>
+        <origin rpy="0 0 0.7854" xyz="0.017 0.017 0.013"/>
+    </joint>
+
+    <link name="body_diffuser">
+        <visual>
+            <geometry>
+                <cylinder length="0.012" radius="0.025"/>
+            </geometry>
+            <material name="white">
+                <color rgba="1.0 1.0 1.0 0.9"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_body_diffuser" type="fixed">
+        <parent link="base_link"/>
+        <child link="body_diffuser"/>
+        <origin xyz="0.0 0.0 0.021"/>
+    </joint>
+
+    <link name="irTx0">
+        <visual>
+            <geometry>
+                <box size="0.0015 0.0025 0.001"/>
+            </geometry>						
+            <material name="blue">
+                <color rgba="0.0 0.0 0.9 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_irTx0" type="fixed">
+        <parent link="base_link"/>
+        <child link="irTx0"/>
+        <origin rpy="0 0 -0.3491" xyz="0.021 -0.009 0.027"/>
+    </joint>
+
+    <link name="irTx1">
+        <visual>
+            <geometry>
+                <box size="0.0015 0.0025 0.001"/>
+            </geometry>						
+            <material name="blue">
+                <color rgba="0.0 0.0 0.9 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_irTx1" type="fixed">
+        <parent link="base_link"/>
+        <child link="irTx1"/>
+        <origin rpy="0 0 0.3491" xyz="0.021 0.009 0.027"/>
+    </joint>
+
+    <link name="irTx2">
+        <visual>
+            <geometry>
+                <box size="0.0015 0.0025 0.001"/>
+            </geometry>						
+            <material name="blue">
+                <color rgba="0.0 0.0 0.9 1"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="base_to_irTx2" type="fixed">
+        <parent link="base_link"/>
+        <child link="irTx2"/>
+        <origin rpy="0 0 0" xyz="-0.022 0.0 0.027"/>
+    </joint>
+
+</robot>

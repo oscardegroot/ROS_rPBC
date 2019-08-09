@@ -1,7 +1,11 @@
-//
-// Created by root on 07-08-19.
-//
+/*
+ * File: Elisa3_Node.cpp
+ *
+ * Node that runs an Elisa3 robot. Main functionality implemented in the Elisa3 class.
+ */
 
+
+#include "ros/ros.h"
 #include "Helpers.h"
 #include "Elisa3.h"
 #include "System.h"
@@ -9,51 +13,55 @@
 #include "IDAPBC.h"
 #include "CMM.h"
 
-
 int main(int argc, char **argv){
 
     // Initialise ROS
-    ros::init(argc, argv, "Elisa3");
-
-    ros::NodeHandle nh = ros::NodeHandle("~");
+    ros::init(argc, argv, "elisa_3");
 
     // Get a nodehandle
-//    helpers::safelyRetrieve(nh, "/panda/ID", id);
-//    helpers::safelyRetrieve(nh, "/l", l);
-//    helpers::safelyRetrieve(nh, "/N_agents", N);
-    int address, sampling_rate;
-    helpers::safelyRetrieve(nh, "address", address, 3656);
+    ros::NodeHandle nh("/elisa3/");
+
+    // Retrieve important parameters
+    int id, address, sampling_rate;
+    helpers::safelyRetrieve(nh, "ID", id);
+    helpers::safelyRetrieve(nh, "address", address);
     helpers::safelyRetrieve(nh, "sampling_rate", sampling_rate, 100);
 
-    std::unique_ptr<System> system = std::make_unique<Elisa3>();
+    double initial_delay;
+    helpers::safelyRetrieve(nh, "initial_delay", initial_delay, 2.0);
+
+
+    // Create a system and a controller
+    std::unique_ptr<System> system = std::make_unique<Elisa3>(address, sampling_rate);
     std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*system);
 
+    // Create a Communication Management Module
     CMM cmm(id);
 
-    //Maybe also define the controller here-> Agent has a system and a controller
-
+    // Define loop rate
     ros::Rate loop_rate(sampling_rate);
+
+    // Wait for everything to startup
+    ros::Duration(initial_delay).sleep();
 
     while(ros::ok()){
 
+        /// Read sensors
+        system->readSensors();
+
+        /// Retrieve the cooperative input
         Eigen::VectorXd tau_network = cmm.sample(controller->getOutput(*system));
-        //std::cout << "Network Sampled | ";
-        
+
+        /// Compute the control input
         Eigen::VectorXd tau = controller->computeControl(*system, tau_network);
-        //std::cout << "Control Calculated | ";
 
+        /// Send the input to the system
         system->sendInput(tau);
-        //std::cout << "Input send!\n";
 
+        // Check callbacks and sleep
         ros::spinOnce();
-        // ros::Duration(0.1).sleep();
         loop_rate.sleep();
     }
-
-    //delete system;
-    //delete controller;
-    // Not sure if necessary but still
-    //delete edges;
 
     return 0;
 
