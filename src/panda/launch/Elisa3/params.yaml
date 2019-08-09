@@ -26,5 +26,5 @@ beacon:
   goal:
     - 0.4
     - 0.3
-  goal_type: -1
+  goal_type: 1
 

@@ -46,9 +46,7 @@ public:
 	
 	void publishValue(realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray>& pub,
 	franka_hw::TriggerRate trigger_rate, const Eigen::VectorXd values);
-	// void publishZ(Eigen::VectorXd z);
-	// void publishTau(Eigen::VectorXd tau);
-	
+
 private:
 
 

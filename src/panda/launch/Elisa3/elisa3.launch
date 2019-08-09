@@ -2,6 +2,7 @@
 <launch>
 
 	<rosparam command="load" file="$(find panda)/launch/Elisa3/params.yaml" />
+	<rosparam command="load" file="$(find panda)/launch/Elisa3/goals.yaml" />
 
     <node pkg="panda" type="Remote" name="remote" output="screen" />
 
@@ -12,10 +13,8 @@
    <node name="plotjes2" pkg="rqt_plot" type="rqt_plot" args="/Elisa3/q/data[0] /Elisa3/q/data[1] /Elisa3/q/data[2]"  />
 
   <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] agent_z/data[1] reference/data[0] reference/data[1]"  />
+  <node pkg="panda" type="TextInterface_Node" name="text" output="screen"/>
 
-<!--
-    <node pkg="panda" type="TextInterface_Node" name="text" output="screen"/>
- -->
 <!--
     <param name="robot_description" textfile="$(find panda)/urdf/elisa3_urdf.xml"/>
     <node name="elisa3_state_publisher" pkg="robot_state_publisher" type="state_publisher">

@@ -39,6 +39,9 @@ Elisa3::Elisa3(int set_address, int set_sampling_rate)
     // Init communications
     startCommunication(&address, 1);
 
+    // (This is used to reset odometry)
+    calibrateSensors(address);
+
     // Initialise all state related values
     // These are the feedback linearised states,...
     this->setState(Eigen::VectorXd::Zero(n),

@@ -141,28 +141,35 @@ void setGoalType(int goal_type){
         return;
     }
 
-	switch(goal_type){
-		case 1:
-			ref = Eigen::VectorXd::Zero(l);
-			ref << 0.45, -0.3, 0.8;
-			break;
+    ros::NodeHandle nh;
 
-		case 2:
-			ref = Eigen::VectorXd::Zero(l);
-			ref << -0.3, 0.3, 0.7;
-			break;
+    // Get a nodehandle
+    helpers::safelyRetrieveEigen(nh, "goals/2/goal" + std::to_string(goal_type), ref, l);
 
-	    case 3:
-            ref = Eigen::VectorXd::Zero(l);
-            ref << -0.3, 0.3, 0.4;
-            break;
 
-		default:
-			throw RetrievalException("Unknown goal type!");
-			break;
 
-	}
-		
+//	switch(goal_type){
+//		case 1:
+//			ref = Eigen::VectorXd::Zero(l);
+//			ref << 0.45, -0.3, 0.8;
+//			break;
+//
+//		case 2:
+//			ref = Eigen::VectorXd::Zero(l);
+//			ref << -0.3, 0.3, 0.7;
+//			break;
+//
+//	    case 3:
+//            ref = Eigen::VectorXd::Zero(l);
+//            ref << -0.3, 0.3, 0.4;
+//            break;
+//
+//		default:
+//			throw RetrievalException("Unknown goal type!");
+//			break;
+//
+//	}
+//
 	std::string goal_string = "(";
 
 	for (int i = 0; i < l; i++){
