@@ -36,21 +36,16 @@ public:
 	franka_hw::TriggerRate z_rate{1.0};
 	realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray> tau_pub, z_pub;
 
-	//ros::Publisher z_pub, tau_pub;	
+    // Get the agent output, possibly modified
+    virtual Eigen::VectorXd getOutput(System& system) = 0;
 
-	// Get the agent output, possibly modified
-	virtual Eigen::VectorXd getOutput(System& system) = 0;
+    // Compute the input (POSSIBLY AT A ROBOTSTATE HERE)
+    virtual Eigen::VectorXd computeControl(System& system, Eigen::VectorXd tau_c) = 0;
 
-	// Compute the input (POSSIBLY AT A ROBOTSTATE HERE)
-	virtual Eigen::VectorXd computeControl(System& system, Eigen::VectorXd tau_c) = 0;
-	
-	void publishValue(realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray>& pub,
-	franka_hw::TriggerRate trigger_rate, const Eigen::VectorXd values);
+    void publishValue(realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray>& pub,
+            franka_hw::TriggerRate trigger_rate, const Eigen::VectorXd values);
 
 private:
-
-
-
 
 
 };

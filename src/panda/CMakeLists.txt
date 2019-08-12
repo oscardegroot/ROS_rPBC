@@ -35,12 +35,16 @@ find_package(Eigen3 REQUIRED)
 add_message_files(DIRECTORY msg 
 	FILES 
 	Waves.msg
+	Move.msg
+	Readout.msg
 )
 
 ## Services in the 'srv' folder
 add_service_files(DIRECTORY srv
-  FILES
-  getConnectionsOf.srv
+  	FILES
+  	getConnectionsOf.srv
+	registerElisa3.srv
+	colorElisa3.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -109,6 +113,10 @@ add_library(${PROJECT_NAME}
 #link_directories(src/pc-side-elisa3-library/linux)
 add_executable(Elisa3_Node src/Elisa3_Node.cpp)
 target_link_libraries(Elisa3_Node ${catkin_LIBRARIES} ${PROJECT_NAME} elisa3 pthread usb-1.0)
+
+add_executable(Elisa3_Station src/Elisa3_Station.cpp)
+target_link_libraries(Elisa3_Station ${catkin_LIBRARIES} ${PROJECT_NAME} elisa3 pthread usb-1.0)
+
 
 # The agent Node
 add_executable(Agent_node src/Agent_Node.cpp)

@@ -16,6 +16,10 @@ File: Elisa3.h
 
 #include <realtime_tools/realtime_publisher.h>
 #include "std_msgs/Float64MultiArray.h"
+#include "panda/registerElisa3.h"
+#include "panda/Move.h"
+#include "panda/Readout.h"
+#include "panda/colorElisa3.h"
 
 #include "elisa3-lib.h"
 #include <cmath>
@@ -29,7 +33,7 @@ public:
 
     // Coordinate count, actuated count
     bool sendInput(Eigen::VectorXd tau);
-    void readSensors() override;
+    void readSensors(const panda::Readout::ConstPtr & msg);
     Eigen::MatrixXd M();
     Eigen::VectorXd dVdq();
     Eigen::MatrixXd Psi();
@@ -44,20 +48,31 @@ public:
                         const Eigen::VectorXd & value,
                         const double alpha);
 
+    bool dataReady() override;
+
+    void setColor(int color_type);
+    void setColor(int r, int g, int b);
+
 private:
 
     int address, sampling_rate;
     bool accelerometer_enabled, motor_position_enabled;
     Eigen::VectorXi last_speed_setpoint;
+    Eigen::VectorXd q0;
 
     realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray> test_pub;
 
+    bool data_received = false;
+    ros::Publisher move_pub;
+    panda::Move move_msg;
+    ros::Subscriber readout_sub;
+    ros::ServiceClient color_client;
     // We need to make a distinction between feedback linerised and general
     Eigen::VectorXd actual_dq;
     Eigen::VectorXd actual_q;
 
     // Yolo value
-    double L{0.03};
+    double L;
     double Ts;
 
     // Filtering
@@ -77,6 +92,7 @@ private:
 
 
     Eigen::MatrixXd wheel_matrix, F;
+
 
 
 };

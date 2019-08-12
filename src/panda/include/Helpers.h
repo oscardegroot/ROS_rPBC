@@ -50,11 +50,8 @@ template <class T>
 bool safelyRetrieveArray(ros::NodeHandle& nh, const std::string name,
 						 T& param, const int expected_size){
 
-	if (!nh.getParam(name, param))
-	{
-		throw RetrievalException("Helpers: Failed to retrieve array " + name);
-		return false;
-	}
+	safelyRetrieve(nh, name, param);
+
 	if(param.size() != expected_size){
 		throw RetrievalException("Helpers: Size of parameter " + name +
 	 	" incorrect (size=" + std::to_string(param.size()) +
@@ -66,6 +63,19 @@ bool safelyRetrieveArray(ros::NodeHandle& nh, const std::string name,
 	return true;
 		
 }
+//
+///* Turn this into vector! */
+//template <class T>
+//bool safelyRetrieveArray(ros::NodeHandle& nh, const std::string name,
+//                         T& param){
+//
+//    if (!nh.getParam(name, param))
+//    {
+//        throw RetrievalException("Helpers: Failed to retrieve array " + name);
+//    }
+//
+//    return true;
+//}
 
 /* Turn this into vector! */
 template <class T>
@@ -79,6 +89,19 @@ bool safelyRetrieveEigen(ros::NodeHandle& nh, const std::string name,
 
 	return true;
 		
+}
+
+template <class T>
+bool safelyRetrieveEigen(ros::NodeHandle& nh, const std::string name,
+                         T& param){
+
+    std::vector<double> result_v;
+    safelyRetrieve(nh, name, result_v);
+
+    param = vectorToEigen(result_v);
+
+    return true;
+
 }
 
 inline void errorRetrieving(std::string name, const char* ex_what){

@@ -24,8 +24,10 @@ Thanks to the CMM the communication and convergence properties remain stable.
 #include <sstream>
 
 int agent_id, l, N;
+Eigen::MatrixXd S;
 Eigen::VectorXd ref, valued_goal;
 //ros::NodeHandle nh;
+void initSelectors();
 void goalCallback(const std_msgs::Int16::ConstPtr & msg);
 void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref);
 void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref);
@@ -43,7 +45,9 @@ int main(int argc, char **argv){
 	helpers::safelyRetrieve(nh, "/beacon/ID", agent_id);
 	helpers::safelyRetrieve(nh, "/l", l);
 	helpers::safelyRetrieve(nh, "/N_agents", N);
-	helpers::safelyRetrieveEigen(nh, "/beacon/goal", valued_goal, l);
+	helpers::safelyRetrieveEigen(nh, "/beacon/goal", valued_goal);
+
+	initSelectors();
 
 	// Retrieve the goal
 	int goal_type;
@@ -81,6 +85,31 @@ int main(int argc, char **argv){
 
 }
 
+/// Initialise the selector matrix
+/* Note that z = S*z_all, Psi = Psi_all * S' */
+void initSelectors(){
+
+    // This is not nice! maybe this entire thing in helpers?
+    ros::NodeHandle nh;
+    std::vector<int> selector;
+    helpers::safelyRetrieve(nh, "/beacon/z_select", selector);
+    int lmax = selector.size();
+
+    // Count the number of activated coordinates
+    int cur_l = count(selector.begin(), selector.end(), 1);
+    S = Eigen::MatrixXd::Zero(cur_l, lmax);
+
+    // Create a matrix that selects the required entries
+    int occurences = 0;
+    for(int i = 0; i < selector.size(); i++) {
+
+        if(selector[i] == 1){
+            S(occurences, i) = 1;
+            occurences++;
+        }
+    }
+}
+//380mm
 void goalCallback(const std_msgs::Int16::ConstPtr & msg){
     setGoalType(msg->data);
 }
@@ -137,16 +166,17 @@ void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref){
 void setGoalType(int goal_type){
     
     if(goal_type == -1){
-        ref = valued_goal;
+        ref = S*valued_goal;
         return;
     }
 
     ros::NodeHandle nh;
 
     // Get a nodehandle
-    helpers::safelyRetrieveEigen(nh, "goals/2/goal" + std::to_string(goal_type), ref, l);
+    Eigen::VectorXd temp_ref;
+    helpers::safelyRetrieveEigen(nh, "goals/2/goal" + std::to_string(goal_type), temp_ref);
 
-
+    ref = S*temp_ref;
 
 //	switch(goal_type){
 //		case 1:

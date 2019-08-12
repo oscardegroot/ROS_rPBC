@@ -1,0 +1,6 @@
+uint32 address
+int8 color_type
+int8 red
+int8 green
+int8 blue
+---

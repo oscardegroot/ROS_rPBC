@@ -33,8 +33,6 @@ CMM::CMM(int set_id){
 	helpers::safelyRetrieveEigen(n, "/network_gain", gain_e, l);
 	gain = Eigen::MatrixXd(gain_e.asDiagonal());
 
-
-
 	// Randomize the random seed
 	srand((unsigned int) agent_id + time(0));
 

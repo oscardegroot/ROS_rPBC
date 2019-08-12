@@ -42,7 +42,7 @@ IDAPBC::IDAPBC(System& system)
         //Convert to eigen
         limits_avg = 0.5 * (limits_min_array + limits_max_array);
     }
-	helpers::safelyRetrieve(nh, "/l", l);
+
 
 	logMsg("IDAPBC", "Done!", 2);
 
@@ -62,7 +62,10 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 	tau += -getdVsdq(system); //- getKv(system)*system.state.dq; //0.1*system.dVdq();//  - getVs_gainsdq(system);
 	tau += - kq * system.state.dq;
 	// Add the cooperative input
-	Eigen::MatrixXd psi(system.Psi().block(0, 0, system.n, l));
+	Eigen::MatrixXd psi = system.Psi();
+	// Select only the activated part of psi
+	//this->selectPsi(psi);
+	//(system.Psi().block(0, 0, system.n, l));
 	Eigen::MatrixXd pinv_psi;
 	pinv_psi = pseudoInverse(psi.transpose());
 
@@ -75,14 +78,15 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 }
 
 
+
 Eigen::VectorXd IDAPBC::getOutput(System& system){
 
 	// Define the output
 	Eigen::VectorXd r(l);
 
-	// Set it to be z
+	// Set it to be z (the selected values)
 	r = system.state.z;//+ getPsi(system).transpose()*system.state.dq;
-
+    //system.selectZ(r);
 	// Publish it for debugging
 	publishValue(z_pub, z_rate, r);
 

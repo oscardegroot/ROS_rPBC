@@ -25,7 +25,7 @@ int main(int argc, char **argv){
     publisher = nh.advertise<std_msgs::Int16>("/goal", 1);
 
     while(ros::ok()){
-
+        ros::Duration(5.0).sleep();
         int goal_select;
         std::cout << "New goal: ";
         std::cin >> goal_select;

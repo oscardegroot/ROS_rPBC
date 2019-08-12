@@ -4,7 +4,7 @@
 //See: https://github.com/frankaemika/franka_ros/blob/kinetic-devel/franka_example_controllers/include/franka_example_controllers/joint_impedance_example_controller.h
 
 PandaSim::PandaSim()
-	:System(7, 7)
+	:System(7, 7, 3)
 {
 	logMsg("PandaSim", "Initialising...", 2);
 	this->setState(Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(n),

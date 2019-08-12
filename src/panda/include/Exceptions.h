@@ -41,3 +41,8 @@ struct RetrievalException : public OperationalException {
   using OperationalException::OperationalException;
 };
 
+struct RegisteringException : public OperationalException {
+    using OperationalException::OperationalException;
+};
+
+

@@ -18,7 +18,7 @@ Remote::Remote(){
 	// Start a server
 	connect_server = n.advertiseService("/get_connections_of",
 				 &Remote::retrieveConnectionsOf, this);
-	
+
 	logMsg("Remote", "Formation server initiated", 2);
 
 }

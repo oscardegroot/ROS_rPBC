@@ -1,42 +1,49 @@
-N_agents: 2
+N_agents: 3
 l: 2
 network_gain:
-  - 1.0
-  - 1.0
+  - 0.4
+  - 0.4
 
 elisa3_1:
   ID: 0
-  address: 3655
+  address: 3656
   init_state:
     - 0.0
     - 0.0
     - 0.0
+
+elisa3_2:
+  ID: 1
+  address: 3658
+  init_state:
+    - 0.256
+    - 0.256
+    - 0.0
+
+elisa3_3:
+  ID: 2
+  address: 3655
+  init_state:
+    - -0.256
+    - 0.256
+    - 3.14
+
+
 elisa3:
   sampling_rate: 100
   initial_delay: 2.0
   z_select:
     - 1
     - 1
-  L: 0.04
+  L: 0.045
 
 controller:
   NF:
     alpha: 30.0
     goal:
-      Rw: 1.5
-      eps: 0.10
+      Rw: 1.2
+      eps: 0.12
 #    constraints:
 #      lower_bound:
 #        R_z: 0.1
 #        delta_z: 0.15
-
-beacon:
-  ID: 1
-  goal:
-    - 0.0
-    - 0.33 #1cm space -> result ~4 cm space
-  goal_type: 2
-  z_select:
-    - 1
-    - 1
-

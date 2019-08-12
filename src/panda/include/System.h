@@ -12,7 +12,7 @@ Defines an interface for systems controlled by IDAPBC or rPBC
 #include <eigen3/Eigen/Dense>
 
 #include "panda/getConnectionsOf.h"
-
+#include "Helpers.h"
 
 #include <vector>
 #include <string>
@@ -29,13 +29,20 @@ struct State{
 class System{
 
 public:
-	System(int n_set, int m_set);
-	virtual ~System();
+	System(int n_set, int m_set, int lmax_set);
+	~System();
 
 	// Coordinate count, actuated count
 	int n = 0;
 	int m = 0;
+	int lmax = 0;
 	State state;
+
+    // Selector for Psi and z
+    Eigen::MatrixXd S;
+    void initSelectors();
+    Eigen::MatrixXd selectPsi(Eigen::MatrixXd psi);
+    Eigen::VectorXd selectZ(Eigen::VectorXd z);
 
 	virtual void readSensors();
 	virtual bool sendInput(Eigen::VectorXd tau) = 0;
@@ -43,7 +50,7 @@ public:
 	virtual Eigen::VectorXd dVdq() = 0;
 	virtual Eigen::MatrixXd Psi() = 0;
 
-	// bool dataReady();
+	virtual bool dataReady();
 	// void setDataReady(bool is_ready);
 	int getN(){return n;};
 	void setState(Eigen::VectorXd new_q, Eigen::VectorXd new_qd, Eigen::VectorXd new_z);

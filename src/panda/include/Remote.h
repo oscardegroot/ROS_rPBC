@@ -27,17 +27,17 @@ public:
 	bool retrieveConnectionsOf(panda::getConnectionsOf::Request &req,
 		 panda::getConnectionsOf::Response &res);
 
-
 private:
 
 	int l, N;
+
 	std::unique_ptr<Goals> goals;
 
 	// A nodehandle
 	ros::NodeHandle n;
 
 	// The server
-	ros::ServiceServer connect_server;
+	ros::ServiceServer connect_server, elisa3_register;
 
 
 };

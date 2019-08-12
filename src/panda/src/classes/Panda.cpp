@@ -12,7 +12,7 @@ System file for the real Franka Emika Panda 7DOF robotic manipulator
 namespace panda {
 
 Panda::Panda()
-	:System(7, 7)
+	:System(7, 7, 6)
 {
 	//yolo_pub = nh.advertise<std_msgs::Float64MultiArray>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "p" + integral_add, 100);
 

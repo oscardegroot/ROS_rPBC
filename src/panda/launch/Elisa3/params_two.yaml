@@ -6,37 +6,35 @@ network_gain:
 
 elisa3_1:
   ID: 0
-  address: 3655
+  address: 3656
   init_state:
     - 0.0
     - 0.0
     - 0.0
+
+elisa3_2:
+  ID: 1
+  address: 3658
+  init_state:
+    - 0.256
+    - 0.256
+    - 3.14
+
 elisa3:
   sampling_rate: 100
-  initial_delay: 2.0
+  initial_delay: 3.0
   z_select:
     - 1
     - 1
-  L: 0.04
+  L: 0.03
 
 controller:
   NF:
     alpha: 30.0
     goal:
-      Rw: 1.5
-      eps: 0.10
+      Rw: 1.2
+      eps: 0.25
 #    constraints:
 #      lower_bound:
 #        R_z: 0.1
 #        delta_z: 0.15
-
-beacon:
-  ID: 1
-  goal:
-    - 0.0
-    - 0.33 #1cm space -> result ~4 cm space
-  goal_type: 2
-  z_select:
-    - 1
-    - 1
-

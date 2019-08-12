@@ -13,6 +13,8 @@ Controller::Controller(){
 	tau_pub.init(nh, "agent_tau", 1);
 	z_pub.init(nh, "agent_z", 1);
 
+    helpers::safelyRetrieve(nh, "/l", l);
+
 	double publish_rate;
 	helpers::safelyRetrieve(nh, "/controller/publish_rate", publish_rate, 10.0);
 	tau_rate = franka_hw::TriggerRate(publish_rate);
