@@ -13,7 +13,7 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 class EdgeFlex : public Edge{
 public:
 	// Constructor and destructor
-	EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, bool is_integral);
+	EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set);
 
 	Eigen::VectorXd sample(Eigen::VectorXd r_i) override;
 	Eigen::VectorXd calculateControls(Eigen::VectorXd r_i, Eigen::VectorXd r_js) override;
@@ -32,8 +32,8 @@ public:
 	void lowpassFilter(Eigen::VectorXd& filtered_data,
 					 Eigen::VectorXd new_data, double alpha);
 
-	double gradient_gamma(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
-	double gamma(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
+	double gradient_gamma(double d);
+	double gamma(double d);
 
 	double gradient_G(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
 	double G(Eigen::VectorXd r_i, Eigen::VectorXd r_js);

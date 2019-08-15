@@ -14,7 +14,7 @@ l_set: dimension of the channel
 
 #include "Edge.h"
 
-Edge::Edge(int i, int j, Eigen::MatrixXd gain_set, int l_set, bool is_integral){
+Edge::Edge(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set){
 
 	logMsg("Edge", "Initiating edge between " + std::to_string(i) + " and " + std::to_string(j) + "..", 2);
 
@@ -23,20 +23,9 @@ Edge::Edge(int i, int j, Eigen::MatrixXd gain_set, int l_set, bool is_integral){
 	j_ID = j;
 	l = l_set;
 	gain = gain_set;
+	r_star = r_star_set;
 
-	std::string integral_add = "";
-	if(is_integral){
-		integral_add = "_i";
-	}
-
-	// If this is agent i, send on the positivily defined channel, listen to the negative channel
-	if(i < j){
-		wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "p" + integral_add, 100);
-		wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "m" + integral_add, 100, &Edge::waveCallback, this);
-	}else /* Otherwise invert these */{
-		wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "m" + integral_add, 100);
-		wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "p" + integral_add, 100, &Edge::waveCallback, this);
-	}
+	initChannels();
 
 	// Initialise buffers
 	s_buffer = Eigen::VectorXd::Zero(l);
@@ -44,6 +33,23 @@ Edge::Edge(int i, int j, Eigen::MatrixXd gain_set, int l_set, bool is_integral){
 
 	logMsg("Edge", "Done!", 2);
 
+}
+
+/// Initialise channel
+void Edge::initChannels(){
+
+    if(i_ID == -1 || j_ID == -1){
+        return;
+    }
+
+    // If this is agent i, send on the positivily defined channel, listen to the negative channel
+    if(i_ID < j_ID){
+        wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "p", 100);
+        wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "m", 100, &Edge::waveCallback, this);
+    }else /* Otherwise invert these */{
+        wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "m", 100);
+        wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "p", 100, &Edge::waveCallback, this);
+    }
 }
 
 // Destructor
@@ -65,6 +71,7 @@ Eigen::VectorXd Edge::sample(Eigen::VectorXd r_i){
 	return calculateControls(s_received, r_i);
 }
 
+/// Handle a received packet
 void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	
 	logMsg("Edge", "Wave received. Timestamp = " + std::to_string(msg->timestamp) + ".", 4);
@@ -81,13 +88,13 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	data_received = true;
 }
 
-	
+/// Reconstruct the signal if necessary
 void Edge::applyReconstruction(Eigen::VectorXd & wave_reference,
 									 Eigen::VectorXd r_i){
 	return;
 }
 
-// Publish a returning wave
+/// Publish a returning wave
 void Edge::publishWave(Eigen::VectorXd s_out){
 	// The message to send
 	panda::Waves msg;

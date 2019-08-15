@@ -12,8 +12,8 @@ l_set: dimension of the channel
 
 #include "EdgeDelayFree.h"
 
-EdgeDelayFree::EdgeDelayFree(int i, int j, Eigen::MatrixXd gain_set, int l_set, bool is_integral)
-	: Edge(i, j, gain_set, l_set, is_integral){
+EdgeDelayFree::EdgeDelayFree(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
+	: Edge(i, j, gain_set, l_set, r_star_set){
 
 	setScatteringGain(gain_set);
 

@@ -40,6 +40,9 @@ Elisa3::Elisa3(int set_address, int set_sampling_rate)
 
     helpers::safelyRetrieveEigen(nh_private, "init_state", q0, 3);
 
+    int id;
+    helpers::safelyRetrieve(nh_private, "ID", id);
+
     test_pub.init(nh_private, "q", 1);
 
     // And these are the actual system states
@@ -68,7 +71,7 @@ Elisa3::Elisa3(int set_address, int set_sampling_rate)
     }
 
     color_client = nh_global.serviceClient<panda::colorElisa3>("/colorElisa3");
-    setColor(address%3 + 1);
+    setColor(id + 4);
 
     move_pub = nh_global.advertise<panda::Move>("elisa3_" + std::to_string(address) + "_move", 20);
     readout_sub = nh_global.subscribe<panda::Readout>("elisa3_" + std::to_string(address) + "_readout",
@@ -113,8 +116,8 @@ bool Elisa3::sendInput(Eigen::VectorXd tau){
     move_pub.publish(move_msg);
 
     //logTmp(std::to_string(wheel_left) + ", " + std::to_string(wheel_right));
-    int tau_color = std::min(100, int(helpers::normOf(tau) / 0.003));
-    setColor(tau_color*(address%3 == 0), tau_color*(address%3 == 1), tau_color*(address%3 == 2));
+    //int tau_color = std::min(100, int(helpers::normOf(tau) / 0.003));
+    //setColor(tau_color*(address%3 == 0), tau_color*(address%3 == 1), tau_color*(address%3 == 2));
     return true;
 }
 

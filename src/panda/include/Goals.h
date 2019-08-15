@@ -16,9 +16,17 @@ Contains a number of functions describing formations and other cooperative goals
 #include "panda/Waves.h"
 #include "CustomLog.h"
 
+#include "Helpers.h"
+
 struct connection {
 	int id;
 	Eigen::VectorXd r_star;
+};
+
+struct leader {
+    int id;
+    Eigen::VectorXd ref;
+    Eigen::VectorXd gain;
 };
 
 class Goals{
@@ -33,14 +41,16 @@ public:
 
 	// A function that sets a zero formation
 	void setConsensus();
+    void setCircle(const double radius, const double phase_offset);
+    void setLine(const double spacing, const double angle);
 
 	void setGraphFC();
 
-	// Set a formation with even distances between agents (circular)
-	void setFormationEven(double d);
+	void initLeaders(ros::NodeHandle & nh);
 
 	std::vector<connection> retrieveConnectionsOf(int agent_id);
 	bool retrieveConnectionBetween(u_int id_i, u_int id_j, Eigen::VectorXd & r_star);
+    bool isAgentLeader(u_int id, Eigen::VectorXd & ref, Eigen::VectorXd & gain);
 
 
 private:
@@ -53,6 +63,7 @@ private:
 
 	// A bool matrix specifying connections
 	std::vector<std::vector<bool>> graph;
+	std::vector<leader> leaders;
 
 
 };

@@ -15,6 +15,7 @@ Manages cooperative communication by managing a number of connections
 
 #include "Edge.h"
 #include "EdgeDirect.h"
+#include "EdgeLeader.h"
 #include "EdgeIntegral.h"
 #include "EdgeFlex.h"
 #include "EdgeDelayFree.h"
@@ -23,6 +24,7 @@ Manages cooperative communication by managing a number of connections
 #include "Helpers.h"
 
 #include "panda/getConnectionsOf.h"
+#include "panda/isAgentLeader.h"
 
 /* Possibly divide this up further in a system and a controller */
 
@@ -51,7 +53,7 @@ private:
 	ros::NodeHandle n;
 	ros::Time initial_time;
 
-	ros::ServiceClient connect_client;
+	ros::ServiceClient connect_client, leader_client;
 	std::vector<std::unique_ptr<Edge>> edges;
 	//std::vector<Edge*> edges;
 	std::vector<std::unique_ptr<EdgeIntegral>> integral_edges;

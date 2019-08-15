@@ -12,8 +12,8 @@ l_set: dimension of the channel
 
 #include "EdgeFlex.h"
 
-EdgeFlex::EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, bool is_integral)
-	: Edge(i, j, gain_set, l_set, is_integral){
+EdgeFlex::EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
+	: Edge(i, j, gain_set, l_set, r_star_set){
 
     // Retrieve the NF exponential parameter
     helpers::safelyRetrieve(nh, "/controller/NF/alpha", alpha);
@@ -103,6 +103,7 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, Eigen::VectorXd r_i, Eigen::V
 	int k = 0;
 	double cur_ggamma, cur_gamma, cur_gG, cur_G, denom;
 	double diff = 10.0;
+	double d;
 
 	// For calculating the improvement over the loop
 	Eigen::VectorXd r_js_prev(l);
@@ -120,9 +121,10 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, Eigen::VectorXd r_i, Eigen::V
 	/* Possibly efficiency by iterating 3 times always */
 	while (diff > 0.1 && k < 100){
 
+	    d = helpers::normOf(r_js - r_i - r_star);
 		// Calculate the current value of the gamma(d)
-		cur_ggamma = gradient_gamma(r_i, r_js);
-        cur_gamma = gamma(r_i, r_js);
+		cur_ggamma = gradient_gamma(d);
+        cur_gamma = gamma(d);
         cur_gG = gradient_G(r_i, r_js);
         cur_G = G(r_i, r_js);
 
@@ -178,9 +180,10 @@ Eigen::VectorXd EdgeFlex::elementSign(Eigen::VectorXd s_in){
 
 Eigen::VectorXd EdgeFlex::calculateControls(Eigen::VectorXd r_i, Eigen::VectorXd r_js){
 
+    double d = helpers::normOf(r_js - r_i - r_star);
     // Calculate the current value of the gamma(d)
-    double cur_ggamma = gradient_gamma(r_i, r_js);
-    double cur_gamma = gamma(r_i, r_js);
+    double cur_ggamma = gradient_gamma(d);
+    double cur_gamma = gamma(d);
     double cur_gG = gradient_G(r_i, r_js);
     double cur_G = G(r_i, r_js);
 
@@ -190,7 +193,7 @@ Eigen::VectorXd EdgeFlex::calculateControls(Eigen::VectorXd r_i, Eigen::VectorXd
     Eigen::VectorXd z_i(l);
     z_i << 0.0, 0.0, 1.0;
 
-    return gain*(alpha * cur_G*cur_ggamma*(r_js - r_i) + cur_gamma*cur_gG*z_i)/denom;
+    return gain*(alpha * cur_G*cur_ggamma*(r_js - r_i- r_star) + cur_gamma*cur_gG*z_i)/denom;
     //return gradient_gamma(r_i, r_js)*gain*(r_js - r_i);
 }
 
@@ -240,9 +243,8 @@ void EdgeFlex::lowpassFilter(Eigen::VectorXd& filtered_data, Eigen::VectorXd new
 }
 
 
-double EdgeFlex::gradient_gamma(Eigen::VectorXd r_i, Eigen::VectorXd r_js){
+double EdgeFlex::gradient_gamma(double d){
 
-	double d = helpers::normOf(r_js - r_i);
 	double g_gamma = 0.0;
 
 	if(d >= 2*Rw){
@@ -260,9 +262,9 @@ double EdgeFlex::gradient_gamma(Eigen::VectorXd r_i, Eigen::VectorXd r_js){
 
 }
 
-double EdgeFlex::gamma(Eigen::VectorXd r_i, Eigen::VectorXd r_js){
+double EdgeFlex::gamma(double d){
 
-    double d = helpers::normOf(r_js - r_i);
+    //double d = helpers::normOf(r_js - r_i);
     double v_gamma = 0.0;
 
     if(d >= 2*Rw){

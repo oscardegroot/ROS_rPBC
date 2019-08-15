@@ -24,7 +24,10 @@ int main(int argc, char **argv){
     ros::Duration(1.0).sleep();
     ros::spinOnce();
     int * addresses = &elisa3_addresses[0];
-    logTmp(elisa3_addresses.size());
+
+    logMsg("Elisa Station", "Starting with " + std::to_string(elisa3_addresses.size()) +
+    " Elisa3 robots", 2);
+    
     startCommunication(addresses, elisa3_addresses.size());
     calibrateSensorsForAll();
     ros::Duration(1.0).sleep();
@@ -107,6 +110,15 @@ bool colorElisa3(panda::colorElisa3::Request &req, panda::colorElisa3::Response 
                 break;
             case 3:
                 setColor(req.address, 0, 0, 80);
+                break;
+            case 4:
+                setColor(req.address, 60, 60, 0);
+                break;
+            case 5:
+                setColor(req.address, 0, 60, 60);
+                break;
+            case 6:
+                setColor(req.address, 60, 0, 60);
                 break;
         }
     }

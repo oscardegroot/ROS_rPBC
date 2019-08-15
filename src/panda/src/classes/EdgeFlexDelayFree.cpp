@@ -14,8 +14,8 @@ l_set: dimension of the channel
 
 #include "EdgeFlexDelayFree.h"
 
-EdgeFlexDelayFree::EdgeFlexDelayFree(int i, int j, Eigen::MatrixXd gain_set, int l_set, bool integral)
-	: Edge(i, j, gain_set, l_set, integral)
+EdgeFlexDelayFree::EdgeFlexDelayFree(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
+	: Edge(i, j, gain_set, l_set, r_star_set)
 {
 
 	//std::vector<double> goal_v;

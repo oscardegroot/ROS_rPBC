@@ -1,0 +1,5 @@
+int64 id
+---
+bool is_leader
+std_msgs/Float64MultiArray ref
+std_msgs/Float64MultiArray gain

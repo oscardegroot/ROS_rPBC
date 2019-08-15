@@ -13,6 +13,7 @@ A Remote node class that hosts services and implements an interface
 #include <vector>
 #include "std_msgs/Float64MultiArray.h"
 #include "panda/getConnectionsOf.h"
+#include "panda/isAgentLeader.h"
 #include <string>
 #include "CustomLog.h"
 #include "Helpers.h"
@@ -27,6 +28,8 @@ public:
 	bool retrieveConnectionsOf(panda::getConnectionsOf::Request &req,
 		 panda::getConnectionsOf::Response &res);
 
+    bool isAgentLeader(panda::isAgentLeader::Request &req, panda::isAgentLeader::Response &res);
+
 private:
 
 	int l, N;
@@ -37,7 +40,7 @@ private:
 	ros::NodeHandle n;
 
 	// The server
-	ros::ServiceServer connect_server, elisa3_register;
+	ros::ServiceServer connect_server, leader_server;
 
 
 };

@@ -9,6 +9,7 @@
 #include <franka/exception.h>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
+#include "std_msgs/Float64MultiArray.h"
 
 #include "CustomLog.h"
 #include "Exceptions.h"
@@ -17,6 +18,9 @@ namespace helpers {
 
 Eigen::VectorXd vectorToEigen(const std::vector<double> values);
 double normOf(const Eigen::VectorXd input);
+std_msgs::Float64MultiArray eigenToMessage(Eigen::VectorXd vec);
+Eigen::VectorXd messageToEigen(std_msgs::Float64MultiArray msg, int l);
+
 
 template <class T> 
 bool safelyRetrieve(ros::NodeHandle& nh, const std::string name, T& param){

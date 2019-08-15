@@ -12,8 +12,8 @@ l_set: dimension of the channel
 
 #include "EdgeIntegral.h"
 
-EdgeIntegral::EdgeIntegral(int i, int j, Eigen::MatrixXd gain_set, int l_set, bool is_integral)
-	: Edge(i, j, gain_set, l_set, is_integral){
+EdgeIntegral::EdgeIntegral(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
+	: Edge(i, j, gain_set, l_set, r_star_set){
 
 	// Set the scattering gain
 	setScatteringGain(gain);
@@ -24,6 +24,21 @@ EdgeIntegral::EdgeIntegral(int i, int j, Eigen::MatrixXd gain_set, int l_set, bo
 	helpers::safelyRetrieve(nh, "controller/integral/saturation", saturation);
 }
 
+// Override to use a different channel name
+void EdgeIntegral::initChannels(){
+    // If this is agent i, send on the positivily defined channel, listen to the negative channel
+    if(i_ID < j_ID){
+        wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(i_ID) +
+                std::to_string(j_ID) + "p_i", 100);
+        wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(i_ID) +
+                std::to_string(j_ID) + "m_i", 100, &Edge::waveCallback, dynamic_cast<Edge*>( this ));
+    }else /* Otherwise invert these */{
+        wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(j_ID) +
+                std::to_string(i_ID) + "m_i", 100);
+        wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(j_ID) +
+                std::to_string(i_ID) + "p_i", 100, &Edge::waveCallback, dynamic_cast<Edge*>( this ));
+    }
+}
 
 Eigen::VectorXd EdgeIntegral::sample(Eigen::VectorXd r_i){
 

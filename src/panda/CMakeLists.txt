@@ -45,6 +45,7 @@ add_service_files(DIRECTORY srv
   	getConnectionsOf.srv
 	registerElisa3.srv
 	colorElisa3.srv
+	isAgentLeader.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -89,6 +90,7 @@ add_library(${PROJECT_NAME}
 	src/classes/Edge.cpp
 	src/classes/EdgeDirect.cpp
 	src/classes/EdgeFlex.cpp
+	src/classes/EdgeLeader.cpp
 	src/classes/EdgeIntegral.cpp
 	src/classes/EdgeDelayFree.cpp
 	src/classes/EdgeFlexDelayFree.cpp
