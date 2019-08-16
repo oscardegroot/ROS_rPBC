@@ -25,7 +25,10 @@ Thanks to the CMM the communication and convergence properties remain stable.
 
 int agent_id, l, N;
 Eigen::MatrixXd S;
-Eigen::VectorXd ref, valued_goal;
+Eigen::VectorXd ref, valued_goal, center_point;
+bool is_dynamic = false;
+double phase = 0;
+
 //ros::NodeHandle nh;
 void initSelectors();
 void goalCallback(const std_msgs::Int16::ConstPtr & msg);
@@ -45,14 +48,21 @@ int main(int argc, char **argv){
 	helpers::safelyRetrieve(nh, "/beacon/ID", agent_id);
 	helpers::safelyRetrieve(nh, "/l", l);
 	helpers::safelyRetrieve(nh, "/N_agents", N);
-	helpers::safelyRetrieveEigen(nh, "/beacon/goal", valued_goal);
+	helpers::safelyRetrieveEigen(nh, "/beacon/default_goal", valued_goal);
 
-	initSelectors();
+	// Dynamic parameters
+	double radius, speed;
+    helpers::safelyRetrieve(nh, "/beacon/dynamic/radius", radius, 0.1);
+    helpers::safelyRetrieve(nh, "/beacon/dynamic/speed", speed, 0.1);
+
+    initSelectors();
 
 	// Retrieve the goal
 	int goal_type;
 	helpers::safelyRetrieve(nh, "/beacon/goal_type", goal_type, -1);
 
+	// For centerpoint initially
+    ref = valued_goal;
 	setGoalType(goal_type);
 	
 	/* Initialise publishers */
@@ -61,13 +71,21 @@ int main(int argc, char **argv){
 	marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
 
 	ros::Subscriber sub;
-    sub = nh.subscribe<std_msgs::Int16>("/goal", 1, &goalCallback);
+    sub = nh.subscribe<std_msgs::Int16>("/goal_setpoint", 1, &goalCallback);
 
     CMM cmm(agent_id);
 
 	ros::Rate loop_rate(1000);
 
 	while(ros::ok()){
+
+	    if(is_dynamic){
+	        ref(0) = center_point(0);
+	        ref(1) = center_point(1) + cos(phase)*radius;
+	        ref(2) = center_point(2) + sin(phase)*radius;
+
+            phase += speed*(1.0/1000.0);
+	    }
 
 		// Sample the network
 		Eigen::VectorXd tau_network = cmm.sample(ref);
@@ -164,7 +182,18 @@ void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref){
 }
 
 void setGoalType(int goal_type){
-    
+
+    phase = 0;
+    // Check for dynamic setpoints
+    if(goal_type == -2){
+        is_dynamic = true;
+        center_point = ref;
+        return;
+    }else{
+        is_dynamic = false;
+    }
+
+
     if(goal_type == -1){
         ref = S*valued_goal;
         return;
@@ -174,32 +203,10 @@ void setGoalType(int goal_type){
 
     // Get a nodehandle
     Eigen::VectorXd temp_ref;
-    helpers::safelyRetrieveEigen(nh, "goals/2/goal" + std::to_string(goal_type), temp_ref);
+    helpers::safelyRetrieveEigen(nh, "goals/" + std::to_string(l) +
+    "/goal" + std::to_string(goal_type), temp_ref);
 
     ref = S*temp_ref;
-
-//	switch(goal_type){
-//		case 1:
-//			ref = Eigen::VectorXd::Zero(l);
-//			ref << 0.45, -0.3, 0.8;
-//			break;
-//
-//		case 2:
-//			ref = Eigen::VectorXd::Zero(l);
-//			ref << -0.3, 0.3, 0.7;
-//			break;
-//
-//	    case 3:
-//            ref = Eigen::VectorXd::Zero(l);
-//            ref << -0.3, 0.3, 0.4;
-//            break;
-//
-//		default:
-//			throw RetrievalException("Unknown goal type!");
-//			break;
-//
-//	}
-//
 	std::string goal_string = "(";
 
 	for (int i = 0; i < l; i++){

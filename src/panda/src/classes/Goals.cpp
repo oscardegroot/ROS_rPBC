@@ -15,8 +15,8 @@ void Goals::Init(int N_set, int l_dim){
 	l = l_dim;
 
 	setGraphFC();
-	//setConsensus();
-	setLine(0.08, 0.0);
+	setConsensus();
+	//setLine(0.08, 0.0);
 
 	ros::NodeHandle nh;
 
@@ -141,10 +141,15 @@ void Goals::setGraphFC(){
 
 void Goals::initLeaders(ros::NodeHandle & nh){
 
+    leaders = {};
     int id;
     Eigen::VectorXd gain, ref;
 
-    if(!helpers::safelyRetrieve(nh, "/leader/id", id)) {
+    try {
+        helpers::safelyRetrieve(nh, "/leader/id", id);
+    }
+    catch(RetrievalException exc){
+        logTmp("Here");
         return;
     }
 

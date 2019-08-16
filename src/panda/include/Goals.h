@@ -15,6 +15,7 @@ Contains a number of functions describing formations and other cooperative goals
 #include <string>
 #include "panda/Waves.h"
 #include "CustomLog.h"
+#include "Exceptions.h"
 
 #include "Helpers.h"
 

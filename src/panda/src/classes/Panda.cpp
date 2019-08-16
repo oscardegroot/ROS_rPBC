@@ -209,7 +209,7 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 		if(!has_run){
 			//cmm->resetIntegrators();
 			has_run = true;
-		}
+		} // Dit in de init functie.
 
 		//Eigen::VectorXd tau_network = Eigen::VectorXd::Zero(controller->l); //
 		Eigen::VectorXd tau_network = cmm->sample(controller->getOutput(*this));

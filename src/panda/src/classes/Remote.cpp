@@ -62,6 +62,7 @@ bool Remote::isAgentLeader(panda::isAgentLeader::Request &req, panda::isAgentLea
         res.ref = helpers::eigenToMessage(reference);
         res.gain = helpers::eigenToMessage(gain);
     }
+
     logMsg("Remote", "Responded to is_leader request of agent " + std::to_string(req.id), 2);
 
     return true;

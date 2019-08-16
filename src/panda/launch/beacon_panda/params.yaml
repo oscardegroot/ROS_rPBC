@@ -76,21 +76,35 @@ panda:
   - panda_joint7
   arm_id: panda
   vel_max: 0.05
+  z_select:
+    - 1
+    - 1
+    - 1
+    - 0
+    - 0
+    - 0
 #  z_lower_bound: 0.15
   z_lower_bound: 0.2
   velocity_element_bound: 1.5
   velocity_norm_bound: 0.3
-  torque_bound: 9.0
+  torque_bound: 12.0
   alpha: 0.99
   ID: 0
   initial_pause: 2.0
 
 beacon:
   ID: 1
-  goal:
+  goal_type: 2
+  default_goal:
     - 0.45
     - -0.3
     - 0.8
-  goal_type: 3
+  z_select:
+    - 1
+    - 1
+    - 1
+  dynamic:
+    radius: 0.2
+    speed: 0.8
 
   

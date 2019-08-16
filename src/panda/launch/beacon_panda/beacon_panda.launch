@@ -15,12 +15,13 @@
   </include>
 
   <rosparam command="load" file="$(find panda)/launch/beacon_panda/params.yaml" />
+  <rosparam command="load" file="$(find panda)/launch/beacon_panda/goals.yaml" />
 
 
   <node name="remote" pkg="panda" type="Remote" respawn="false" output="screen"/>
   <node name="beacon" pkg="panda" type="Beacon_node" respawn="false" output="screen"/>
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="panda"/>
-
+  <node name="interface" pkg="panda" type="TextInterface_Node" respawn="false" output="screen"/>
 
   <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot_w_marker.rviz"/>
 </launch>

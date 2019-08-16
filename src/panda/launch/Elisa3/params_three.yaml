@@ -54,11 +54,11 @@ controller:
 #  radius: 0.05
 #  phase: 0.0
 
-leader:
-  id: 0
-  gain:
-    - 1.0
-    - 0.0
-  ref:
-    - 0.1
-    - 0.0
+#leader:
+#  id: 0
+#  gain:
+#    - 1.0
+#    - 0.0
+#  ref:
+#    - 0.1
+#    - 0.0

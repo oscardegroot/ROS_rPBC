@@ -49,7 +49,7 @@ void System::initSelectors(){
     // This is not nice! maybe this entire thing in helpers?
     ros::NodeHandle nh;
     std::vector<int> selector;
-    helpers::safelyRetrieveArray(nh, "/elisa3/z_select", selector, lmax);
+    helpers::safelyRetrieveArray(nh, "/panda/z_select", selector, lmax); //todo: Fix this!
 
     // Count the number of activated coordinates
     int cur_l = count(selector.begin(), selector.end(), 1);
