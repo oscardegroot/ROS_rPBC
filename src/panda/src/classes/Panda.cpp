@@ -25,7 +25,9 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	
 	logMsg("Panda", "Panda Controller Started!", 2);
 
-	/* Not working yet! */
+    // Retrieve agent parameters and set the agent structure
+    this->setAgent(nh, "panda");
+
 	//Set collision behaviour
 	connect_client = nh.serviceClient<franka_control::SetFullCollisionBehavior>("/franka_control/set_full_collision_behavior");
 
@@ -51,7 +53,6 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 		logMsg("Panda", "Failed to set collision behaviour!", 0);
 		return false;
 	}
-
 	
 	/* Retrieve names */
 	std::vector<std::string> joint_names;
@@ -118,14 +119,9 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	helpers::safelyRetrieve(nh, "alpha", alpha, 0.99);
 	helpers::safelyRetrieve(nh, "initial_pause", initial_pause, 0.0);
 
-
-	int id;
-	helpers::safelyRetrieve(nh, "ID", id);
-
-
 	// Initialise the controller
 	controller = std::make_unique<IDAPBC>(*this);
-	cmm = std::make_unique<CMM>(id);
+	cmm = std::make_unique<CMM>(agent.ID, agent.sampling_rate);
 
 	//torques_publisher_.init(nh, "torque_comparison", 1);
 	std::fill(dq_filtered.begin(), dq_filtered.end(), 0);
@@ -133,8 +129,6 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	// Get an initial state reading
 	robot_state = cartesian_pose_handle_->getRobotState();
 	retrieveState();
-
-	//tau_pub.init(nh, "panda/tau", 1);
 
 	logMsg("Panda", "Initialisation Completed!", 2);
 
@@ -238,7 +232,7 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 // Eigen::Vector3d position(transform.translation());
 // Eigen::Quaterniond orientation(transform.linear());
 
-bool Panda::sendInput(Eigen::VectorXd tau){
+bool Panda::sendInput(const Eigen::VectorXd& tau){
 	for (size_t i = 0; i < 7; ++i) {
 		joint_handles_[i].setCommand(tau[i]);
 	}
@@ -259,13 +253,13 @@ void Panda::retrieveMatrices(){
 
 }
 
-Eigen::MatrixXd Panda::M(){
-	return m;
+void Panda::M(Eigen::MatrixXd & M_out){
+	M_out = m;
 }
 
 
-Eigen::MatrixXd Panda::Psi(){
-	return psi;
+void Panda::Psi(Eigen::MatrixXd & Psi_out){
+	Psi_out = psi;
 }
 
 /* From Franka Emika: Saturates the torque rate (not torque itself)*/
@@ -321,12 +315,11 @@ void Panda::filterVelocity(std::array<double, 7> input_v){
   	}
 }
 
-Eigen::VectorXd Panda::dVdq(){
-	return helpers::arrayToVector<7>(model_handle_->getGravity());
-}
+void Panda::dVdq(Eigen::VectorXd& dVdq_out){
+	dVdq_out = helpers::arrayToVector<7>(model_handle_->getGravity());
 
 }
-
+};
 // Implementation ..
 PLUGINLIB_EXPORT_CLASS(panda::Panda,
                        controller_interface::ControllerBase)

@@ -71,6 +71,12 @@ Eigen::VectorXd Edge::sample(Eigen::VectorXd r_i){
 	return calculateControls(s_received, r_i);
 }
 
+void Edge::rateTransition(Eigen::VectorXd & tau){
+
+
+
+}
+
 /// Handle a received packet
 void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	

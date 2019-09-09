@@ -8,7 +8,7 @@ An interface for controllers using IDAPBC or rPBC control.
 
 #include "Controller.h"
 
-Controller::Controller(){
+Controller::Controller(System& system_set){
 
 	tau_pub.init(nh, "agent_tau", 1);
 	z_pub.init(nh, "agent_z", 1);
@@ -19,6 +19,10 @@ Controller::Controller(){
 	helpers::safelyRetrieve(nh, "/controller/publish_rate", publish_rate, 10.0);
 	tau_rate = franka_hw::TriggerRate(publish_rate);
 	z_rate = franka_hw::TriggerRate(publish_rate);
+    
+    psi = Eigen::MatrixXd::Zero(system_set.n, l);
+    m = Eigen::MatrixXd::Zero(system_set.n, system_set.n);
+    dvdq = Eigen::VectorXd::Zero(system_set.n);
 
 }
 

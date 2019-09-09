@@ -64,8 +64,11 @@ public:
 private:
 
 	Eigen::MatrixXd rightPseudoInverse(Eigen::MatrixXd A);
+    //Eigen::MatrixXd pinv_psi;
+
 
 };
+
 
 
 #endif

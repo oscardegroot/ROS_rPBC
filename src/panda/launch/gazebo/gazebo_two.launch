@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <launch>
 
-	<include file="$(find panda_simulation)/launch/sim.launch"/>
 
 	<rosparam command="load" file="$(find panda)/launch/gazebo/params.yaml" />
-
+	<rosparam command="load" file="$(find panda)/launch/gazebo/goals.yaml" />
 	<node name="Remote" pkg="panda" type="Remote" output="screen"/>
 
+	<include file="$(find panda_simulation)/launch/sim.launch"/>
 
 	<node name="Agent_0" pkg="panda" type="Agent_node" output="screen"/>
 

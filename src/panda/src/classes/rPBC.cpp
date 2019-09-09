@@ -17,6 +17,8 @@ rPBC::rPBC(System& system)
 	/* Retrieve controller gains */
 	ros::NodeHandle nh;
 	helpers::safelyRetrieve(nh, "/lambda", lambda);
+    
+
 
 
 	logMsg("rPBC", "Done!", 2);
@@ -27,9 +29,14 @@ Eigen::VectorXd rPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
 
+    // Retrieve system matrices
+    system.Psi(psi);
+    system.M(m);
+    system.dVdq(dvdq);
+    
 	// Compensate gravity if necessary
 	if(gravity_enabled){
-		tau += system.dVdq();
+		tau += dvdq;
 	}
 
 	// Doesn seem to exist in Eigen3.0
@@ -37,20 +44,18 @@ Eigen::VectorXd rPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 	//Eigen::MatrixXd pinvPsi = (system.Psi().pseudoInverse());
 //.completeOrthogonalDecomposition()).pseudoInverse()
 
-	Eigen::MatrixXd psi_pinv = rightPseudoInverse(system.Psi());
+	Eigen::MatrixXd pinv_psi;
+    
+    // Calculate pseudo inverse and null space
+	pinv_psi = pseudoInverse(psi.transpose());
 
-	Eigen::FullPivLU<Eigen::MatrixXd> psi_lu(system.Psi());
+	Eigen::FullPivLU<Eigen::MatrixXd> psi_lu(psi);
 	Eigen::MatrixXd nullPsi = psi_lu.kernel();
 
-	Eigen::VectorXd tau_c_hat = tau_c +
-		system.Psi().transpose()*system.M()*getKv(system)*system.state.dq;
+	Eigen::VectorXd tau_c_hat = tau_c + lambda*psi.transpose()*system.state.dq;
 
-	tau += system.M()*(psi_pinv*tau_c_hat
-					-lambda*system.state.dq-
-					getKv(system)*system.state.dq);// - 
+	tau += m*pinv_psi*(tau_c_hat);// - 
 					//nullPsi.transpose()*nullPsi*getdVsdq(system));
-	
-
 	//logTmp(tau);
 	return tau;
 }
@@ -60,9 +65,11 @@ Eigen::VectorXd rPBC::getOutput(System& system){
 
 	// Define the output
 	Eigen::VectorXd r(l);
+    
+    system.Psi(psi);
 
 	// r = lambda*z + zdot
-	r = lambda*system.state.z + system.Psi().transpose()*system.state.dq;
+	r = lambda*system.state.z + psi.transpose()*system.state.dq;
 
 	// Publish it for debugging
 	publishValue(z_pub, z_rate, system.state.z);

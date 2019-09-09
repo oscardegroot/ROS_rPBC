@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="panda" InternalType="">
+  <VirtualDirectory Name="src">
+    <VirtualDirectory Name="pc-side-elisa3-library">
+      <VirtualDirectory Name="libusb-1.0.21">
+        <VirtualDirectory Name="examples">
+          <VirtualDirectory Name="source">
+            <File Name="src/pc-side-elisa3-library/libusb-1.0.21/examples/source/ezusb.h"/>
+            <File Name="src/pc-side-elisa3-library/libusb-1.0.21/examples/source/ezusb.c"/>
+            <File Name="src/pc-side-elisa3-library/libusb-1.0.21/examples/source/stdint.h"/>
+            <File Name="src/pc-side-elisa3-library/libusb-1.0.21/examples/source/xusb.c"/>
+            <File Name="src/pc-side-elisa3-library/libusb-1.0.21/examples/source/fxload.c"/>
+            <File Name="src/pc-side-elisa3-library/libusb-1.0.21/examples/source/listdevs.c"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+        <VirtualDirectory Name="include">
+          <VirtualDirectory Name="libusb-1.0">
+            <File Name="src/pc-side-elisa3-library/libusb-1.0.21/include/libusb-1.0/libusb.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+      </VirtualDirectory>
+      <File Name="src/pc-side-elisa3-library/elisa3-lib.h"/>
+      <File Name="src/pc-side-elisa3-library/usb-comm.c"/>
+      <File Name="src/pc-side-elisa3-library/elisa3-lib.c"/>
+      <File Name="src/pc-side-elisa3-library/usb-comm.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="classes">
+      <File Name="src/classes/EdgeFlexDelayFree.cpp"/>
+      <File Name="src/classes/rPBC.cpp"/>
+      <File Name="src/classes/EdgeLeader.cpp"/>
+      <File Name="src/classes/Elisa3.cpp"/>
+      <File Name="src/classes/System.cpp"/>
+      <File Name="src/classes/Controller.cpp"/>
+      <File Name="src/classes/EdgeDirect.cpp"/>
+      <File Name="src/classes/Remote.cpp"/>
+      <File Name="src/classes/EdgeIntegral.cpp"/>
+      <File Name="src/classes/CMM.cpp"/>
+      <File Name="src/classes/EdgeDelayFree.cpp"/>
+      <File Name="src/classes/EdgeFlex.cpp"/>
+      <File Name="src/classes/Goals.cpp"/>
+      <File Name="src/classes/Edge.cpp"/>
+      <File Name="src/classes/IDAPBC.cpp"/>
+      <File Name="src/classes/PandaSim.cpp"/>
+      <File Name="src/classes/Panda.cpp"/>
+      <File Name="src/classes/Potential.cpp"/>
+    </VirtualDirectory>
+    <File Name="src/Elisa3_Station.cpp"/>
+    <File Name="src/TextInterface.cpp"/>
+    <File Name="src/Remote_Node.cpp"/>
+    <File Name="src/Helpers.cpp"/>
+    <File Name="src/Elisa3_Node.cpp"/>
+    <File Name="src/Agent_Node.cpp"/>
+    <File Name="src/Beacon_Node.cpp"/>
+    <File Name="src/CustomLog.cpp"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Executable">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="Cross GCC ( x86_64-linux-gnu )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g -Wall" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O0" Required="yes">
+        <LibraryPath Value="."/>
+        <LibraryPath Value="Debug"/>
+      </Linker>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="./Debug" PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
+      <Environment EnvVarSetName="&lt;Use Workspace Settings&gt;" DbgSetName="&lt;Use Global Settings&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+  <VirtualDirectory Name="include">
+    <File Name="include/IDAPBC.h"/>
+    <File Name="include/Elisa3.h"/>
+    <File Name="include/Remote.h"/>
+    <File Name="include/rPBC.h"/>
+    <File Name="include/EdgeDirect.h"/>
+    <File Name="include/EdgeFlexDelayFree.h"/>
+    <File Name="include/Elisa3_Station.h"/>
+    <File Name="include/CustomLog.h"/>
+    <File Name="include/PandaSim.h"/>
+    <File Name="include/Edge.h"/>
+    <File Name="include/Remote_Node.h"/>
+    <File Name="include/Panda.h"/>
+    <File Name="include/CMM.h"/>
+    <File Name="include/Exceptions.h"/>
+    <File Name="include/EdgeIntegral.h"/>
+    <File Name="include/Helpers.h"/>
+    <File Name="include/Potential.h"/>
+    <File Name="include/System.h"/>
+    <File Name="include/Goals.h"/>
+    <File Name="include/EdgeDelayFree.h"/>
+    <File Name="include/Controller.h"/>
+    <File Name="include/EdgeFlex.h"/>
+    <File Name="include/EdgeLeader.h"/>
+  </VirtualDirectory>
+</CodeLite_Project>

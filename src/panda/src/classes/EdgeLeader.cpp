@@ -8,7 +8,6 @@
 
 EdgeLeader::EdgeLeader(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
     : Edge(-1, -1, gain_set, l_set, r_star_set){
-    logTmp("hi!");
     logTmp(r_star_set);
     logTmp(gain_set);
 }

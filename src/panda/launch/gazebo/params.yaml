@@ -4,7 +4,7 @@ network_gain:
   - 2.0
   - 2.0
   - 2.0
-lambda: 14.0
+lambda: 5.0
 
 controller:
   publish_rate: 30
@@ -73,20 +73,38 @@ panda:
   - panda_joint7
   arm_id: panda
   publish_rate: 100
+  z_select:
+    - 1
+    - 1
+    - 1
   vel_max: 0.05
   z_lower_bound: 0.2
   velocity_element_bound: 1.5
   velocity_norm_bound: 0.3
   torque_bound: 6.0
   alpha: 0.99
+
+Agent_0:
   ID: 0
+  sampling_rate: 1000
+
+pandasim:
+  ID: 0
+  sampling_rate: 1000
 
 beacon:
   ID: 1
   goal_type: 3
-  goal:
+  sampling_rate: 1000
+  default_goal:
     - 0.1
     - 0.2
     - 0.4
-
+  z_select:
+    - 1
+    - 1
+    - 1
+  dynamic:
+    radius: 0.2
+    speed: 0.8
   

@@ -42,6 +42,32 @@ bool System::dataReady(){
 }
 
 
+void System::setAgent(ros::NodeHandle& nh_global, const std::string type_name){
+    logTmp(type_name);
+    ros::NodeHandle nh_private(type_name); // Declare a private nodehandle
+    int id;
+    int sampling_rate;
+    //Status status = STARTED;
+    helpers::safelyRetrieve(nh_private, "ID", id);
+
+    //Does not influence the actual sampling rate, just for
+    helpers::safelyRetrieve(nh_private, "sampling_rate", sampling_rate);
+
+    agent = Agent({type_name,
+                   ros::this_node::getName(),
+                   id,
+                   sampling_rate});
+
+    ros::ServiceClient register_client = nh_global.serviceClient<panda::registerAgent>("/registerAgent");
+    panda::registerAgent srv = agent.toSrv();
+    //agent.print();
+    if(register_client.call(srv)){
+        logMsg("System", "Registered a " + type_name + " succesfully", 2);
+    }else{
+        throw RegisteringException("Agent could not register!");
+    }
+}
+
 /// Initialise the selector matrix
 /* Note that z = S*z_all, Psi = Psi_all * S' */
 void System::initSelectors(){
@@ -67,11 +93,11 @@ void System::initSelectors(){
 }
 
 /// Keep only currently cooperative controlled parts
-Eigen::MatrixXd System::selectPsi(Eigen::MatrixXd psi){
+Eigen::MatrixXd System::selectPsi(const Eigen::MatrixXd& psi){
     return psi * S.transpose();
 }
 
-Eigen::VectorXd System::selectZ(Eigen::VectorXd z){
+Eigen::VectorXd System::selectZ(const Eigen::VectorXd& z){
     return S*z;
 }
 

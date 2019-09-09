@@ -147,16 +147,15 @@ void Goals::initLeaders(ros::NodeHandle & nh){
 
     try {
         helpers::safelyRetrieve(nh, "/leader/id", id);
+        helpers::safelyRetrieveEigen(nh, "/leader/gain", gain, l);
+        helpers::safelyRetrieveEigen(nh, "/leader/ref", ref, l);
+
+        leaders.push_back({id, ref, gain});
     }
     catch(RetrievalException exc){
-        logTmp("Here");
         return;
     }
 
-    helpers::safelyRetrieveEigen(nh, "/leader/gain", gain, l);
-    helpers::safelyRetrieveEigen(nh, "/leader/ref", ref, l);
-
-    leaders.push_back({id, ref, gain});
 }
 	
 std::vector<connection> Goals::retrieveConnectionsOf(int agent_id){

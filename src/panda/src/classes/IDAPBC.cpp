@@ -11,6 +11,7 @@ Implements an IDAPBC controller for the panda robotic arm.
 
 /* Possibly: Use a shared pointer where the system is shared between the agent_node and the controller*/
 IDAPBC::IDAPBC(System& system)
+    : Controller(system)
 {
 	logMsg("IDAPBC", "Initiating.. ", 2);
 
@@ -53,16 +54,21 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, Eigen::VectorXd tau_c){
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
 
+    // Retrieve system matrices
+    system.Psi(psi);
+    system.M(m);
+    system.dVdq(dvdq);
+
 	// Compensate gravity if necessary
 	if(gravity_enabled){
-		tau += system.dVdq();
+		tau += dvdq;
 	}
 
 	// Apply IDA-PBC (The robot autocompensates for gravity?)
 	tau += -getdVsdq(system); //- getKv(system)*system.state.dq; //0.1*system.dVdq();//  - getVs_gainsdq(system);
 	tau += - kq * system.state.dq;
 	// Add the cooperative input
-	Eigen::MatrixXd psi = system.Psi();
+	//Eigen::MatrixXd psi = system.Psi();
 	// Select only the activated part of psi
 	//this->selectPsi(psi);
 	//(system.Psi().block(0, 0, system.n, l));

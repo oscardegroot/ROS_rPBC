@@ -58,6 +58,9 @@ Elisa3::Elisa3(int set_address, int set_sampling_rate)
                    Eigen::VectorXd::Zero(n),
                    h);
 
+    // Set the agent type
+    this->setAgent(nh_private, "elisa3");
+
     // Initialise the transformation from velocities to wheel velocities
     initMatrices();
 
@@ -84,7 +87,7 @@ Elisa3::~Elisa3() {
 }
 
 /// Convert the control input to the system inputs and actuate
-bool Elisa3::sendInput(Eigen::VectorXd tau){
+bool Elisa3::sendInput(const Eigen::VectorXd & tau){
 
     //logTmp(int(helpers::normOf(tau) / 0.01));
 
@@ -197,18 +200,18 @@ void Elisa3::lowpassFilter(Eigen::VectorXd filtered_value, const Eigen::VectorXd
 }
 
 /// Dynamical Matrices and Vectors
-Eigen::MatrixXd Elisa3::M(){
+void Elisa3::M(Eigen::MatrixXd& M_out){
 
-    return Eigen::MatrixXd::Identity(n, n);
+    M_out = Eigen::MatrixXd::Identity(n, n);
 }
 
-Eigen::VectorXd Elisa3::dVdq(){
+void Elisa3::dVdq(Eigen::VectorXd& dVdq_out){
 
-    return Eigen::VectorXd::Zero(n);
+    dVdq_out = Eigen::VectorXd::Zero(n);
 }
 
-Eigen::MatrixXd Elisa3::Psi(){
-    return this->selectPsi(Eigen::MatrixXd::Identity(n, n));
+void Elisa3::Psi(Eigen::MatrixXd& Psi_out){
+    Psi_out = this->selectPsi(Eigen::MatrixXd::Identity(n, n));
 }
 
 /// Apply feedback linearisation

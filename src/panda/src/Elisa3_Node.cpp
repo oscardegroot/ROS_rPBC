@@ -40,7 +40,7 @@ int main(int argc, char **argv){
     std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*system);
 
     // Create a Communication Management Module
-    CMM cmm(id);
+    CMM cmm(id, system->agent.sampling_rate);
 
     // Define loop rate
     ros::Rate loop_rate(sampling_rate);

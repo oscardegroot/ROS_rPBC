@@ -32,11 +32,12 @@ public:
     ~Elisa3();
 
     // Coordinate count, actuated count
-    bool sendInput(Eigen::VectorXd tau);
+    bool sendInput(const Eigen::VectorXd& tau);
     void readSensors(const panda::Readout::ConstPtr & msg);
-    Eigen::MatrixXd M();
-    Eigen::VectorXd dVdq();
-    Eigen::MatrixXd Psi();
+    
+    void M(Eigen::MatrixXd& M_out) override;
+	void dVdq(Eigen::VectorXd& dVdq_out) override;
+	void Psi(Eigen::MatrixXd& Psi_out) override;
 
     void checkSafety() override;
 

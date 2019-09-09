@@ -1,0 +1,26 @@
+# Goal types for Elisa3
+
+goals/3/goal1:
+  - 0.45
+  - -0.3
+  - 0.8
+
+goals/3/goal2:
+  - -0.3
+  - 0.3
+  - 0.7
+
+goals/3/goal3:
+  - -0.3
+  - 0.3
+  - 0.4
+
+goals/3/goal4:
+  - -0.15
+  - 0.15
+  - 0.8
+
+goals/3/goal5:
+  - 0.2
+  - 0.05
+  - 0.9

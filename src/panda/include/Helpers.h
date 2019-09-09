@@ -2,6 +2,9 @@
 
 #ifndef Helpers_H
 #define Helpers_H
+
+#define MAX_HANDSHAKE_ATTEMPTS 100000
+
 #include <string>
 #include <vector>
 #include <cmath>
@@ -123,7 +126,6 @@ Eigen::VectorXd arrayToVector(std::array<double, N> input){
 
 	return result;
 }
-	
 }
 
 #endif

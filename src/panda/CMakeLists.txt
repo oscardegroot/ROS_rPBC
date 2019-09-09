@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+	std_srvs
   sensor_msgs
   controller_interface
   dynamic_reconfigure
@@ -46,28 +47,30 @@ add_service_files(DIRECTORY srv
 	registerElisa3.srv
 	colorElisa3.srv
 	isAgentLeader.srv
+	registerAgent.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(LIBRARIES panda
- CATKIN_DEPENDS 
- roscpp 
- rospy 
- std_msgs 
- sensor_msgs 
- visualization_msgs
- message_runtime 
- controller_interface
- dynamic_reconfigure
- franka_control
-  franka_hw
-  geometry_msgs
-  hardware_interface
-  pluginlib
-  realtime_tools
-  DEPENDS Franka
+	CATKIN_DEPENDS
+	roscpp
+	rospy
+	std_msgs
+	std_srvs
+	sensor_msgs
+	visualization_msgs
+	message_runtime
+	controller_interface
+	dynamic_reconfigure
+	franka_control
+	franka_hw
+	geometry_msgs
+	hardware_interface
+	pluginlib
+	realtime_tools
+	DEPENDS Franka
 )
  
 ###########
@@ -78,7 +81,7 @@ catkin_package(LIBRARIES panda
 include_directories(
 	include
 	${catkin_INCLUDE_DIRS}
-	#${OpenCV_INCLUDE_DIRS}
+	#${OpenCV_INCLUDE_DIRS} 
 	src/pc-side-elisa3-library
 )
 
@@ -102,7 +105,7 @@ add_library(${PROJECT_NAME}
 	src/classes/PandaSim.cpp
 	src/classes/Panda.cpp
 	src/classes/IDAPBC.cpp
-	src/classes/rPBC.cpp
+ 	src/classes/rPBC.cpp
 	src/pc-side-elisa3-library/elisa3-lib.c
 	src/pc-side-elisa3-library/usb-comm.c
 	src/classes/Controller.cpp

@@ -20,16 +20,20 @@ An interface for controllers using IDAPBC or rPBC control.
 #include <franka_hw/trigger_rate.h>
 
 #include "Helpers.h"
+#include <memory>
 
 class Controller{
 
 public:
-	Controller();
-	~Controller();
+	Controller(System& system);
+	virtual ~Controller();
 
 	int l;
 
 	ros::NodeHandle nh;
+
+    Eigen::MatrixXd m, psi;
+    Eigen::VectorXd dvdq;
 
 	// Realtime publishing
 	franka_hw::TriggerRate tau_rate{1.0};
@@ -46,7 +50,6 @@ public:
             franka_hw::TriggerRate trigger_rate, const Eigen::VectorXd values);
 
 private:
-
 
 };
 

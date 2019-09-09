@@ -4,7 +4,7 @@ network_gain:
   - 3.0
   - 3.0
   - 3.0
-lambda: 5.0
+lambda: 10.0
 
 
 controller:
@@ -61,9 +61,6 @@ controller:
         R_z: 0.1
         delta_z: 0.15
 
-
-    
-
 panda:
   type: panda/Panda
   joint_names:
@@ -75,6 +72,7 @@ panda:
   - panda_joint6
   - panda_joint7
   arm_id: panda
+  sampling_rate: 1000
   vel_max: 0.05
   z_select:
     - 1
@@ -84,10 +82,10 @@ panda:
     - 0
     - 0
 #  z_lower_bound: 0.15
-  z_lower_bound: 0.2
+  z_lower_bound: 0.3
   velocity_element_bound: 1.5
   velocity_norm_bound: 0.3
-  torque_bound: 12.0
+  torque_bound: 10.0 #12.0
   alpha: 0.99
   ID: 0
   initial_pause: 2.0
@@ -95,6 +93,7 @@ panda:
 beacon:
   ID: 1
   goal_type: 2
+  sampling_rate: 1000
   default_goal:
     - 0.45
     - -0.3

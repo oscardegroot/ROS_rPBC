@@ -47,6 +47,7 @@ public:
 	virtual void waveCallback(const panda::Waves::ConstPtr& msg);
 	virtual void publishWave(Eigen::VectorXd r_i);
     virtual void initChannels();
+    virtual void rateTransition(Eigen::VectorXd & tau);
 
 	virtual Eigen::VectorXd sample(Eigen::VectorXd r_i);
 	

@@ -7,11 +7,12 @@ Manages cooperative communication by managing a number of connections
 #include "CMM.h"
 
 
-CMM::CMM(int set_id){
+CMM::CMM(int set_id, int set_sampling_rate){
 
 	logMsg("CMM", "Initiating..", 2);
 
 	agent_id = set_id;
+	sampling_rate = set_sampling_rate;
 
 	//ros::NodeHandle nh;
 
@@ -34,24 +35,48 @@ CMM::CMM(int set_id){
 	gain = Eigen::MatrixXd(gain_e.asDiagonal());
 
 	// Randomize the random seed
-	srand((unsigned int) agent_id + time(0));
+	//srand((unsigned int) agent_id + time(0));
 
 	// Connect to the remote
-	connect_client = n.serviceClient<panda::getConnectionsOf>("/get_connections_of");
+	connect_client = n.serviceClient<panda::getConnectionsOf>("/getConnectionsOf");
     leader_client = n.serviceClient<panda::isAgentLeader>("/isAgentLeader");
+    init_server = n.advertiseService("/agent" + std::to_string(agent_id) + "/initEdges", &CMM::initEdges, this);
 
 	// Retrieve connections and create communication edges
-	CMM::initiateEdges();
-
+	//CMM::initiateEdges();
 	initial_time = ros::Time::now();
+    status = WAITING_FOR_OTHER;
 
+    performHandshake();
 	logMsg("CMM", "Done!", 2);
 }
 
 CMM::~CMM(){};
 
-void CMM::initiateEdges(){
+void CMM::performHandshake(){
+    
+    //logTmp("Performing Handshake Now");
+	ros::Rate loop_rate(100);
+    while(ros::ok() && status != RUNNING){
+        
+        switch(status){
+            case(WAITING_FOR_OTHER):
+                ros::spinOnce();
+                break;
+                
+            case INIT_CMM: 
+                logMsg("CMM", "Initiating network call from Remote was received, processing now...", 2);
+                retrieveEdges();
+                
+                break;
+                
+        }
 
+        loop_rate.sleep();
+    }
+}
+
+bool CMM::retrieveEdges(){
     panda::isAgentLeader srv;
     srv.request.id = agent_id;
     if(leader_client.call(srv)){
@@ -100,8 +125,16 @@ void CMM::initiateEdges(){
 		}
 		
 	}
+    
+    status = RUNNING;
 
-	
+}
+
+bool CMM::initEdges(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res){
+    //edges = {}; todo: instead delete every element
+    status = INIT_CMM;
+    return true;
+    
 	
 }
 
@@ -167,4 +200,9 @@ void CMM::deactivateIntegral(){
 		integral_edges[i]->deactivate();
 
 	}
+}
+
+bool CMM::hasInitialised()
+{
+    return initialised;
 }

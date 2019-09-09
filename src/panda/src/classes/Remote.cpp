@@ -14,23 +14,53 @@ Remote::Remote(){
 
 	goals = std::make_unique<Goals>();
 	goals->Init(N, l);
+    status = REGISTERING_AGENTS;
 
 	// Start a server
-	connect_server = n.advertiseService("/get_connections_of",
-				 &Remote::retrieveConnectionsOf, this);
-    leader_server = n.advertiseService("/isAgentLeader",
-                                        &Remote::isAgentLeader, this);
+	connect_server = n.advertiseService("/getConnectionsOf", &Remote::getConnectionsOf, this);
+    leader_server = n.advertiseService("/isAgentLeader", &Remote::isAgentLeader, this);
+    register_server = n.advertiseService("/registerAgent", &Remote::registerAgent, this);
 
 	logMsg("Remote", "Formation server initiated", 2);
 
 }
 
 Remote::~Remote(){
+    logMsg("Remote", "Remote destroyed", 1);
+}
+
+void Remote::initiateNetwork(){
+
+
+    for(int i = 0; i < agents.size(); i++){
+        ros::ServiceClient init_client = n.serviceClient<std_srvs::Empty>("/agent" + std::to_string(agents[i].ID) +
+                "/initEdges");
+
+
+        std_srvs::Empty srv;
+        
+        long attempts = 0;
+        while(!init_client.call(srv)){
+            
+            attempts++;
+            if(attempts > MAX_HANDSHAKE_ATTEMPTS){
+                throw RegisteringException("Failed to start the network of agent " +
+            agents[i].name + "!");
+            }
+            
+            
+        }
+        
+        logMsg("Remote", "Network of agent " + agents[i].name + " started.", 2);
+
+    }
+    
+    status = SPINNING;
 
 }
 
-bool Remote::retrieveConnectionsOf(panda::getConnectionsOf::Request &req, panda::getConnectionsOf::Response &res){
-	
+bool Remote::getConnectionsOf(panda::getConnectionsOf::Request &req, panda::getConnectionsOf::Response &res){
+
 	Eigen::VectorXd r_star = Eigen::VectorXd::Zero(l);
 	res.is_connected = goals->retrieveConnectionBetween(req.id_i, req.id_j, r_star);
 
@@ -58,6 +88,7 @@ bool Remote::isAgentLeader(panda::isAgentLeader::Request &req, panda::isAgentLea
     Eigen::VectorXd gain;
 
     res.is_leader = goals->isAgentLeader(req.id, reference, gain);
+
     if(res.is_leader) {
         res.ref = helpers::eigenToMessage(reference);
         res.gain = helpers::eigenToMessage(gain);
@@ -67,4 +98,34 @@ bool Remote::isAgentLeader(panda::isAgentLeader::Request &req, panda::isAgentLea
 
     return true;
 
+}
+
+/// Register an agent to this remote
+bool Remote::registerAgent(panda::registerAgent::Request &req, panda::registerAgent::Response &res){
+
+    // Check if the agent doesn't already exist
+    for(int i = 0; i < agents.size(); i++){
+        if(agents[i].ID == req.id){
+
+            logMsg("Remote", "Agent trying to register already exists!", 0);
+            return false;
+        }
+    }
+
+    // Add the received agent to the list
+    Agent new_agent({req.type, req.name, req.id, req.sampling_rate});
+    agents.push_back(new_agent);
+
+    logMsg("Remote", "Added new agent of type " + new_agent.name + " with ID " +
+    std::to_string(new_agent.ID) + ".", 2);
+//
+    if(agents.size() == N){
+        ready = true;
+    }
+
+    return true;
+}
+
+bool Remote::isReady(){
+    return ready;
 }

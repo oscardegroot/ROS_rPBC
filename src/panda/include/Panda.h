@@ -54,9 +54,9 @@ public:
 	~Panda();
 
 	// Mass and potential
-	Eigen::MatrixXd M();
-	Eigen::VectorXd dVdq();
-	Eigen::MatrixXd Psi();
+	void M(Eigen::MatrixXd& M_out) override;
+	void dVdq(Eigen::VectorXd& dVdq_out) override;
+	void Psi(Eigen::MatrixXd& Psi_out) override;
 
 	// Ros Control functions
 	bool init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh) override;  // mandatory
@@ -64,7 +64,7 @@ public:
 	void update (const ros::Time& time, const ros::Duration& period) override;  // mandatory
 
 	// Wrappers for communication
-	bool sendInput(Eigen::VectorXd tau);
+	bool sendInput(const Eigen::VectorXd& tau);
 	void retrieveState();
 	void retrieveMatrices();
 

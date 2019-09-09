@@ -13,18 +13,21 @@ Thanks to the CMM the communication and convergence properties remain stable.
 #include "std_msgs/Int16.h"
 #include <visualization_msgs/Marker.h>
 #include "panda/getConnectionsOf.h"
+#include "panda/registerAgent.h"
 
 #include "Goals.h"
 #include "CMM.h"
 #include "Helpers.h"
+#include "System.h"
 
 #include <memory>
 #include <vector>
 #include <string>
 #include <sstream>
 
-int agent_id, l, N;
+int agent_id, l, N, sampling_rate;
 Eigen::MatrixXd S;
+Status status = INIT_CMM;
 Eigen::VectorXd ref, valued_goal, center_point;
 bool is_dynamic = false;
 double phase = 0;
@@ -35,6 +38,7 @@ void goalCallback(const std_msgs::Int16::ConstPtr & msg);
 void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref);
 void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref);
 void setGoalType(int goal_type);
+void registerBeacon(ros::NodeHandle & nh);
 
 int main(int argc, char **argv){
 	
@@ -46,7 +50,8 @@ int main(int argc, char **argv){
 
 	// Get a nodehandle
 	helpers::safelyRetrieve(nh, "/beacon/ID", agent_id);
-	helpers::safelyRetrieve(nh, "/l", l);
+    helpers::safelyRetrieve(nh, "/beacon/sampling_rate", sampling_rate);
+    helpers::safelyRetrieve(nh, "/l", l);
 	helpers::safelyRetrieve(nh, "/N_agents", N);
 	helpers::safelyRetrieveEigen(nh, "/beacon/default_goal", valued_goal);
 
@@ -72,10 +77,11 @@ int main(int argc, char **argv){
 
 	ros::Subscriber sub;
     sub = nh.subscribe<std_msgs::Int16>("/goal_setpoint", 1, &goalCallback);
+    registerBeacon(nh);
+    CMM cmm(agent_id, sampling_rate);
+    
 
-    CMM cmm(agent_id);
-
-	ros::Rate loop_rate(1000);
+	ros::Rate loop_rate(sampling_rate);
 
 	while(ros::ok()){
 
@@ -84,7 +90,7 @@ int main(int argc, char **argv){
 	        ref(1) = center_point(1) + cos(phase)*radius;
 	        ref(2) = center_point(2) + sin(phase)*radius;
 
-            phase += speed*(1.0/1000.0);
+            phase += speed*(1.0/double(sampling_rate));
 	    }
 
 		// Sample the network
@@ -127,6 +133,27 @@ void initSelectors(){
         }
     }
 }
+
+void registerBeacon(ros::NodeHandle &nh){
+
+    Agent agent({"Beacon",
+                 ros::this_node::getName(),
+                 agent_id,
+                 sampling_rate});
+
+    ros::ServiceClient register_client = nh.serviceClient<panda::registerAgent>("/registerAgent");
+    panda::registerAgent srv = agent.toSrv();
+
+    long attempts = 0;
+    
+    while(!register_client.call(srv)){
+        attempts++;
+        
+        if(attempts > MAX_HANDSHAKE_ATTEMPTS)
+            throw RegisteringException("Agent could not register!");
+    }
+}
+
 //380mm
 void goalCallback(const std_msgs::Int16::ConstPtr & msg){
     setGoalType(msg->data);

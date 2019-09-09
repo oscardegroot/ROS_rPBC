@@ -24,12 +24,11 @@ public:
 	PandaSim();
 
 	// See definitions in system.h
-	bool sendInput(Eigen::VectorXd tau) override;
+	bool sendInput(const Eigen::VectorXd& tau) override;
 
-	Eigen::MatrixXd M() override;
-	Eigen::VectorXd dVdq() override;
-	Eigen::MatrixXd Psi() override;
-
+	void M(Eigen::MatrixXd& M_out) override;
+	void dVdq(Eigen::VectorXd& dVdq_out) override;
+	void Psi(Eigen::MatrixXd& Psi_out) override;
 
 	Eigen::VectorXd getZ(Eigen::VectorXd q);
 

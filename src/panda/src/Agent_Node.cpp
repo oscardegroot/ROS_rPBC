@@ -23,21 +23,21 @@ int main(int argc, char **argv){
 	ros::NodeHandle nh = ros::NodeHandle("~");
 
 	// Get a nodehandle
-	helpers::safelyRetrieve(nh, "/panda/ID", id);
+	helpers::safelyRetrieve(nh, "ID", id);
 	helpers::safelyRetrieve(nh, "/l", l);
 	helpers::safelyRetrieve(nh, "/N_agents", N);
 
 	
 	std::unique_ptr<System> system = std::make_unique<PandaSim>();
-	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*system);
-
-	CMM cmm(id);
-
-	//Maybe also define the controller here-> Agent has a system and a controller
+	std::unique_ptr<Controller> controller = std::make_unique<rPBC>(*system);
+    system->setAgent(nh, "pandasim");
+    
+	CMM cmm(id, system->agent.sampling_rate);
 
 	ros::Rate loop_rate(1000);
 
 	while(ros::ok()){
+        
         Eigen::VectorXd tau_network = cmm.sample(controller->getOutput(*system));
         //std::cout << "Network Sampled | ";
         Eigen::VectorXd tau = controller->computeControl(*system, tau_network);
@@ -51,10 +51,6 @@ int main(int argc, char **argv){
 		loop_rate.sleep();
 	}
 
-	//delete system;
-	//delete controller;
-	// Not sure if necessary but still
-	//delete edges;
 
 	return 0;
 
