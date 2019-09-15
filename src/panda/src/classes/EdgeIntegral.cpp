@@ -12,8 +12,8 @@ l_set: dimension of the channel
 
 #include "EdgeIntegral.h"
 
-EdgeIntegral::EdgeIntegral(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
-	: Edge(i, j, gain_set, l_set, r_star_set){
+EdgeIntegral::EdgeIntegral(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
+	: Edge(i, j, gain_set, l_set, r_star_set, rate_mp_set){
 
 	// Set the scattering gain
 	setScatteringGain(gain);
@@ -124,13 +124,13 @@ void EdgeIntegral::applyReconstruction(Eigen::VectorXd& wave_reference, Eigen::V
 }
 
 // Retrieve tau from the scattering transforma)tion
-Eigen::VectorXd EdgeIntegral::calculateControls(Eigen::VectorXd r_i, Eigen::VectorXd r_js){
+Eigen::VectorXd EdgeIntegral::calculateControls(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){
 
 	return gain*(integral_state);
 }
 
 // Retrieve the new wave from the scattering transformation
-Eigen::VectorXd EdgeIntegral::calculateWaves(Eigen::VectorXd tau, Eigen::VectorXd r_js){
+Eigen::VectorXd EdgeIntegral::calculateWaves(const Eigen::VectorXd& tau, const Eigen::VectorXd& r_js){
 
 	Eigen::VectorXd result = Eigen::VectorXd::Zero(l);
 

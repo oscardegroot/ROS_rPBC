@@ -17,12 +17,40 @@
 #include "CustomLog.h"
 #include "Exceptions.h"
 
+
 namespace helpers {
 
 Eigen::VectorXd vectorToEigen(const std::vector<double> values);
 double normOf(const Eigen::VectorXd input);
 std_msgs::Float64MultiArray eigenToMessage(Eigen::VectorXd vec);
 Eigen::VectorXd messageToEigen(std_msgs::Float64MultiArray msg, int l);
+
+
+class Counter{
+
+private:
+    unsigned int count;
+    unsigned int rate;
+public:
+    Counter(){
+        rate = 0;
+        count = 0;
+    }
+    
+    Counter(unsigned int rate_set){
+        rate = rate_set;
+        count = 0;
+    }
+    
+    bool trigger(){
+        
+        count = (count + 1)%rate;
+        
+        return count == 0;
+    }
+    
+};
+
 
 
 template <class T> 
@@ -70,19 +98,11 @@ bool safelyRetrieveArray(ros::NodeHandle& nh, const std::string name,
 	return true;
 		
 }
-//
-///* Turn this into vector! */
-//template <class T>
-//bool safelyRetrieveArray(ros::NodeHandle& nh, const std::string name,
-//                         T& param){
-//
-//    if (!nh.getParam(name, param))
-//    {
-//        throw RetrievalException("Helpers: Failed to retrieve array " + name);
-//    }
-//
-//    return true;
-//}
+
+// Sign Function
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
 
 /* Turn this into vector! */
 template <class T>

@@ -16,7 +16,7 @@ Manages cooperative communication by managing a number of connections
 #include "Edge.h"
 #include "EdgeDirect.h"
 #include "EdgeLeader.h"
-#include "EdgeIntegral.h"
+//#include "EdgeIntegral.h"
 #include "EdgeFlex.h"
 #include "EdgeDelayFree.h"
 #include "EdgeFlexDelayFree.h"
@@ -45,9 +45,9 @@ public:
     Status status = STARTED;
 
 	Eigen::VectorXd sample(Eigen::VectorXd r_i);
-	void resetIntegrators();
-	void activateIntegral();
-	void deactivateIntegral();
+//	void resetIntegrators();
+//	void activateIntegral();
+//	void deactivateIntegral();
     void performHandshake();
 
 
@@ -63,11 +63,11 @@ private:
 	Eigen::MatrixXd gain, integral_gain;
 	bool integral_enabled;
 	double torque_enable;
-	int sampling_rate;
+	int sampling_rate, rate_mp;
     
     bool initialised = false;
 
-	std::vector<Eigen::VectorXd> integral_states;
+	//std::vector<Eigen::VectorXd> integral_states;
 
 	ros::NodeHandle n;
 	ros::Time initial_time;
@@ -76,7 +76,7 @@ private:
 	ros::ServiceServer init_server;
 	std::vector<std::unique_ptr<Edge>> edges;
 	//std::vector<Edge*> edges;
-	std::vector<std::unique_ptr<EdgeIntegral>> integral_edges;
+	//std::vector<std::unique_ptr<EdgeIntegral>> integral_edges;
 
 };
 

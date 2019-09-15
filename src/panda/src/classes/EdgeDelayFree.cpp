@@ -12,8 +12,8 @@ l_set: dimension of the channel
 
 #include "EdgeDelayFree.h"
 
-EdgeDelayFree::EdgeDelayFree(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
-	: Edge(i, j, gain_set, l_set, r_star_set){
+EdgeDelayFree::EdgeDelayFree(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
+	: Edge(i, j, gain_set, l_set, r_star_set, rate_mp_set){
 
 	setScatteringGain(gain_set);
 
@@ -43,13 +43,13 @@ void EdgeDelayFree::publishWave(Eigen::VectorXd s_out) {
 }
 
 // Retrieve tau from the scattering transforma)tion
-Eigen::VectorXd EdgeDelayFree::calculateControls(Eigen::VectorXd s_in, Eigen::VectorXd r_i){
+Eigen::VectorXd EdgeDelayFree::calculateControls(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i){
 
 	return gain_tau.block(0, 0, l, l) * s_in + gain_tau.block(0, l, l, l)*r_i;
 }
 
 // Retrieve the new wave from the scattering transformation
-Eigen::VectorXd EdgeDelayFree::calculateWaves(Eigen::VectorXd s_in, Eigen::VectorXd r_i){
+Eigen::VectorXd EdgeDelayFree::calculateWaves(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i){
 
 	return gain_wave.block(0, 0, l, l) * s_in + gain_wave.block(0, l, l, l)*r_i;
 }

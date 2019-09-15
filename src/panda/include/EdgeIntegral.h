@@ -12,12 +12,12 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 class EdgeIntegral : public Edge{
 public:
 	// Constructor and destructor
-	EdgeIntegral(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set);
+	EdgeIntegral(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set);
 
 	void applyReconstruction(Eigen::VectorXd & wave_reference, Eigen::VectorXd r_i);
 
-	Eigen::VectorXd calculateControls(Eigen::VectorXd r_i, Eigen::VectorXd r_js) override;
-	Eigen::VectorXd calculateWaves(Eigen::VectorXd tau, Eigen::VectorXd r_js) override;
+	Eigen::VectorXd calculateControls(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
+	Eigen::VectorXd calculateWaves(const Eigen::VectorXd& tau, const Eigen::VectorXd& r_js) override;
 
 	void initChannels() override;
 	void setScatteringGain(Eigen::MatrixXd gain);

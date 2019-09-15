@@ -65,4 +65,25 @@ void logTmp(std::string name, T msg){
 
 void logMsg(std::string from_class, std::string msg, int level=3);
 
+
+class RunCheck{
+
+public:   
+    RunCheck(std::string name_set){
+        name = name_set;
+    }
+        
+    ~RunCheck(){
+        logTmp("Runcheck " + name + " completed!");
+    }
+
+private:
+
+    std::string name;
+    
+    
+    
+};
+
+
 #endif

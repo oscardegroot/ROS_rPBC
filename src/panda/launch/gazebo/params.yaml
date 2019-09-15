@@ -1,9 +1,10 @@
 N_agents: 2
 l: 3
+sampling_rate: 1000
 network_gain:
-  - 2.0
-  - 2.0
-  - 2.0
+  - 3.0
+  - 3.0
+  - 3.0
 lambda: 5.0
 
 controller:

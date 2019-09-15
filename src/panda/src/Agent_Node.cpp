@@ -29,7 +29,7 @@ int main(int argc, char **argv){
 
 	
 	std::unique_ptr<System> system = std::make_unique<PandaSim>();
-	std::unique_ptr<Controller> controller = std::make_unique<rPBC>(*system);
+	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*system);
     system->setAgent(nh, "pandasim");
     
 	CMM cmm(id, system->agent.sampling_rate);

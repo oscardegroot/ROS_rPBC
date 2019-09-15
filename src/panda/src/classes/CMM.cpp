@@ -13,9 +13,18 @@ CMM::CMM(int set_id, int set_sampling_rate){
 
 	agent_id = set_id;
 	sampling_rate = set_sampling_rate;
-
-	//ros::NodeHandle nh;
-
+    
+    int network_rate;
+    helpers::safelyRetrieve(n, "/sampling_rate", network_rate);
+    
+    // Check if parameters are correct
+    if(sampling_rate % network_rate != 0){
+        throw ParameterException("Sampling rate of agent " + std::to_string(set_id) + " is not a multiple of the network rate!");
+    }
+    
+    // Calculate the rate multiplier
+    rate_mp = sampling_rate / network_rate;
+    
 	// Retrieve parameters
 	helpers::safelyRetrieve(n, "/l", l);
 	helpers::safelyRetrieve(n, "/N_agents", N);
@@ -111,12 +120,12 @@ bool CMM::retrieveEdges(){
                     }
 
 					// Create a communication edge
-					edges.push_back(std::make_unique<EdgeFlex>(agent_id, j, gain, l, r_star));
+					edges.push_back(std::make_unique<EdgeFlex>(agent_id, j, gain, l, r_star, rate_mp));
 					
-					if(integral_enabled){
-						//integral_edges.push_back(std::make_unique<EdgeIntegral>(agent_id, j, integral_gain, l, true));
-						//integral_states.push_back(Eigen::VectorXd::Zero(l));
-					}
+//					if(integral_enabled){
+//						//integral_edges.push_back(std::make_unique<EdgeIntegral>(agent_id, j, integral_gain, l, true));
+//						//integral_states.push_back(Eigen::VectorXd::Zero(l));
+//					}
 				}
 			}else{
 				logMsg("CMM", "Failed to obtain formations from the server!", 0);
@@ -164,45 +173,48 @@ Eigen::VectorXd CMM::sample(Eigen::VectorXd r){
 
 }
 
-void CMM::resetIntegrators(){
-
-	if(!integral_enabled){
-		return;
-	}
-
-	for(int i = 0; i < integral_edges.size(); i++){
-
-		integral_edges[i]->reset();
-
-	}
-}
-
-void CMM::activateIntegral(){
-
-	if(!integral_enabled){
-		return;
-	}
-
-	for(int i = 0; i < integral_edges.size(); i++){
-
-		integral_edges[i]->activate();
-
-	}
-}
-
-void CMM::deactivateIntegral(){
-
-	if(!integral_enabled){
-		return;
-	}
-
-	for(int i = 0; i < integral_edges.size(); i++){
-		integral_edges[i]->deactivate();
-
-	}
-}
-
 bool CMM::hasInitialised()
 {
     return initialised;
 }
+
+
+//
+//void CMM::resetIntegrators(){
+//
+//	if(!integral_enabled){
+//		return;
+//	}
+//
+//	for(int i = 0; i < integral_edges.size(); i++){
+//
+//		integral_edges[i]->reset();
+//
+//	}
+//}
+//
+//void CMM::activateIntegral(){
+//
+//	if(!integral_enabled){
+//		return;
+//	}
+//
+//	for(int i = 0; i < integral_edges.size(); i++){
+//
+//		integral_edges[i]->activate();
+//
+//	}
+//}
+//
+//void CMM::deactivateIntegral(){
+//
+//	if(!integral_enabled){
+//		return;
+//	}
+//
+//	for(int i = 0; i < integral_edges.size(); i++){
+//		integral_edges[i]->deactivate();
+//
+//	}
+//}
+

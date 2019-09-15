@@ -14,7 +14,7 @@ l_set: dimension of the channel
 
 #include "Edge.h"
 
-Edge::Edge(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set){
+Edge::Edge(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set){
 
 	logMsg("Edge", "Initiating edge between " + std::to_string(i) + " and " + std::to_string(j) + "..", 2);
 
@@ -24,12 +24,18 @@ Edge::Edge(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_
 	l = l_set;
 	gain = gain_set;
 	r_star = r_star_set;
-
+    
+    rate_mp = rate_mp_set;
+    pub_counter = helpers::Counter(rate_mp); // counts until rate_mp
+    
 	initChannels();
 
 	// Initialise buffers
 	s_buffer = Eigen::VectorXd::Zero(l);
 	s_received = Eigen::VectorXd::Zero(l);
+    
+    s_out_compressed = Eigen::VectorXd::Zero(l);
+    s_out_squared = Eigen::VectorXd::Zero(l);
 
 	logMsg("Edge", "Done!", 2);
 
@@ -71,12 +77,6 @@ Eigen::VectorXd Edge::sample(Eigen::VectorXd r_i){
 	return calculateControls(s_received, r_i);
 }
 
-void Edge::rateTransition(Eigen::VectorXd & tau){
-
-
-
-}
-
 /// Handle a received packet
 void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	
@@ -87,7 +87,8 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	s_received = Eigen::VectorXd::Zero(l);
 	for(int i = 0; i < l; i++){
 
-		s_received(i, 0) = s[i];
+		s_received(i, 0) = s[i];// / double(rate_mp); // divide by sampling discrepancy! (this is the passive interpolator)
+        // NOT WORKING YET!! RECONSTRUCTION IS APPLIED ON THE WRONG SIDE...
 	}
 
 	// Data was received
@@ -102,28 +103,43 @@ void Edge::applyReconstruction(Eigen::VectorXd & wave_reference,
 
 /// Publish a returning wave
 void Edge::publishWave(Eigen::VectorXd s_out){
-	// The message to send
-	panda::Waves msg;
+    
+//    s_out_compressed += s_out;
+//    for(int i = 0; i < l; i++){
+//        s_out_squared(i,0) += s_out(i,0)*s_out(i,0);
+//
+//    }
+        
+    //if(pub_counter.trigger()){
+    
+        // The message to send
+        panda::Waves msg;
 
-	// The sub message containing the data
-	std_msgs::Float64MultiArray msg_vec;
+        // The sub message containing the data
+        std_msgs::Float64MultiArray msg_vec;
 
-	// Put the wave in the messagge
-	msg_vec.data.resize(l);
-	for(int i = 0; i < l; i++){
-		msg_vec.data[i] = s_out(i, 0);
-	}
-	
-	// Set the message
-	msg.s = msg_vec;
-	msg.timestamp = timestamp;
+        // Put the wave in the messagge
+        msg_vec.data.resize(l);
+        for(int i = 0; i < l; i++){
+            // This is where the compression equation gets applied
+            msg_vec.data[i] = s_out(i, 0);//helpers::sgn(s_out_compressed(i, 0)) * 
+                            //std::sqrt(s_out_squared(i, 0));  
+        }
+        
+        // Set the message
+        msg.s = msg_vec;
+        msg.timestamp = timestamp;
 
-	// Publish the message
-	wave_pub.publish(msg);
+        // Publish the message
+        wave_pub.publish(msg);
 
-	logMsg("Edge", "Wave sent. Timestamp = " + std::to_string(timestamp) + ".", 4);
+        logMsg("Edge", "Wave sent. Timestamp = " + std::to_string(timestamp) + ".", 4);
 
-	// Increase the timestamp
-	timestamp++;
+        // Increase the timestamp
+        timestamp++;
+        s_out_compressed = Eigen::VectorXd::Zero(l);
+        s_out_squared = Eigen::VectorXd::Zero(l);
+
+    //}
 
 }

@@ -14,8 +14,8 @@ l_set: dimension of the channel
 
 #include "EdgeFlexDelayFree.h"
 
-EdgeFlexDelayFree::EdgeFlexDelayFree(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
-	: Edge(i, j, gain_set, l_set, r_star_set)
+EdgeFlexDelayFree::EdgeFlexDelayFree(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
+	: Edge(i, j, gain_set, l_set, r_star_set, rate_mp_set)
 {
 
 	//std::vector<double> goal_v;
@@ -90,15 +90,13 @@ void EdgeFlexDelayFree::publishWave(Eigen::VectorXd s_out) {
 // }
 
 // Retrieve tau from the scattering transforma)tion
-Eigen::VectorXd EdgeFlexDelayFree::calculateWaves(Eigen::VectorXd s_in,
-										Eigen::VectorXd r_i){
+Eigen::VectorXd EdgeFlexDelayFree::calculateWaves(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i){
 
 	// The output is the wave = z_j
 	return r_i;
 }
 
-Eigen::VectorXd EdgeFlexDelayFree::calculateControls(Eigen::VectorXd s_in,
-											Eigen::VectorXd r_i){
+Eigen::VectorXd EdgeFlexDelayFree::calculateControls(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i){
 
 	// For now simple and linear
 	//
