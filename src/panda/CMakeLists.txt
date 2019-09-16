@@ -104,6 +104,8 @@ add_library(${PROJECT_NAME}
 	src/classes/Elisa3.cpp
 	src/classes/PandaSim.cpp
 	src/classes/Potential.cpp
+	src/classes/Obstacle.cpp
+	src/classes/Goal.cpp
 	src/classes/Panda.cpp
 	src/classes/IDAPBC.cpp
  	src/classes/rPBC.cpp

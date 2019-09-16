@@ -10,6 +10,8 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #include "math.h"
 #include <stdexcept>
 #include "Potential.h"
+#include "Obstacle.h"
+#include "Goal.h"
 
 class EdgeFlex : public Edge{
 public:
@@ -44,7 +46,7 @@ public:
 
 private:
 
-    Potential potential;
+    std::unique_ptr<AdvancedPotential> potential;
 
 	// Save of the iterated tau and tau in the last loop
 	double agent_i;

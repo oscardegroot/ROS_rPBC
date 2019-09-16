@@ -58,8 +58,10 @@ controller:
       eps: 0.13
     constraints:
       lower_bound:
-        R_z: 0.1
-        delta_z: 0.15
+        R: 0.1
+        delta: 0.15
+      obstacle:
+        delta: 0.15
     
 
 panda:

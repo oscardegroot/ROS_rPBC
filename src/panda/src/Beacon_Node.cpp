@@ -202,7 +202,11 @@ void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref){
 	p.y = ref(1, 0);
 	p.z = ref(2, 0);
 
-    points.points.push_back(p);
+//	geometry_msgs::Point TEST_OBJECT;
+//	TEST_OBJECT.x = -0.4;
+//	TEST_OBJECT.y = 0.4;
+//	TEST_OBJECT.z = 0.6;
+//    points.points.push_back(TEST_OBJECT);
 
     pub.publish(points);
 

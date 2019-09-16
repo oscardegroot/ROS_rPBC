@@ -28,23 +28,10 @@ CMM::CMM(int set_id, int set_sampling_rate){
 	// Retrieve parameters
 	helpers::safelyRetrieve(n, "/l", l);
 	helpers::safelyRetrieve(n, "/N_agents", N);
-
-    helpers::safelyRetrieve(n, "/controller/integral/enabled", integral_enabled, false);
-
-    if(integral_enabled) {
-        Eigen::VectorXd gain_i;
-        helpers::safelyRetrieveEigen(n, "/controller/integral/gain", gain_i, l);
-        integral_gain = Eigen::MatrixXd(gain_i.asDiagonal());
-
-        helpers::safelyRetrieve(n, "/controller/integral/torque_enable", torque_enable, 4.0);
-    }
-
+    
 	Eigen::VectorXd gain_e;
 	helpers::safelyRetrieveEigen(n, "/network_gain", gain_e, l);
 	gain = Eigen::MatrixXd(gain_e.asDiagonal());
-
-	// Randomize the random seed
-	//srand((unsigned int) agent_id + time(0));
 
 	// Connect to the remote
 	connect_client = n.serviceClient<panda::getConnectionsOf>("/getConnectionsOf");
@@ -52,52 +39,73 @@ CMM::CMM(int set_id, int set_sampling_rate){
     init_server = n.advertiseService("/agent" + std::to_string(agent_id) + "/initEdges", &CMM::initEdges, this);
 
 	// Retrieve connections and create communication edges
-	//CMM::initiateEdges();
-	initial_time = ros::Time::now();
     status = WAITING_FOR_OTHER;
 
     performHandshake();
+    
 	logMsg("CMM", "Done!", 2);
 }
 
 CMM::~CMM(){};
 
+// Only initialise when all systems have registered
 void CMM::performHandshake(){
     
-    //logTmp("Performing Handshake Now");
 	ros::Rate loop_rate(100);
     while(ros::ok() && status != RUNNING){
         
         switch(status){
+            // If registration is not complete, wait for the message from the server
             case(WAITING_FOR_OTHER):
                 ros::spinOnce();
                 break;
                 
+            // If the message was received, initialise!
             case INIT_CMM: 
                 logMsg("CMM", "Initiating network call from Remote was received, processing now...", 2);
-                retrieveEdges();
-                
+                retrieveConnections();
                 break;
-                
         }
 
         loop_rate.sleep();
     }
 }
 
-bool CMM::retrieveEdges(){
+bool CMM::retrieveConnections(){
+    
+    // Retrieve leader info from the server and create edges if necessary
+    setupLeader();
+    
+    // Retrieve connections to other agents from the server and create edges if necessary
+	setupEdges();
+    
+    // Transition to the running state
+    status = RUNNING;
+}
+
+void CMM::setupLeader(){
+    
     panda::isAgentLeader srv;
     srv.request.id = agent_id;
+    
+    // Call for leader information
     if(leader_client.call(srv)){
         if(srv.response.is_leader){
+            
+            // Parse the retrieved vectors
             Eigen::VectorXd temp_gain = helpers::messageToEigen(srv.response.gain, l);
             Eigen::VectorXd temp_ref = helpers::messageToEigen(srv.response.ref, l);
             Eigen::MatrixXd leader_gain = Eigen::MatrixXd(temp_gain.asDiagonal());
+            
+            // Create an edge
             edges.push_back(std::make_unique<EdgeLeader>(agent_id, -1, leader_gain, l, temp_ref));
         }
     }
+}
 
-	// For all possible other agents
+void CMM::setupEdges(){
+    
+    // For all possible other agents
 	for(int j = 0; j < N; j++){
 		if(j != agent_id){
 			
@@ -110,41 +118,27 @@ bool CMM::retrieveEdges(){
 
 				// If we are
 				if(srv.response.is_connected){
-
-                    std::vector<double> r_star_array = srv.response.r_star.data;
-
-                    Eigen::VectorXd r_star = Eigen::VectorXd::Zero(l);
-                    for(int i = 0; i < l; i++){
-
-                        r_star(i, 0) = r_star_array[i];
-                    }
+                    
+                    // Retrieve the formation data
+                    Eigen::VectorXd r_star = helpers::vectorToEigen(srv.response.r_star.data);
 
 					// Create a communication edge
 					edges.push_back(std::make_unique<EdgeFlex>(agent_id, j, gain, l, r_star, rate_mp));
 					
-//					if(integral_enabled){
-//						//integral_edges.push_back(std::make_unique<EdgeIntegral>(agent_id, j, integral_gain, l, true));
-//						//integral_states.push_back(Eigen::VectorXd::Zero(l));
-//					}
 				}
 			}else{
 				logMsg("CMM", "Failed to obtain formations from the server!", 0);
 			}
-			
 		}
-		
 	}
-    
-    status = RUNNING;
-
 }
 
 bool CMM::initEdges(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res){
-    //edges = {}; todo: instead delete every element
+
+    // Proceed to initialisation
     status = INIT_CMM;
-    return true;
     
-	
+    return true;
 }
 
 Eigen::VectorXd CMM::sample(Eigen::VectorXd r){
@@ -154,67 +148,14 @@ Eigen::VectorXd CMM::sample(Eigen::VectorXd r){
 
 	// Sample all edges
 	for(int i = 0; i < edges.size(); i++){
-		Eigen::VectorXd cur_tau = edges[i]->sample(r);
-		tau += cur_tau;
-
-//		if(integral_enabled && ros::Time::now() - initial_time > ros::Duration(8.0) && cur_tau.transpose()*cur_tau < torque_enable && integral_edges[i]->is_activated == false){
-//			logMsg("CMM", "Integral Action Activated", 3);
-//			activateIntegral();
-//		}
-//
-//		if(integral_enabled && integral_edges[i]->is_activated){
-//			//integral_states[i] += r;
-//			tau += integral_edges[i]->sample(r);
-//		}
-	}
-
+		tau += edges[i]->sample(r);
+    }
+    
 	// Return the combined input
 	return tau;
-
 }
 
-bool CMM::hasInitialised()
+bool CMM::hasInitialised() const
 {
     return initialised;
 }
-
-
-//
-//void CMM::resetIntegrators(){
-//
-//	if(!integral_enabled){
-//		return;
-//	}
-//
-//	for(int i = 0; i < integral_edges.size(); i++){
-//
-//		integral_edges[i]->reset();
-//
-//	}
-//}
-//
-//void CMM::activateIntegral(){
-//
-//	if(!integral_enabled){
-//		return;
-//	}
-//
-//	for(int i = 0; i < integral_edges.size(); i++){
-//
-//		integral_edges[i]->activate();
-//
-//	}
-//}
-//
-//void CMM::deactivateIntegral(){
-//
-//	if(!integral_enabled){
-//		return;
-//	}
-//
-//	for(int i = 0; i < integral_edges.size(); i++){
-//		integral_edges[i]->deactivate();
-//
-//	}
-//}
-

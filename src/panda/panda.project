@@ -25,23 +25,25 @@
       <File Name="src/pc-side-elisa3-library/usb-comm.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="classes">
-      <File Name="src/classes/EdgeFlexDelayFree.cpp"/>
       <File Name="src/classes/rPBC.cpp"/>
-      <File Name="src/classes/EdgeLeader.cpp"/>
-      <File Name="src/classes/Elisa3.cpp"/>
-      <File Name="src/classes/System.cpp"/>
       <File Name="src/classes/Controller.cpp"/>
-      <File Name="src/classes/EdgeDirect.cpp"/>
       <File Name="src/classes/Remote.cpp"/>
-      <File Name="src/classes/EdgeIntegral.cpp"/>
       <File Name="src/classes/CMM.cpp"/>
-      <File Name="src/classes/EdgeDelayFree.cpp"/>
-      <File Name="src/classes/EdgeFlex.cpp"/>
       <File Name="src/classes/Goals.cpp"/>
-      <File Name="src/classes/Edge.cpp"/>
       <File Name="src/classes/IDAPBC.cpp"/>
-      <File Name="src/classes/PandaSim.cpp"/>
+      <File Name="src/classes/Elisa3.cpp"/>
       <File Name="src/classes/Panda.cpp"/>
+      <File Name="src/classes/PandaSim.cpp"/>
+      <File Name="src/classes/System.cpp"/>
+      <File Name="src/classes/Edge.cpp"/>
+      <File Name="src/classes/EdgeDelayFree.cpp"/>
+      <File Name="src/classes/EdgeDirect.cpp"/>
+      <File Name="src/classes/EdgeFlex.cpp"/>
+      <File Name="src/classes/EdgeFlexDelayFree.cpp"/>
+      <File Name="src/classes/EdgeIntegral.cpp"/>
+      <File Name="src/classes/EdgeLeader.cpp"/>
+      <File Name="src/classes/Goal.cpp"/>
+      <File Name="src/classes/Obstacle.cpp"/>
       <File Name="src/classes/Potential.cpp"/>
     </VirtualDirectory>
     <File Name="src/Elisa3_Station.cpp"/>
@@ -131,5 +133,8 @@
     <File Name="include/Controller.h"/>
     <File Name="include/EdgeFlex.h"/>
     <File Name="include/EdgeLeader.h"/>
+    <File Name="include/Goal.h"/>
+    <File Name="include/Obstacle.h"/>
+    <File Name="include/PotentialFactors.h"/>
   </VirtualDirectory>
 </CodeLite_Project>

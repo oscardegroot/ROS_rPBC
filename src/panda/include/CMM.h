@@ -16,7 +16,6 @@ Manages cooperative communication by managing a number of connections
 #include "Edge.h"
 #include "EdgeDirect.h"
 #include "EdgeLeader.h"
-//#include "EdgeIntegral.h"
 #include "EdgeFlex.h"
 #include "EdgeDelayFree.h"
 #include "EdgeFlexDelayFree.h"
@@ -45,38 +44,32 @@ public:
     Status status = STARTED;
 
 	Eigen::VectorXd sample(Eigen::VectorXd r_i);
-//	void resetIntegrators();
-//	void activateIntegral();
-//	void deactivateIntegral();
     void performHandshake();
 
 
     bool initEdges(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
-    bool retrieveEdges();
+    
+    bool retrieveConnections();
+    void setupLeader();
+    void setupEdges();
 
-    bool hasInitialised();
+    bool hasInitialised() const;
 	
 private:
 
 	unsigned char agent_id;
 	int l, N;
-	Eigen::MatrixXd gain, integral_gain;
-	bool integral_enabled;
+	Eigen::MatrixXd gain;
 	double torque_enable;
 	int sampling_rate, rate_mp;
     
     bool initialised = false;
 
-	//std::vector<Eigen::VectorXd> integral_states;
-
 	ros::NodeHandle n;
-	ros::Time initial_time;
 
 	ros::ServiceClient connect_client, leader_client;
 	ros::ServiceServer init_server;
 	std::vector<std::unique_ptr<Edge>> edges;
-	//std::vector<Edge*> edges;
-	//std::vector<std::unique_ptr<EdgeIntegral>> integral_edges;
 
 };
 

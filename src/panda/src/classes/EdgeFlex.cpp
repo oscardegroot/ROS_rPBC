@@ -28,9 +28,14 @@ EdgeFlex::EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::Vec
     /* When bound influences beacond, control goes wrong! */
     std::shared_ptr<Goal> goal_ = std::make_shared<WangGoal>(l);
     std::shared_ptr<Obstacle> z_bound_ = std::make_shared<BoundObstacle>(l, b_z, 1.15, 2);
-    potential = Potential(alpha, l);
-    potential.addGoalFcn(goal_);
-    potential.addObstacleFcn(z_bound_); 
+    
+    Eigen::VectorXd obstacle_location(l);
+    obstacle_location << -0.2, 0.2, 0.7;
+    std::shared_ptr<Obstacle> object_1_ = std::make_shared<ObjectObstacle>(l, obstacle_location, 0.2);
+    potential = std::make_unique<NavigationFunction>(alpha, l);
+    potential->addGoalFcn(goal_);
+    //potential->addObstacleFcn(z_bound_); 
+    potential->addObstacleFcn(object_1_);
 
 	// Set the scattering gain
 	setScatteringGain(gain_set);
@@ -123,7 +128,7 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, Eigen::VectorXd r_i, Eigen::V
 	while (diff > 0.1 && k < 100){
 
         // Calculate the gradient of the potential function
-        ObstacleReturn gradient = potential.gradient_factors(r_i, r_js);
+        PotentialFactors gradient = potential->gradient_factors(r_i, r_js);
 
 		// Calculate r*[k] for all dimensions
 		for(int i = 0; i < l; i++){
@@ -172,7 +177,7 @@ Eigen::VectorXd EdgeFlex::elementSign(Eigen::VectorXd s_in){
 Eigen::VectorXd EdgeFlex::calculateControls(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){
 
     // Multiply the gradient with the gain
-    return gain*potential.gradient(r_i, r_js);
+    return gain*potential->gradient(r_i, r_js);
 
 }
 
