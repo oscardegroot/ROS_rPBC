@@ -15,15 +15,10 @@ l_set: dimension of the channel
 EdgeFlex::EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
 	: Edge(i, j, gain_set, l_set, r_star_set, rate_mp_set){
 
-    // Retrieve the NF exponential parameter
-    helpers::safelyRetrieve(nh, "/controller/NF/alpha", alpha);
-
-    // Retrieve goal parameters
-	helpers::safelyRetrieve(nh, "/controller/NF/goal/eps", eps);
-	helpers::safelyRetrieve(nh, "/controller/NF/goal/Rw", Rw);
-
 	// Retrieve the lower bound on z
+    double b_z, alpha;
     helpers::safelyRetrieve(nh, "/panda/z_lower_bound", b_z, -10.0);
+    helpers::safelyRetrieve(nh, "/panda/alpha", alpha, 5.0);
 
     /* When bound influences beacond, control goes wrong! */
     std::shared_ptr<Goal> goal_ = std::make_shared<WangGoal>(l);
@@ -34,7 +29,7 @@ EdgeFlex::EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::Vec
     std::shared_ptr<Obstacle> object_1_ = std::make_shared<ObjectObstacle>(l, obstacle_location, 0.2);
     potential = std::make_unique<NavigationFunction>(alpha, l);
     potential->addGoalFcn(goal_);
-    //potential->addObstacleFcn(z_bound_); 
+    potential->addObstacleFcn(z_bound_); 
     potential->addObstacleFcn(object_1_);
 
 	// Set the scattering gain
@@ -104,12 +99,6 @@ Eigen::VectorXd EdgeFlex::fullSTLoop(Eigen::VectorXd& tau, Eigen::VectorXd& r_js
 
 
 void EdgeFlex::STIterations(Eigen::VectorXd& r_js, Eigen::VectorXd r_i, Eigen::VectorXd s_in){
-	// Parameterisation here! Also save r_js of the last step?
-
-	int k = 0;
-	double cur_ggamma, cur_gamma, cur_gG, cur_G, denom;
-	double diff = 10.0;
-	double d;
 
 	// For calculating the improvement over the loop
 	Eigen::VectorXd r_js_prev(l);
@@ -120,10 +109,12 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, Eigen::VectorXd r_i, Eigen::V
     z_i << 0.0, 0.0, 1.0;
 
 	// Initiate with the final value of the last sampling period
-	//r_js = Eigen::VectorXd::Zero(l);
 	r_js = r_js_last;
 	
-
+    // Keep track of iteration count
+	int k = 0;
+	double diff = 10.0;
+    
 	/* Possibly efficiency by iterating 3 times always */
 	while (diff > 0.1 && k < 100){
 
@@ -200,128 +191,20 @@ void EdgeFlex::setScatteringGain(Eigen::MatrixXd gain){
  	B = gain.cwiseSqrt();
 
 	// Take into account the different ST depending on which agent this is
-	agent_i = 1;
-	if(i_ID < j_ID){
-		agent_i = -1;
-	}
+    agent_i = (i_ID < j_ID) ? -1 : 1;
 
 	// Apply the gain
 	Eigen::MatrixXd Binv = B.inverse();
-
 
 	// Define the ST matrix
 	matrix_ST = Eigen::MatrixXd(2*l, 2*l);
 	matrix_ST << agent_i*std::sqrt(2)*Binv, -Binv*Binv,
 					-Eigen::MatrixXd::Identity(l, l), agent_i*std::sqrt(2)*Binv;
-
 }
 
-
-
-void EdgeFlex::lowpassFilter(Eigen::VectorXd& filtered_data, Eigen::VectorXd new_data, double alpha){
-
-  	for (size_t i = 0; i < filtered_data.size(); i++) {
-    	filtered_data[i] = (1 - alpha) * filtered_data[i] + alpha * new_data[i];
-  	}
-}
-
-
-double EdgeFlex::gradient_gamma(double d){
-
-	double g_gamma = 0.0;
-
-	if(d >= 2*Rw){
-        g_gamma = 0.0;
-	}else if(d < r){
-
-        g_gamma = 3*a1*d + 2*b1;
-	}else{
-
-        g_gamma = (3*a2*d*d+2*b2*d+c2) / d;
-	}
-
-	return g_gamma;
-
-
-}
-
-double EdgeFlex::gamma(double d){
-
-    //double d = helpers::normOf(r_js - r_i);
-    double v_gamma = 0.0;
-
-    if(d >= 2*Rw){
-        v_gamma = 1.0;
-    }else if(d < r){
-
-        v_gamma = a1*std::pow(d, 3) + b1*std::pow(d, 2);
-    }else{
-        v_gamma = a2*std::pow(d, 3) + b2*std::pow(d, 2) + c2*d + d2;
-    }
-
-    return v_gamma;
-}
-
-double EdgeFlex::gradient_G(Eigen::VectorXd r_i, Eigen::VectorXd r_js){
-
-    // d is distance to the lower bound
-//    double d = r_i(2, 0) - b_z;
+//void EdgeFlex::lowpassFilter(Eigen::VectorXd& filtered_data, Eigen::VectorXd new_data, double alpha){
 //
-//    if (d < 0){
-//        throw OperationalException("d in G gradient became negative! (value="
-//        + std::to_string(d));
-//    }
-//
-//    double g_G = 0.0;
-//
-//    if(d >= R_z + delta_z || d < R_z){
-//        g_G = 0.0;
-//    }else{
-//        g_G = (3*af*d*d + 2*bf*d+cf);//std::abs(r_i(2, 0));
-//    }
-    throw OperationalException("");
-    return 0.0;
-}
-
-double EdgeFlex::G(Eigen::VectorXd r_i, Eigen::VectorXd r_js) {
-
-    // d is distance to the lower bound
-    double d = r_i(2, 0) - b_z;
-
-    if (d < 0){
-        throw OperationalException("d in G gradient became negative! (value="
-        + std::to_string(d));
-    }
-    double v_G = 0.0;
-
-    if (d >= R_z + delta_z){
-        v_G = 1.0;
-    }else if(d < R_z){
-        v_G = 0.0;
-    }else {
-        v_G = af*std::pow(d, 3) + bf*std::pow(d, 2) + cf*d + df;
-    }
-
-    throw OperationalException("");
-    return 0.0;
-}
-
-
-void EdgeFlex::initGamma(){
-	r = 2*Rw*eps;
-
-	a1 = (4*eps*Rw*Rw + 4*eps*Rw*r - 3*r*r) / (4*Rw*std::pow(r, 3)*(r-2*Rw));
-	b1 = (3*r*r-12*eps*Rw*Rw)/(4*Rw*r*r*(r-2*Rw));
-	a2 = (4*eps*Rw*r-3*r*r+8*Rw*r-12*eps*Rw*Rw)/(4*Rw*r*std::pow(r-2*Rw, 3));
-	b2 = (-12*eps*Rw*Rw*r-24*Rw*Rw*r+3*std::pow(r, 3) + 48*eps*std::pow(Rw, 3))/(4*Rw*r*std::pow(r-2*Rw, 3));
-	c2 = (9*Rw*r*r-12*eps*std::pow(Rw, 3) - 3*std::pow(r, 3))/(r*std::pow(r-2*Rw, 3));
-	d2 = 1- (Rw*(-4*eps*Rw*Rw*r - 8*Rw*Rw*r + 12*Rw*r*r - 3*std::pow(r, 3)))/(r*std::pow(r - 2*Rw, 3));
-}
-
-void EdgeFlex::initG(){
-
-    af = 1/std::pow(delta_z, 3);
-    bf = -(3*(R_z + delta_z))/std::pow(delta_z, 3);
-    cf = 3*std::pow(R_z + delta_z, 2)/std::pow(delta_z, 3);
-    df = 1 - std::pow(R_z + delta_z, 3) / std::pow(delta_z, 3);
-}
+//  	for (size_t i = 0; i < filtered_data.size(); i++) {
+//    	filtered_data[i] = (1 - alpha) * filtered_data[i] + alpha * new_data[i];
+//  	}
+//}

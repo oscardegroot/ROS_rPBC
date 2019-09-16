@@ -41,9 +41,9 @@ bool System::dataReady(){
     return false;
 }
 
-
+/* Make this its own class or struct (based on agent)*/
 void System::setAgent(ros::NodeHandle& nh_global, const std::string type_name){
-    logTmp(type_name);
+
     ros::NodeHandle nh_private(type_name); // Declare a private nodehandle
     int id;
     int sampling_rate;

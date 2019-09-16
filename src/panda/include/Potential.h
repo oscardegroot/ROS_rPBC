@@ -30,6 +30,16 @@ protected:
     int l;
 };
 
+class QuadraticPotential : public Potential{
+    
+public:
+    QuadraticPotential(int l_set);
+    
+    PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
+    Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
+    
+};
+
 // Virtual extension of potentials that allow for adding / removing of obstacles and goal functions
 class AdvancedPotential : public Potential{
 
@@ -41,16 +51,6 @@ public:
 protected:
     std::shared_ptr<Goal> goal;
     std::vector<std::shared_ptr<Obstacle>> obstacles;
-};
-
-class QuadraticPotential : public Potential{
-    
-public:
-    QuadraticPotential(int l_set);
-    
-    PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
-    Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
-    
 };
 
 // Navigation function
