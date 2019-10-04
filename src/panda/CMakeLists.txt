@@ -94,6 +94,7 @@ add_library(${PROJECT_NAME}
 	src/classes/EdgeDirect.cpp
 	src/classes/EdgeFlex.cpp
 	src/classes/EdgeLeader.cpp
+	src/classes/Agent.cpp
 	#src/classes/EdgeIntegral.cpp
 	src/classes/EdgeDelayFree.cpp
 	src/classes/EdgeFlexDelayFree.cpp
@@ -103,6 +104,7 @@ add_library(${PROJECT_NAME}
 	src/classes/CMM.cpp
 	src/classes/Elisa3.cpp
 	src/classes/PandaSim.cpp
+	src/classes/ConnectedPandasim.cpp
 	src/classes/Potential.cpp
 	src/classes/Obstacle.cpp
 	src/classes/Goal.cpp

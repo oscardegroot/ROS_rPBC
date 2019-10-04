@@ -26,11 +26,48 @@ PotentialFactors QuadraticPotential::gradient_factors(const Eigen::VectorXd& r_i
     return PotentialFactors(-Eigen::MatrixXd::Identity(l, l), 1.0);
 }
 
-
-NavigationFunction::NavigationFunction(double alpha_set, int l_set)
+NavigationFunction::NavigationFunction(Agent& agent, int l_set)
     : AdvancedPotential(l_set)
 {
-    alpha = alpha_set;
+
+    agent.retrieveParameter("NF/alpha", alpha, 5.0);
+    
+    /* Retrieve goal parameters and set the goal function */
+    std::shared_ptr<Goal> goal_ = std::make_shared<WangGoal>(agent);
+    addGoalFcn(goal_);
+    
+    int k = 0;
+    std::string obstacle_path = "NF/beta/obstacle_" + std::to_string(k);
+    std::string obstacle_type;
+    
+    while(agent.hasParameter(obstacle_path)){
+        
+        agent.retrieveParameter(obstacle_path + "/type", obstacle_type);
+        
+        if(obstacle_type == "z_bound"){
+            addObstacleFcn(std::make_shared<BoundObstacle>(agent, k, l, 2));
+        }else if(obstacle_type == "obstacle"){
+            addObstacleFcn(std::make_shared<ObjectObstacle>(agent, k, l));
+        }
+        
+        k++;
+        obstacle_path = "NF/beta/obstacle_" + std::to_string(k);
+    }
+        
+        
+//    std::shared_ptr<Obstacle> z_bound_ = std::make_shared<BoundObstacle>(l, b_z, 1.15, 2);
+//    
+//    Eigen::VectorXd obstacle_location(l);
+//    obstacle_location << -0.2, 0.2, 0.7;
+//    std::shared_ptr<Obstacle> object_1_ = std::make_shared<ObjectObstacle>(l, obstacle_location, 0.2);
+//    potential = std::make_unique<NavigationFunction>(agent, l);
+//    potential->addGoalFcn(goal_);
+//    potential->addObstacleFcn(z_bound_); 
+//    potential->addObstacleFcn(object_1_);
+}
+
+void initialiseObstacle(Agent& agent){
+    
 }
 
 void AdvancedPotential::addGoalFcn(const std::shared_ptr<Goal>& goal_set) {

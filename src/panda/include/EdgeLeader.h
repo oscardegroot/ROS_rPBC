@@ -10,7 +10,7 @@
 class EdgeLeader : public Edge{
 public:
     // Constructor and destructor
-    EdgeLeader(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set);
+    EdgeLeader(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set);
 
     Eigen::VectorXd sample(Eigen::VectorXd r_i) override;
     Eigen::VectorXd calculateControls(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;

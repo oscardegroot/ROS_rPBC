@@ -7,23 +7,22 @@ Manages cooperative communication by managing a number of connections
 #include "CMM.h"
 
 
-CMM::CMM(int set_id, int set_sampling_rate){
+CMM::CMM(std::string agent_type){//int set_id, int set_sampling_rate){
 
 	logMsg("CMM", "Initiating..", 2);
-
-	agent_id = set_id;
-	sampling_rate = set_sampling_rate;
+    
+    agent = std::make_unique<Agent>(agent_type);
     
     int network_rate;
-    helpers::safelyRetrieve(n, "/sampling_rate", network_rate);
+    helpers::safelyRetrieve(n, "sampling_rate", network_rate);
     
     // Check if parameters are correct
-    if(sampling_rate % network_rate != 0){
-        throw ParameterException("Sampling rate of agent " + std::to_string(set_id) + " is not a multiple of the network rate!");
+    if(agent->getSamplingRate() % network_rate != 0){
+        throw ParameterException("Sampling rate of agent " + std::to_string(agent->getID()) + " is not a multiple of the network rate!");
     }
     
     // Calculate the rate multiplier
-    rate_mp = sampling_rate / network_rate;
+    rate_mp = agent->getSamplingRate() / network_rate;
     
 	// Retrieve parameters
 	helpers::safelyRetrieve(n, "/l", l);
@@ -36,12 +35,12 @@ CMM::CMM(int set_id, int set_sampling_rate){
 	// Connect to the remote
 	connect_client = n.serviceClient<panda::getConnectionsOf>("/getConnectionsOf");
     leader_client = n.serviceClient<panda::isAgentLeader>("/isAgentLeader");
-    init_server = n.advertiseService("/agent" + std::to_string(agent_id) + "/initEdges", &CMM::initEdges, this);
+    init_server = n.advertiseService("/agent" + std::to_string(agent->getID()) + "/initEdges", &CMM::initEdges, this);
 
 	// Retrieve connections and create communication edges
     status = WAITING_FOR_OTHER;
 
-    performHandshake();
+//    performHandshake();
     
 	logMsg("CMM", "Done!", 2);
 }
@@ -67,6 +66,7 @@ void CMM::performHandshake(){
                 break;
         }
 
+        ros::spinOnce();
         loop_rate.sleep();
     }
 }
@@ -81,12 +81,16 @@ bool CMM::retrieveConnections(){
     
     // Transition to the running state
     status = RUNNING;
+    
+    auto ready_client = n.serviceClient<std_srvs::Empty>("/cmmReady");
+    std_srvs::Empty srv;
+    ready_client.call(srv);
 }
 
 void CMM::setupLeader(){
     
     panda::isAgentLeader srv;
-    srv.request.id = agent_id;
+    srv.request.id = agent->getID();
     
     // Call for leader information
     if(leader_client.call(srv)){
@@ -98,7 +102,7 @@ void CMM::setupLeader(){
             Eigen::MatrixXd leader_gain = Eigen::MatrixXd(temp_gain.asDiagonal());
             
             // Create an edge
-            edges.push_back(std::make_unique<EdgeLeader>(agent_id, -1, leader_gain, l, temp_ref));
+            edges.push_back(std::make_unique<EdgeLeader>(*agent, -1, leader_gain, l, temp_ref));
         }
     }
 }
@@ -107,11 +111,11 @@ void CMM::setupEdges(){
     
     // For all possible other agents
 	for(int j = 0; j < N; j++){
-		if(j != agent_id){
+		if(j != agent->getID()){
 			
 			// Ask the remote if we are connected
 			panda::getConnectionsOf srv;
-			srv.request.id_i = agent_id;
+			srv.request.id_i = agent->getID();
 			srv.request.id_j = j;
 
 			if(connect_client.call(srv)){
@@ -123,7 +127,7 @@ void CMM::setupEdges(){
                     Eigen::VectorXd r_star = helpers::vectorToEigen(srv.response.r_star.data);
 
 					// Create a communication edge
-					edges.push_back(std::make_unique<EdgeFlex>(agent_id, j, gain, l, r_star, rate_mp));
+					edges.push_back(std::make_unique<EdgeFlex>(*agent, j, gain, l, r_star, rate_mp));
 					
 				}
 			}else{

@@ -1,7 +1,8 @@
-/*
-File: Panda.h
+/**
+    @file: Panda.h
 
-System file for the real Franka Emika Panda 7DOF robotic manipulator
+    @brief System file for the Franka Emika Panda 7DOF robotic manipulator
+     * uses franka_ros library
 */
 
 #pragma once
@@ -13,7 +14,6 @@ System file for the real Franka Emika Panda 7DOF robotic manipulator
 #include <controller_interface/multi_interface_controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/robot_hw.h>
-#include <realtime_tools/realtime_publisher.h>
 #include <ros/node_handle.h>
 #include <ros/time.h>
 
@@ -21,7 +21,6 @@ System file for the real Franka Emika Panda 7DOF robotic manipulator
 #include <franka_control/services.h>
 #include <franka_hw/franka_cartesian_command_interface.h>
 #include <franka_hw/franka_model_interface.h>
-#include <franka_hw/trigger_rate.h>
 
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64MultiArray.h>
@@ -39,97 +38,108 @@ System file for the real Franka Emika Panda 7DOF robotic manipulator
 #include "Helpers.h"
 
 //using namespace std;
-
+/** @IMPORTANT class needs rewriting before run. Implement reference based model matrices */
 namespace panda {
 
 
-class Panda : public System, public controller_interface::MultiInterfaceController<
-					franka_hw::FrankaModelInterface,
-					hardware_interface::EffortJointInterface,
-					franka_hw::FrankaPoseCartesianInterface>
-					{
+    class Panda : public System, public controller_interface::MultiInterfaceController<
+                        franka_hw::FrankaModelInterface,
+                        hardware_interface::EffortJointInterface,
+                        franka_hw::FrankaPoseCartesianInterface>
+                        {
 
-public:
-	Panda();
-	~Panda();
+    public:
+        Panda();
+        virtual ~Panda();
 
-	// Mass and potential
-	void M(Eigen::MatrixXd& M_out) override;
-	void dVdq(Eigen::VectorXd& dVdq_out) override;
-	void Psi(Eigen::MatrixXd& Psi_out) override;
+        /** @brief System matrices */
+        Eigen::MatrixXd& M() override;
+        Eigen::VectorXd& dVdq() override;
+        Eigen::MatrixXd& Psi() override;
+        Eigen::MatrixXd& dM() override;
+        Eigen::MatrixXd& dPsi() override;
+        Eigen::MatrixXd& dMinv() override;
 
-	// Ros Control functions
-	bool init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh) override;  // mandatory
-	void starting(const ros::Time& /*time*/);
-	void update (const ros::Time& time, const ros::Duration& period) override;  // mandatory
+        
+        /** @brief functions called by ROS Control */
+        bool init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh) override;  // mandatory
+        void starting(const ros::Time&);
+        void update (const ros::Time& time, const ros::Duration& period) override;  // mandatory
 
-	// Wrappers for communication
-	bool sendInput(const Eigen::VectorXd& tau);
-	void retrieveState();
-	void retrieveMatrices();
+        /** Send the input to the robot
+         * @param[in] tau vector with inputs */
+        virtual bool sendInput(const Eigen::VectorXd& tau);
+        
+        /** Retrieve system matrices from the robot */
+        virtual void retrieveMatrices();
+        virtual void retrieveState();
 
-	// Safety functions
-	void checkSafety() override;
-	std::array<double, 7> saturateTorqueRate(
-    	const Eigen::VectorXd& torques,
-    	const std::array<double, 7>& tau_J_d);
+        /** Safety functions 
+         * @throws SafetyExceptions */
+        void checkSafety() override;
+        
+        /** Saturate the torque rate to prevent damage to the robot
+         * @param[in] torques vector with inputs 
+         * @param[in] tau_J_d current inputs from robot 
+         * 
+         * @returns saturated torques */
+        std::array<double, 7> saturateTorqueRate(
+            const Eigen::VectorXd& torques,
+            const std::array<double, 7>& tau_J_d);
 
-	std::array<double, 7> checkTorque(
-		const Eigen::VectorXd& torques,
-		const std::array<double, 7>& tau_J_d);
+        /** Check if torque is safe
+         * @param[in] torques vector with inputs 
+         * @param[in] tau_J_d current inputs from robot 
+         * 
+         * @returns safe torques */
+        std::array<double, 7> checkTorque(
+            const Eigen::VectorXd& torques,
+            const std::array<double, 7>& tau_J_d);
 
-	void filterVelocity(std::array<double, 7> input_v);
-	//void publishTau(const Eigen::VectorXd torques);
+        /** Lowpass filter the velocities
+         * @param[in] input_v new velocities
+         * 
+         * @return dq_filtered is set internally, void returned */
+        void filterVelocity(std::array<double, 7> input_v);
 
+    protected:
 
-private:
+        // ROS classes
+        ros::NodeHandle nh;
+        ros::ServiceClient connect_client;
+        ros::Publisher yolo_pub;
+        
+        ros::Time start_time;
+        
+        // franka classes
+        franka::RobotState robot_state;
+        
+        // Cartesian handle for the robot state
+        std::unique_ptr<franka_hw::FrankaCartesianPoseHandle> cartesian_pose_handle_;
+        std::array<double, 16> initial_pose_;
+        std::unique_ptr<franka_hw::FrankaModelHandle> model_handle_;
 
-	// Get a nodehandle
-	ros::NodeHandle nh;
-	ros::ServiceClient connect_client;
-	ros::Publisher yolo_pub;
+        // Joint effort handle for joint effort control
+        std::vector<hardware_interface::JointHandle> joint_handles_;
+        
+        // Bounds for safety
+        double z_lower_bound, torque_bound;
+        double velocity_element_bound, velocity_norm_bound;
 
-	franka::RobotState robot_state;
-	ros::Time start_time;
+        double initial_pause;
+        double has_run = false;
 
-	// Bounds for safety
-	double z_lower_bound, torque_bound;
-	double velocity_element_bound, velocity_norm_bound;
+        // Filter coefficient (LPF)
+        double alpha;
+        std::array<double, 7> dq_filtered;
 
-	double initial_pause;
-	double has_run = false;
+        Eigen::VectorXd last_z;
 
-	// Filter coefficient (LPF)
-	double alpha;
-	std::array<double, 7> dq_filtered;
+        // Torque rate limit
+        static constexpr double kDeltaTauMax{1.0};
 
-	Eigen::VectorXd last_z;
+        // Pointer to controller
+        std::unique_ptr<Controller> controller;
 
-	Eigen::MatrixXd psi, m;
-
-	// Torque rate limit
-	static constexpr double kDeltaTauMax{1.0};
-
-	// Cartesian handle for the robot state
-	std::unique_ptr<franka_hw::FrankaCartesianPoseHandle> cartesian_pose_handle_;
-	
-	// Model handle
-	std::unique_ptr<franka_hw::FrankaModelHandle> model_handle_;
-
-	// Joint effort handle for joint effort control
-  	std::vector<hardware_interface::JointHandle> joint_handles_;
-
-  	// Necessary for the cartesian handle
-  	std::array<double, 16> initial_pose_;
-
-  	// Classes for control
-	std::unique_ptr<CMM> cmm;
-	std::unique_ptr<Controller> controller;
-
-	// Realtime publishing
-	franka_hw::TriggerRate rate_trigger{1.0};
-	realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray> tau_pub;
-
-
-};
+    };
 }

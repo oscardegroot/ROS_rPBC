@@ -15,12 +15,19 @@ Remote::Remote(){
 	goals = std::make_unique<Goals>();
 	goals->Init(N, l);
     status = REGISTERING_AGENTS;
-
-	// Start a server
+    
+	// Start servers
 	connect_server = n.advertiseService("/getConnectionsOf", &Remote::getConnectionsOf, this);
     leader_server = n.advertiseService("/isAgentLeader", &Remote::isAgentLeader, this);
     register_server = n.advertiseService("/registerAgent", &Remote::registerAgent, this);
+    cmm_server = n.advertiseService("/cmmReady", &Remote::acknowledgeCMMReady, this);
 
+    // Workaround!
+    ros::Subscriber topic_create = n.subscribe("/agent_z", 1, &Remote::fakeCallback, this);
+
+    // 2 second timer
+    timer = std::make_unique<helpers::SimpleTimer>(2.5);
+    
 	logMsg("Remote", "Formation server initiated", 2);
 
 }
@@ -29,33 +36,37 @@ Remote::~Remote(){
     logMsg("Remote", "Remote destroyed", 1);
 }
 
+
+/** @Workaround to claim existence of agent_z when the plots are launched... */
+void Remote::fakeCallback(const std_msgs::Float64MultiArray::ConstPtr& msg)
+{
+    return;
+}
+
+
 void Remote::initiateNetwork(){
 
 
     for(int i = 0; i < agents.size(); i++){
-        ros::ServiceClient init_client = n.serviceClient<std_srvs::Empty>("/agent" + std::to_string(agents[i].ID) +
+        ros::ServiceClient init_client = n.serviceClient<std_srvs::Empty>("/agent" + std::to_string(agents[i]->getID()) +
                 "/initEdges");
 
 
         std_srvs::Empty srv;
         
-        long attempts = 0;
-        while(!init_client.call(srv)){
-            
-            attempts++;
-            if(attempts > MAX_HANDSHAKE_ATTEMPTS){
-                throw RegisteringException("Failed to start the network of agent " +
-            agents[i].name + "!");
-            }
-            
-            
-        }
+        // Declare a server call lambda to be repeated
+        auto server_call = [&](){ 
+                return init_client.call(srv);
+            };
         
-        logMsg("Remote", "Network of agent " + agents[i].name + " started.", 2);
+        // Call the service until it works or until a second has passed
+        helpers::repeatedAttempts(server_call, 1.0, "Failed to start the network of agent " + agents[i]->getType() + "!");
+        
+        logMsg("Remote", "Network of agent " + agents[i]->getType() + " started.", 2);
 
     }
     
-    status = SPINNING;
+
 
 }
 
@@ -100,12 +111,12 @@ bool Remote::isAgentLeader(panda::isAgentLeader::Request &req, panda::isAgentLea
 
 }
 
-/// Register an agent to this remote
+// Register an agent to this remote
 bool Remote::registerAgent(panda::registerAgent::Request &req, panda::registerAgent::Response &res){
 
     // Check if the agent doesn't already exist
     for(int i = 0; i < agents.size(); i++){
-        if(agents[i].ID == req.id){
+        if(agents[i]->getID() == req.id){
 
             logMsg("Remote", "Agent trying to register already exists!", 0);
             return false;
@@ -113,19 +124,60 @@ bool Remote::registerAgent(panda::registerAgent::Request &req, panda::registerAg
     }
 
     // Add the received agent to the list
-    Agent new_agent({req.type, req.name, req.id, req.sampling_rate});
-    agents.push_back(new_agent);
+    agents.push_back(std::make_unique<Agent>(req.id, req.sampling_rate, req.type));
 
-    logMsg("Remote", "Added new agent of type " + new_agent.name + " with ID " +
-    std::to_string(new_agent.ID) + ".", 2);
-//
-    if(agents.size() == N){
-        ready = true;
-    }
+    logMsg("Remote", "Added new agent of type " + agents[agents.size() - 1]->getType() + " with ID " +
+    std::to_string(agents[agents.size() - 1]->getID()) + ".", 2);
 
     return true;
 }
 
-bool Remote::isReady(){
-    return ready;
+/** @brief Count the number of agents ready to go */
+bool Remote::acknowledgeCMMReady(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res){
+
+    // Simply count the number of cmms ready
+    cmm_count++;
+
+    return true;
+}
+
+void Remote::pauseGazebo(){
+    
+    //ScopeTimer timer("Pausing Gazebo");
+    auto pause_client = n.serviceClient<std_srvs::Empty>("/gazebo/pause_physics");
+    std_srvs::Empty srv;
+        
+    // Declare a server call lambda to be repeated
+    auto pause_call = [&](){ 
+            return pause_client.call(srv);
+        };
+        
+    // Call the service until it works or until a second has passed
+    helpers::repeatedAttempts(pause_call, 4.0, "Failed to pause gazebo!");
+    
+    //logMsg("Remote", "Gazebo Physics Paused.", 1);
+    
+}
+
+void Remote::unpauseGazebo(){
+    
+    auto pause_client = n.serviceClient<std_srvs::Empty>("/gazebo/unpause_physics");
+    std_srvs::Empty srv;
+
+    if(!pause_client.call(srv)){
+        
+        throw OperationalException("Gazebo could not be unpaused!");
+    }
+    
+}
+
+/** @brief If timer is done, stop registering */
+bool Remote::finishedRegistering(){
+    return timer->finished();
+}
+
+/** @brief If a message was received from all CMM, proceed to control */
+bool Remote::cmm_ready()
+{
+    return (cmm_count == agents.size());
 }

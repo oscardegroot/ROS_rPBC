@@ -10,20 +10,20 @@
 #include "ros/ros.h"
 #include <cmath>
 #include "PotentialFactors.h"
+#include "Agent.h"
 
 // Pure virtual goal interface
 // Gradient is always multiplied by r_js - r_i (extensions are not feasible)
 class Goal{
 
 public:
-    Goal(int l_set);
+    Goal();
     //virtual ~Goal();
 
     virtual double value(const double& d) = 0;
     virtual double gradient(const double& d) = 0;
 
 protected:
-    int l;
 };
 
 
@@ -31,7 +31,7 @@ protected:
 class WangGoal : public Goal{
 
 public:
-    WangGoal(int l_set);
+    WangGoal(Agent& agent);
     
     double value(const double& d) override;
     double gradient(const double& d) override;

@@ -45,6 +45,8 @@
       <File Name="src/classes/Goal.cpp"/>
       <File Name="src/classes/Obstacle.cpp"/>
       <File Name="src/classes/Potential.cpp"/>
+      <File Name="src/classes/Agent.cpp"/>
+      <File Name="src/classes/ConnectedPandasim.cpp"/>
     </VirtualDirectory>
     <File Name="src/Elisa3_Station.cpp"/>
     <File Name="src/TextInterface.cpp"/>
@@ -136,5 +138,7 @@
     <File Name="include/Goal.h"/>
     <File Name="include/Obstacle.h"/>
     <File Name="include/PotentialFactors.h"/>
+    <File Name="include/Agent.h"/>
+    <File Name="include/ConnectedPandasim.h"/>
   </VirtualDirectory>
 </CodeLite_Project>

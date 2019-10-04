@@ -1,20 +1,15 @@
 
 #include "Goal.h"
 
-Goal::Goal(int l_set)
-    : l(l_set)
+Goal::Goal()
 {
 
 }
 
-WangGoal::WangGoal(int l_set)
-   : Goal(l_set)
+WangGoal::WangGoal(Agent& agent)
 {
-    ros::NodeHandle nh;
-
-    // Retrieve goal parameters
-	helpers::safelyRetrieve(nh, "/controller/NF/goal/eps", eps);
-	helpers::safelyRetrieve(nh, "/controller/NF/goal/Rw", r_w);
+    agent.retrieveParameter("NF/gamma/eps", eps, 0.15);
+    agent.retrieveParameter("NF/gamma/r_w", r_w, 1.0);
     
     initParameters();
 }

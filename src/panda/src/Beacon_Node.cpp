@@ -25,10 +25,11 @@ Thanks to the CMM the communication and convergence properties remain stable.
 #include <string>
 #include <sstream>
 
-int agent_id, l, N, sampling_rate;
+int l, N;
 Eigen::MatrixXd S;
 Status status = INIT_CMM;
 Eigen::VectorXd ref, valued_goal, center_point;
+std::unique_ptr<CMM> cmm;
 bool is_dynamic = false;
 double phase = 0;
 
@@ -38,7 +39,6 @@ void goalCallback(const std_msgs::Int16::ConstPtr & msg);
 void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref);
 void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref);
 void setGoalType(int goal_type);
-void registerBeacon(ros::NodeHandle & nh);
 
 int main(int argc, char **argv){
 	
@@ -48,28 +48,9 @@ int main(int argc, char **argv){
 	// = ros::NodeHandle("~");
     ros::NodeHandle nh;
 
-	// Get a nodehandle
-	helpers::safelyRetrieve(nh, "/beacon/ID", agent_id);
-    helpers::safelyRetrieve(nh, "/beacon/sampling_rate", sampling_rate);
     helpers::safelyRetrieve(nh, "/l", l);
 	helpers::safelyRetrieve(nh, "/N_agents", N);
-	helpers::safelyRetrieveEigen(nh, "/beacon/default_goal", valued_goal);
-
-	// Dynamic parameters
-	double radius, speed;
-    helpers::safelyRetrieve(nh, "/beacon/dynamic/radius", radius, 0.1);
-    helpers::safelyRetrieve(nh, "/beacon/dynamic/speed", speed, 0.1);
-
-    initSelectors();
-
-	// Retrieve the goal
-	int goal_type;
-	helpers::safelyRetrieve(nh, "/beacon/goal_type", goal_type, -1);
-
-	// For centerpoint initially
-    ref = valued_goal;
-	setGoalType(goal_type);
-	
+    
 	/* Initialise publishers */
 	ros::Publisher pub, marker_pub;
 	pub = nh.advertise<std_msgs::Float64MultiArray>("/reference", 20);
@@ -77,11 +58,31 @@ int main(int argc, char **argv){
 
 	ros::Subscriber sub;
     sub = nh.subscribe<std_msgs::Int16>("/goal_setpoint", 1, &goalCallback);
-    registerBeacon(nh);
-    CMM cmm(agent_id, sampling_rate);
+    cmm = std::make_unique<CMM>("beacon");
     
+    // Retrieve parameters
+    initSelectors();
+    
+    // Dynamic parameters
+	double radius, speed;
+    cmm->agent->retrieveParameter("dynamic/radius", radius, 0.1);
+    cmm->agent->retrieveParameter("dynamic/speed", speed, 0.1);
+    
+	// Retrieve the goal
+	int goal_type;
+    cmm->agent->retrieveParameter("goal_type", goal_type, -1);
+    cmm->agent->retrieveEigen("default_goal", valued_goal, l);
+    
+    double lambda;
+    helpers::safelyRetrieve(nh, "/lambda", lambda);
 
-	ros::Rate loop_rate(sampling_rate);
+	// For centerpoint initially
+    ref = valued_goal;
+	setGoalType(goal_type);
+
+    cmm->performHandshake();
+
+	ros::Rate loop_rate(cmm->agent->getSamplingRate());
 
 	while(ros::ok()){
 
@@ -90,18 +91,18 @@ int main(int argc, char **argv){
 	        ref(1) = center_point(1) + cos(phase)*radius;
 	        ref(2) = center_point(2) + sin(phase)*radius;
 
-            phase += speed*(1.0/double(sampling_rate));
+            phase += speed*(1.0/double(cmm->agent->getSamplingRate()));
 	    }
 
 		// Sample the network
-		Eigen::VectorXd tau_network = cmm.sample(ref);
+        // LOOKS LIKE THE VARIANCE CONTROL PROBLEM IS RELATED TO RPBC, IDAPBC WORKS FINE NOW //
+		Eigen::VectorXd tau_network = cmm->sample(ref);//*lambda
 		
 		plotMarker(marker_pub, ref);
 
 		publishReference(pub, ref);
 
 		ros::spinOnce();
-
 		loop_rate.sleep();
 	}
 
@@ -116,7 +117,8 @@ void initSelectors(){
     // This is not nice! maybe this entire thing in helpers?
     ros::NodeHandle nh;
     std::vector<int> selector;
-    helpers::safelyRetrieve(nh, "/beacon/z_select", selector);
+    cmm->agent->retrieveParameter("z_select", selector);
+    
     int lmax = selector.size();
 
     // Count the number of activated coordinates
@@ -131,26 +133,6 @@ void initSelectors(){
             S(occurences, i) = 1;
             occurences++;
         }
-    }
-}
-
-void registerBeacon(ros::NodeHandle &nh){
-
-    Agent agent({"Beacon",
-                 ros::this_node::getName(),
-                 agent_id,
-                 sampling_rate});
-
-    ros::ServiceClient register_client = nh.serviceClient<panda::registerAgent>("/registerAgent");
-    panda::registerAgent srv = agent.toSrv();
-
-    long attempts = 0;
-    
-    while(!register_client.call(srv)){
-        attempts++;
-        
-        if(attempts > MAX_HANDSHAKE_ATTEMPTS)
-            throw RegisteringException("Agent could not register!");
     }
 }
 
@@ -202,11 +184,12 @@ void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref){
 	p.y = ref(1, 0);
 	p.z = ref(2, 0);
 
-//	geometry_msgs::Point TEST_OBJECT;
-//	TEST_OBJECT.x = -0.4;
-//	TEST_OBJECT.y = 0.4;
-//	TEST_OBJECT.z = 0.6;
-//    points.points.push_back(TEST_OBJECT);
+	geometry_msgs::Point TEST_OBJECT;
+	TEST_OBJECT.x = 0;
+	TEST_OBJECT.y = 0;
+	TEST_OBJECT.z = 1.0;
+    points.points.push_back(p);
+    points.points.push_back(TEST_OBJECT);
 
     pub.publish(points);
 

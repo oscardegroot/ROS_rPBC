@@ -14,12 +14,12 @@ l_set: dimension of the channel
 
 #include "Edge.h"
 
-Edge::Edge(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set){
+Edge::Edge(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set){
 
-	logMsg("Edge", "Initiating edge between " + std::to_string(i) + " and " + std::to_string(j) + "..", 2);
+	logMsg("Edge", "Initiating edge between " + std::to_string(agent.getID()) + " and " + std::to_string(j) + "..", 2);
 
 	//Save the connection between agents
-	i_ID = i;
+	i_ID = agent.getID();
 	j_ID = j;
 	l = l_set;
 	gain = gain_set;
@@ -44,6 +44,7 @@ Edge::Edge(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_
 /// Initialise channel
 void Edge::initChannels(){
 
+    // In case of leaders
     if(i_ID == -1 || j_ID == -1){
         return;
     }

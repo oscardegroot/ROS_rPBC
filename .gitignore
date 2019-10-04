@@ -6,3 +6,6 @@
 /src/franka_description/
 /src/franka_ros/
 /src/franka_description_sim/
+/matrix txt/
+/src/panda/timing/
+/src/elisa_vision/

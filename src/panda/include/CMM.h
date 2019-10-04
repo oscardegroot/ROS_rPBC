@@ -21,6 +21,7 @@ Manages cooperative communication by managing a number of connections
 #include "EdgeFlexDelayFree.h"
 #include "CustomLog.h"
 #include "Helpers.h"
+#include "Agent.h"
 
 #include "std_srvs/Empty.h"
 #include "panda/getConnectionsOf.h"
@@ -38,14 +39,18 @@ enum Status{
 class CMM{
 
 public:
-	CMM(int set_id, int set_sampling_rate);
+	CMM(std::string agent_type);
 	~CMM();
     
     Status status = STARTED;
-
+    
+    //The contained agent
+    std::unique_ptr<Agent> agent;
+    
 	Eigen::VectorXd sample(Eigen::VectorXd r_i);
+    
+    /** @brief Wait for the server message to retrieve the network */
     void performHandshake();
-
 
     bool initEdges(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
     
@@ -57,11 +62,12 @@ public:
 	
 private:
 
-	unsigned char agent_id;
+	//unsigned char agent_id;
 	int l, N;
 	Eigen::MatrixXd gain;
 	double torque_enable;
-	int sampling_rate, rate_mp;
+	//int sampling_rate;
+    int rate_mp;
     
     bool initialised = false;
 

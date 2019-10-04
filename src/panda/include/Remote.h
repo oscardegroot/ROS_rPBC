@@ -26,7 +26,9 @@ A Remote node class that hosts services and implements an interface
 
 enum RemoteStatus{
     REGISTERING_AGENTS,
+    WAITING_FOR_GAZEBO,
     STARTING_AGENTS,
+    WAITING_FOR_CMM,
     SPINNING
 };
 
@@ -43,25 +45,37 @@ public:
     bool isAgentLeader(panda::isAgentLeader::Request &req, panda::isAgentLeader::Response &res);
 
     bool registerAgent(panda::registerAgent::Request &req, panda::registerAgent::Response &res);
+    bool acknowledgeCMMReady(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 
     void initiateNetwork();
-    bool isReady();
+    bool finishedRegistering();
+    
+    bool cmm_ready();
+
+    void pauseGazebo();
+    void unpauseGazebo();
+    
+    void fakeCallback(const std_msgs::Float64MultiArray::ConstPtr& msg);
+
 
 private:
 
 	int l, N;
 
 	std::unique_ptr<Goals> goals;
-
+    std::unique_ptr<helpers::SimpleTimer> timer;
+    
 	// Stores all agent information (namespace / id / sampling_rate)
-    std::vector<Agent> agents;
+    std::vector<std::unique_ptr<Agent>> agents;
 
 	// A nodehandle
 	ros::NodeHandle n;
     bool ready = false;
+    
+    unsigned int cmm_count;
 
 	// The server
-	ros::ServiceServer connect_server, leader_server, register_server;
+	ros::ServiceServer connect_server, leader_server, register_server, cmm_server;
 
 
 };

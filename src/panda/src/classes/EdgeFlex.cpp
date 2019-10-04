@@ -12,25 +12,22 @@ l_set: dimension of the channel
 
 #include "EdgeFlex.h"
 
-EdgeFlex::EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
-	: Edge(i, j, gain_set, l_set, r_star_set, rate_mp_set){
+EdgeFlex::EdgeFlex(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
+	: Edge(agent, j, gain_set, l_set, r_star_set, rate_mp_set){
 
-	// Retrieve the lower bound on z
-    double b_z, alpha;
-    helpers::safelyRetrieve(nh, "/panda/z_lower_bound", b_z, -10.0);
-    helpers::safelyRetrieve(nh, "/panda/alpha", alpha, 5.0);
-
+    // Retrieval is fully internal
+    potential = std::make_unique<NavigationFunction>(agent, l);
     /* When bound influences beacond, control goes wrong! */
-    std::shared_ptr<Goal> goal_ = std::make_shared<WangGoal>(l);
-    std::shared_ptr<Obstacle> z_bound_ = std::make_shared<BoundObstacle>(l, b_z, 1.15, 2);
-    
-    Eigen::VectorXd obstacle_location(l);
-    obstacle_location << -0.2, 0.2, 0.7;
-    std::shared_ptr<Obstacle> object_1_ = std::make_shared<ObjectObstacle>(l, obstacle_location, 0.2);
-    potential = std::make_unique<NavigationFunction>(alpha, l);
-    potential->addGoalFcn(goal_);
-    potential->addObstacleFcn(z_bound_); 
-    potential->addObstacleFcn(object_1_);
+//    std::shared_ptr<Goal> goal_ = std::make_shared<WangGoal>(l);
+//    std::shared_ptr<Obstacle> z_bound_ = std::make_shared<BoundObstacle>(l, b_z, 1.15, 2);
+//    
+//    Eigen::VectorXd obstacle_location(l);
+//    obstacle_location << -0.2, 0.2, 0.7;
+//    std::shared_ptr<Obstacle> object_1_ = std::make_shared<ObjectObstacle>(l, obstacle_location, 0.2);
+//    potential = std::make_unique<NavigationFunction>(agent, l);
+//    potential->addGoalFcn(goal_);
+//    potential->addObstacleFcn(z_bound_); 
+//    potential->addObstacleFcn(object_1_);
 
 	// Set the scattering gain
 	setScatteringGain(gain_set);

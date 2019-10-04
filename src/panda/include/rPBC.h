@@ -18,45 +18,26 @@ A standard IDA-PBC controller, implements the controller interface defined in Co
 #include "IDAPBC.h"
 
 
-class rPBC : public IDAPBC{
+class rPBC : public Controller{
 
 public:
-	rPBC(System& system);
+	rPBC(Agent& agent);
 
-	Eigen::VectorXd computeControl(System& system, Eigen::VectorXd tau_c) override;
+	Eigen::VectorXd computeControl(System& system, const Eigen::VectorXd& tau_c) override;
 
 	// Get the agent output, possibly modified
 	Eigen::VectorXd getOutput(System& system) override;
 
-	Eigen::MatrixXd rightPseudoInverse(Eigen::MatrixXd A);
+    Eigen::VectorXd dVsdq(System& system) override;
+
+    Eigen::MatrixXd Kv(System& system) override;
+
+	//Eigen::MatrixXd rightPseudoInverse(Eigen::MatrixXd A);
 
 
 private:
 
-	double lambda;
-
-    template <class MatT>
-        Eigen::Matrix<typename MatT::Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime>
-        pseudoInverse(const MatT &mat, typename MatT::Scalar tolerance = typename MatT::Scalar{1e-4}) // choose appropriately
-        {
-            typedef typename MatT::Scalar Scalar;
-            auto svd = mat.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
-            const auto &singularValues = svd.singularValues();
-            Eigen::Matrix<Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime> singularValuesInv(mat.cols(), mat.rows());
-            singularValuesInv.setZero();
-            for (unsigned int i = 0; i < singularValues.size(); ++i) {
-                if (singularValues(i) > tolerance)
-                {
-                    singularValuesInv(i, i) = Scalar{1} / singularValues(i);
-                }
-                else
-                {
-                    singularValuesInv(i, i) = Scalar{0};
-                }
-            }
-            return svd.matrixV() * singularValuesInv * svd.matrixU().adjoint();
-        }
-
+	double lambda, gamma;
 
 };
 

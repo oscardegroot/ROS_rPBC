@@ -12,7 +12,7 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 class EdgeDelayFree : public Edge{
 public:
 	// Constructor and destructor
-	EdgeDelayFree(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set);
+	EdgeDelayFree(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set);
 
 	void waveCallback(const panda::Waves::ConstPtr& msg) override;
 	void publishWave(Eigen::VectorXd s_out) override;

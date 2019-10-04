@@ -10,7 +10,10 @@
 #include <vector>
 #include "ros/ros.h"
 #include <cmath>
+#include <limits>
 #include "PotentialFactors.h"
+#include "Agent.h"
+
 
 /* Obstacle Functions */
 // A purely virtual class for obstacle force functions (since they are often shared over obstacles with different parameters)
@@ -26,8 +29,8 @@ class WangObstacleFunction : public ObstacleFunction{
     
 public:
     
-    WangObstacleFunction(std::string retrieval_name);
-    WangObstacleFunction(std::string retrieval_name, double R_set);
+    WangObstacleFunction(Agent& agent);
+    WangObstacleFunction(Agent& agent, double R_set);
 
     double value(const double& d) override;
     double gradient_value(const double& d) override;
@@ -64,7 +67,7 @@ protected:
 class BoundObstacle : public Obstacle{
     
 public:
-    BoundObstacle(int l_set, double lower_bound_set, double upper_bound_set, unsigned int dimension_set);
+    BoundObstacle(Agent& agent, int count, int l_set, int dimension_set);
 
     PotentialFactors gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     
@@ -82,7 +85,7 @@ private:
 class ObjectObstacle : public Obstacle{
     
 public:
-    ObjectObstacle(int l_set, const Eigen::VectorXd& location_set, double radius);
+    ObjectObstacle(Agent& agent, int count, int l_set);
     
     double getDistance(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
 

@@ -20,34 +20,35 @@ int main(int argc, char **argv){
 	// Initialise ROS
 	ros::init(argc, argv, "Agent");
 
-	ros::NodeHandle nh = ros::NodeHandle("~");
+	// Initialise the system and controller
+	std::unique_ptr<System> system = std::make_unique<PandaSim>();  // Mass matrix takes a long time
+	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*(system->cmm->agent));   // First thing is init of publishers
+
+    ros::NodeHandle nh = ros::NodeHandle("~");
 
 	// Get a nodehandle
 	helpers::safelyRetrieve(nh, "ID", id);
 	helpers::safelyRetrieve(nh, "/l", l);
 	helpers::safelyRetrieve(nh, "/N_agents", N);
 
-	
-	std::unique_ptr<System> system = std::make_unique<PandaSim>();
-	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*system);
-    system->setAgent(nh, "pandasim");
-    
-	CMM cmm(id, system->agent.sampling_rate);
+    // Perform handshake after controller initialisation!
+    system->cmm->performHandshake();
 
 	ros::Rate loop_rate(1000);
 
 	while(ros::ok()){
         
-        Eigen::VectorXd tau_network = cmm.sample(controller->getOutput(*system));
-        //std::cout << "Network Sampled | ";
+        // Sample the network
+        Eigen::VectorXd tau_network = system->cmm->sample(controller->getOutput(*system));
+        
+        // Compute the input
         Eigen::VectorXd tau = controller->computeControl(*system, tau_network);
-        //std::cout << "Control Calculated | ";
 
+        // Implement the input
         system->sendInput(tau);
-        //std::cout << "Input send!\n";
 		
+        // Check callbacks and sleep
 		ros::spinOnce();
-		// ros::Duration(0.1).sleep();
 		loop_rate.sleep();
 	}
 

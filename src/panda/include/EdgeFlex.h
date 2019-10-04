@@ -16,7 +16,7 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 class EdgeFlex : public Edge{
 public:
 	// Constructor and destructor
-	EdgeFlex(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set);
+	EdgeFlex(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set);
 
 	Eigen::VectorXd sample(Eigen::VectorXd r_i) override;
 	Eigen::VectorXd calculateControls(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;

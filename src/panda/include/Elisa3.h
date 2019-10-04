@@ -23,6 +23,7 @@ File: Elisa3.h
 
 #include "elisa3-lib.h"
 #include <cmath>
+#include <memory>
 /* Possibly divide this up further in a system and a controller */
 
 class Elisa3 : public System{
@@ -33,11 +34,14 @@ public:
 
     // Coordinate count, actuated count
     bool sendInput(const Eigen::VectorXd& tau);
-    void readSensors(const panda::Readout::ConstPtr & msg);
+    void readSensors(const panda::Readout::ConstPtr& msg);
     
-    void M(Eigen::MatrixXd& M_out) override;
-	void dVdq(Eigen::VectorXd& dVdq_out) override;
-	void Psi(Eigen::MatrixXd& Psi_out) override;
+	Eigen::MatrixXd& M() override;
+	Eigen::VectorXd& dVdq() override;
+	Eigen::MatrixXd& Psi() override;
+    Eigen::MatrixXd& dM() override;
+    Eigen::MatrixXd& dPsi() override;
+    Eigen::MatrixXd& dMinv() override;
 
     void checkSafety() override;
 
@@ -72,9 +76,7 @@ private:
     Eigen::VectorXd actual_dq;
     Eigen::VectorXd actual_q;
 
-    // Yolo value
-    double L;
-    double Ts;
+    double L, Ts;
 
     // Filtering
     double alpha = 0.99;

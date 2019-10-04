@@ -1,5 +1,4 @@
 <?xml version="1.0" ?>
-<!-- Possibly BS -->
 <library path="lib/libpanda">
   <class name="panda/Panda"
          type="panda::Panda"
@@ -8,4 +7,11 @@
       Controls Panda using passivity based control
     </description>
   </class>
+	<class name="panda/ConnectedPandasim"
+	     type="panda::ConnectedPandasim"
+	     base_class_type="controller_interface::ControllerBase">
+		<description>
+		  Controls Panda using passivity based control, is adapter for simulation
+		</description>
+	</class>
 </library>

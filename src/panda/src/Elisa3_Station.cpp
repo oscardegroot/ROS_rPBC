@@ -18,11 +18,11 @@ int main(int argc, char **argv){
     int elisa3_rate;
     helpers::safelyRetrieve(*nh_, "/elisa3/sampling_rate", elisa3_rate, 100);
     ros::Rate loop_rate(elisa3_rate);
-    //ros::AsyncSpinner spinner(2);
-    //spinner.start();
+
     ros::spinOnce();
     ros::Duration(1.0).sleep();
     ros::spinOnce();
+    
     int * addresses = &elisa3_addresses[0];
 
     logMsg("Elisa Station", "Starting with " + std::to_string(elisa3_addresses.size()) +
@@ -39,6 +39,7 @@ int main(int argc, char **argv){
             int address = elisa3_addresses[i];
             panda::Readout msg;
 
+            // Currently odometry via USB. When camera I probably dont need this in the station!
             msg.x = -getOdomYpos(address)/1000.0;  // mm to m
             msg.y = getOdomXpos(address)/1000.0;  // mm to m
             msg.theta = getOdomTheta(address) / 180.0 * M_PI + M_PI_2; // Theta expressed in a tenth of degree
@@ -62,7 +63,8 @@ int main(int argc, char **argv){
     return 0;
 
 }
-// Threaded spinner?
+
+
 bool moveElisa3(const panda::Move::ConstPtr& msg) {
 
     setRightSpeed(msg->address, msg->wheel_right);
@@ -73,9 +75,9 @@ bool moveElisa3(const panda::Move::ConstPtr& msg) {
 
 bool registerElisa3(panda::registerElisa3::Request &req, panda::registerElisa3::Response &res){
 
-    if(communication_started) {
-        //stopCommunication();
-    }
+//    if(communication_started) {
+//        //stopCommunication();
+//    }
 
     elisa3_addresses.push_back(req.address);
 
@@ -94,12 +96,11 @@ bool registerElisa3(panda::registerElisa3::Request &req, panda::registerElisa3::
 }
 
 
+// Set color of an Elisa3
 bool colorElisa3(panda::colorElisa3::Request &req, panda::colorElisa3::Response &res){
 
     if(req.color_type == 0){
         setColor(req.address, req.red, req.green, req.blue);
-        //logMsg("Elisa Station", "Set color to given values!", 2);
-
     }else{
         switch(req.color_type){
             case 1:
@@ -122,8 +123,6 @@ bool colorElisa3(panda::colorElisa3::Request &req, panda::colorElisa3::Response 
                 break;
         }
     }
-
-
 
     return true;
 }

@@ -12,8 +12,8 @@ l_set: dimension of the channel
 
 #include "EdgeDirect.h"
 
-EdgeDirect::EdgeDirect(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
-	: Edge(i, j, gain_set, l_set, r_star_set, rate_mp_set){
+EdgeDirect::EdgeDirect(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
+	: Edge(agent, j, gain_set, l_set, r_star_set, rate_mp_set){
 
 	// Set the scattering gain
 	setScatteringGain(gain);

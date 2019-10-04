@@ -1,0 +1,19 @@
+ID: 1
+goal_type: 3
+sampling_rate: 1000
+default_goal:
+  - 0.1
+  - 0.2
+  - 0.4
+z_select:
+  - 1
+  - 1
+  - 1
+dynamic:
+  radius: 0.2
+  speed: 0.8
+NF:
+  alpha: 5
+  gamma:
+    r_w: 1.0
+    eps: 0.13

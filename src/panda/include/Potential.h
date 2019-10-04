@@ -16,12 +16,14 @@
 #include "PotentialFactors.h"
 #include "Goal.h"
 #include "Obstacle.h"
+#include "Agent.h"
+
 
 // Purely virtual potential class. Generates inputs via the gradient and allows for ST calculations via gradient_factors
 class Potential{
 
 public:
-    Potential(int l);
+    Potential(int l_set);
         
     virtual PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) = 0;
     virtual Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) = 0;
@@ -43,7 +45,7 @@ public:
 // Virtual extension of potentials that allow for adding / removing of obstacles and goal functions
 class AdvancedPotential : public Potential{
 
-public:
+public:    
     AdvancedPotential(int l_set);
     virtual void addGoalFcn(const std::shared_ptr<Goal>& goal_set);
     virtual void addObstacleFcn(const std::shared_ptr<Obstacle>& obstacle);
@@ -53,11 +55,14 @@ protected:
     std::vector<std::shared_ptr<Obstacle>> obstacles;
 };
 
+
 // Navigation function
 class NavigationFunction : public AdvancedPotential {
 
 public:
-    NavigationFunction(double alpha_set, int l_set);
+
+    // Automatic retrieval and construction
+    NavigationFunction(Agent& agent, int l_set);
 
     PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
@@ -69,6 +74,11 @@ private:
     double obstacleValue(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
 
 };
+
+// Some paths for parameter settingg
+#define NF_PATH NF
+#define BETA_PATH beta
+#define GAMMA_PATH gamma
 
 
 

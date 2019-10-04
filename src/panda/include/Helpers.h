@@ -3,11 +3,12 @@
 #ifndef Helpers_H
 #define Helpers_H
 
-#define MAX_HANDSHAKE_ATTEMPTS 100000
+//#define MAX_HANDSHAKE_ATTEMPTS 10000
 
 #include <string>
 #include <vector>
 #include <cmath>
+#include <chrono>
 #include "ros/ros.h"
 #include <franka/exception.h>
 #include <eigen3/Eigen/Core>
@@ -51,6 +52,28 @@ public:
     
 };
 
+/** @brief Simple timer class 
+ * Times a duration*/
+class SimpleTimer{
+  
+public:
+    SimpleTimer(double duration_s)
+    : timer_duration(duration_s)
+    {        
+        start_time = std::chrono::system_clock::now();
+    }
+    
+    bool finished(){
+        auto end_time = std::chrono::system_clock::now();
+        std::chrono::duration<double> current_duration = end_time - start_time;
+        return (current_duration.count() >= timer_duration);
+    }
+    
+private:
+    std::chrono::system_clock::time_point start_time;
+    double timer_duration;
+  
+};
 
 
 template <class T> 
@@ -58,7 +81,7 @@ bool safelyRetrieve(ros::NodeHandle& nh, const std::string name, T& param){
 
 
 	if (!nh.getParam(name, param)) {
-		throw RetrievalException("Helpers: Failed to retrieve parameter " + name);
+		throw RetrievalException("Helpers: Failed to retrieve parameter " + nh.getNamespace() + "/" + name);
 		return false;
 	}
 
@@ -74,7 +97,7 @@ bool safelyRetrieve(ros::NodeHandle& nh, const std::string name,
         safelyRetrieve(nh, name, param);
     }catch(RetrievalException){
 		param = default_value;
-		logMsg("Helpers", "Set " + name + " to default value: " + std::to_string(default_value), 1);
+		logMsg("Helpers", "Set " + nh.getNamespace() + "/"  + name + " to default value: " + std::to_string(default_value), 1);
 	}
 
 	return true;
@@ -97,6 +120,11 @@ bool safelyRetrieveArray(ros::NodeHandle& nh, const std::string name,
 
 	return true;
 		
+}
+
+inline bool hasParameter(ros::NodeHandle& nh, const std::string& name){
+
+    return nh.hasParam(name);
 }
 
 // Sign Function
@@ -146,6 +174,60 @@ Eigen::VectorXd arrayToVector(std::array<double, N> input){
 
 	return result;
 }
+
+template <class MatT>
+Eigen::Matrix<typename MatT::Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime>
+pseudoInverse(const MatT &mat, typename MatT::Scalar tolerance = typename MatT::Scalar{1e-4}) // choose appropriately
+{
+    typedef typename MatT::Scalar Scalar;
+    auto svd = mat.jacobiSvd(Eigen::ComputeFullU | Eigen::ComputeFullV);
+    const auto &singularValues = svd.singularValues();
+    Eigen::Matrix<Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime> singularValuesInv(mat.cols(), mat.rows());
+    singularValuesInv.setZero();
+    for (unsigned int i = 0; i < singularValues.size(); ++i) {
+        if (singularValues(i) > tolerance)
+        {
+            singularValuesInv(i, i) = Scalar{1} / singularValues(i);
+        }
+        else
+        {
+            singularValuesInv(i, i) = Scalar{0};
+        }
+    }
+    return svd.matrixV() * singularValuesInv * svd.matrixU().adjoint();
+}
+
+
+/** @brief Attempt a boolean function for max_duration seconds */
+inline void repeatedAttempts(std::function<bool()> fcnPtr, double max_duration, std::string error_message){
+    
+    auto start_time = std::chrono::system_clock::now();
+    auto end_time = start_time;
+    std::chrono::duration<double> loop_duration;
+    
+    while(!fcnPtr()){
+        end_time = std::chrono::system_clock::now();
+        loop_duration = (end_time - start_time);
+
+        if(loop_duration.count() >= max_duration){
+            throw OperationalException(error_message);
+        }
+        
+        
+    }    
+}
+
+
+/** @brief apply lowpass filtering on some vector, matrix or scalar */
+template <class T>
+void lowpassFilter(T& filtered_input, const T& input, double alpha)
+
+    try{
+        filtered_input = (1.0 - alpha) * filtered_input + alpha * input;
+    }catch(const std::exception& ex){
+        logMsg("Helpers", "Filtering failed! Error: " + std::string(ex.what()));
+    }
+
 }
 
 #endif

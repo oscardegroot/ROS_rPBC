@@ -15,11 +15,12 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #include "panda/Waves.h"
 #include "CustomLog.h"
 #include "Helpers.h"
+#include "Agent.h"
 
 class Edge{
 public:
 	// Constructor and destructor
-	Edge(int i, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set);
+	Edge(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set);
 	~Edge();
 
 	int i_ID, j_ID, l;

@@ -37,10 +37,10 @@ int main(int argc, char **argv){
 
     // Create a system and a controller
     std::unique_ptr<System> system = std::make_unique<Elisa3>(address, sampling_rate);
-    std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*system);
+    std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*(system->cmm->agent));
 
     // Create a Communication Management Module
-    CMM cmm(id, system->agent.sampling_rate);
+    //CMM cmm("elisa_3");//id, system->agent->getSamplingRate());
 
     // Define loop rate
     ros::Rate loop_rate(sampling_rate);
@@ -53,7 +53,7 @@ int main(int argc, char **argv){
         if(system->dataReady()) {
             counter_yes++;
             /// Retrieve the cooperative input
-            Eigen::VectorXd tau_network = cmm.sample(controller->getOutput(*system));
+            Eigen::VectorXd tau_network = system->cmm->sample(controller->getOutput(*system));
 
             /// Compute the control input
             Eigen::VectorXd tau = controller->computeControl(*system, tau_network);

@@ -12,7 +12,7 @@ System file for the real Franka Emika Panda 7DOF robotic manipulator
 namespace panda {
 
 Panda::Panda()
-	:System(7, 7, 6)
+	:System(7, 7, 6, "panda")
 {
 	//yolo_pub = nh.advertise<std_msgs::Float64MultiArray>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "p" + integral_add, 100);
 
@@ -24,9 +24,6 @@ Panda::~Panda(){};
 bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	
 	logMsg("Panda", "Panda Controller Started!", 2);
-
-    // Retrieve agent parameters and set the agent structure
-    this->setAgent(nh, "panda");
 
 	//Set collision behaviour
 	connect_client = nh.serviceClient<franka_control::SetFullCollisionBehavior>("/franka_control/set_full_collision_behavior");
@@ -59,8 +56,8 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	std::string arm_id;
 	double publish_rate;
 
-	helpers::safelyRetrieveArray(nh, "joint_names", joint_names, 7);
-	helpers::safelyRetrieve(nh, "arm_id", arm_id);
+	cmm->agent->retrieveArray("joint_names", joint_names, 7);
+	cmm->agent->retrieveParameter("arm_id", arm_id);
 
 	/* Set up interfaces */
 	franka_hw::FrankaPoseCartesianInterface* cartesian_pose_interface =
@@ -112,16 +109,15 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	}
 
 	// Retrieve parameters
-	helpers::safelyRetrieve(nh, "velocity_norm_bound", velocity_norm_bound, 0.4);
-	helpers::safelyRetrieve(nh, "velocity_element_bound", velocity_element_bound, 0.3);
-	helpers::safelyRetrieve(nh, "z_lower_bound", z_lower_bound, 0.2);
-	helpers::safelyRetrieve(nh, "torque_bound", torque_bound, 2.0);
-	helpers::safelyRetrieve(nh, "alpha", alpha, 0.99);
-	helpers::safelyRetrieve(nh, "initial_pause", initial_pause, 0.0);
+	cmm->agent->retrieveParameter("velocity_norm_bound", velocity_norm_bound, 0.4);
+	cmm->agent->retrieveParameter("velocity_element_bound", velocity_element_bound, 0.3);
+	cmm->agent->retrieveParameter("z_lower_bound", z_lower_bound, 0.2);
+	cmm->agent->retrieveParameter("torque_bound", torque_bound, 2.0);
+	cmm->agent->retrieveParameter("alpha", alpha, 0.99);
+	cmm->agent->retrieveParameter("initial_pause", initial_pause, 0.0);
 
 	// Initialise the controller
-	controller = std::make_unique<IDAPBC>(*this);
-	cmm = std::make_unique<CMM>(agent.ID, agent.sampling_rate);
+	controller = std::make_unique<IDAPBC>(*(cmm->agent));
 
 	//torques_publisher_.init(nh, "torque_comparison", 1);
 	std::fill(dq_filtered.begin(), dq_filtered.end(), 0);
@@ -130,6 +126,9 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	robot_state = cartesian_pose_handle_->getRobotState();
 	retrieveState();
 
+    // Perform handshake once the controller has been initialised
+    cmm->performHandshake();
+    
 	logMsg("Panda", "Initialisation Completed!", 2);
 
 	return true;
@@ -222,8 +221,6 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 
 } // mandatory
 
-
-
 // Eigen::Map<const Eigen::Matrix<double, 7, 1> > coriolis(coriolis_array.data());
 // Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
 // Eigen::Map<const Eigen::Matrix<double, 7, 1> > q(robot_state.q.data());
@@ -249,17 +246,19 @@ void Panda::retrieveMatrices(){
 
 	// Get the mass matrix
 	std::array<double, 49> mass_array = model_handle_->getMass();
-	m = Eigen::Map<const Eigen::Matrix<double, 7, 7> >(mass_array.data());
-
+	m_m = Eigen::Map<const Eigen::Matrix<double, 7, 7> >(mass_array.data());
+    
+    //Get the gravity vector
+    dvdq = helpers::arrayToVector<7>(model_handle_->getGravity());
 }
 
-void Panda::M(Eigen::MatrixXd & M_out){
-	M_out = m;
+Eigen::MatrixXd& Panda::M(){
+	return m_m;
 }
 
 
-void Panda::Psi(Eigen::MatrixXd & Psi_out){
-	Psi_out = psi;
+Eigen::MatrixXd& Panda::Psi(){
+	return psi;
 }
 
 /* From Franka Emika: Saturates the torque rate (not torque itself)*/
@@ -293,21 +292,6 @@ std::array<double, 7> Panda::checkTorque(const Eigen::VectorXd& torques, const s
 	return saturateTorqueRate(torques, tau_J_d);
 }
 
-// void Panda::publishTau(const Eigen::VectorXd torques){
-
-// 	if (rate_trigger() && tau_pub.trylock()) {
-
-// 		tau_pub.msg_.data.resize(7);
-
-// 		for(int i = 0; i < 7; i++){
-// 			tau_pub.msg_.data[i] = torques(i);
-// 		}
-
-// 		tau_pub.unlockAndPublish();
-// 	}
-
-// }
-
 void Panda::filterVelocity(std::array<double, 7> input_v){
 
   	for (size_t i = 0; i < 7; i++) {
@@ -315,11 +299,43 @@ void Panda::filterVelocity(std::array<double, 7> input_v){
   	}
 }
 
-void Panda::dVdq(Eigen::VectorXd& dVdq_out){
-	dVdq_out = helpers::arrayToVector<7>(model_handle_->getGravity());
-
+Eigen::VectorXd& Panda::dVdq(){
+	//dvdq = helpers::arrayToVector<7>(model_handle_->getGravity());
+    return dvdq;
 }
+
+
+/** @brief Approximate matrix derivatives by finite distance approximation */
+Eigen::MatrixXd& Panda::dMinv(){
+    if(!dminv_updated)
+    {
+        dminv = -M().inverse()*dM()*M().inverse();
+        dminv_updated = true;
+    }
+    
+    return dminv;
+}
+
+Eigen::MatrixXd& Panda::dM(){
+
+    if(!dm_updated){
+        dm = this->approximateDerivative(M(), m_previous);
+        dm_updated = true;
+    }
+
+    return dm;
+}
+
+Eigen::MatrixXd& Panda::dPsi(){
+    //RunCheck check("dPsi");
+    if(!dpsi_updated){
+        dpsi = this->approximateDerivative(Psi(), psi_previous);
+        dpsi_updated = true;
+    }
+
+    return dpsi;
+}
+
 };
-// Implementation ..
 PLUGINLIB_EXPORT_CLASS(panda::Panda,
                        controller_interface::ControllerBase)

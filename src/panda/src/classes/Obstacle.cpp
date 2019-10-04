@@ -31,11 +31,29 @@ PotentialFactors Obstacle::gradient(const Eigen::VectorXd& r_i, const Eigen::Vec
 }
 
 
-BoundObstacle::BoundObstacle(int l_set, double lower_bound_set, double upper_bound_set, unsigned int dimension_set)
-    : Obstacle(l_set), lower_bound(lower_bound_set), upper_bound(upper_bound_set), dimension(dimension_set)
+BoundObstacle::BoundObstacle(Agent& agent, int count, int l_set, int dimension_set)
+    : Obstacle(l_set), dimension(dimension_set)
 {
+    // Retrieve parameters or set to infinite when not specified
+    try{
+        agent.retrieveParameter("NF/beta/obstacle_" + std::to_string(count) + "/lower_bound", lower_bound);
+    }catch(RetrievalException e){
+        lower_bound = std::numeric_limits<double>::min();
+    }
     
-    obstacle_function = std::make_unique<WangObstacleFunction>("/controller/NF/constraints/lower_bound/");
+    try{
+        agent.retrieveParameter("NF/beta/obstacle_" + std::to_string(count) + "/upper_bound", upper_bound);
+    }catch(RetrievalException e){
+        if(lower_bound == std::numeric_limits<double>::min()){
+            
+            // No bounds specified!
+            throw ParameterException("Bound without lower or upper bound specified!");
+        }else{
+            upper_bound = std::numeric_limits<double>::max();
+        }
+    }
+    
+    obstacle_function = std::make_unique<WangObstacleFunction>(agent);
 }
 
 
@@ -84,11 +102,14 @@ double BoundObstacle::getDistance(const Eigen::VectorXd& r_i, const Eigen::Vecto
 }
 
 /* Obstacle Class */
-ObjectObstacle::ObjectObstacle(int l_set, const Eigen::VectorXd& location_set, double radius)
+ObjectObstacle::ObjectObstacle(Agent& agent, int count, int l_set)
     : Obstacle(l_set)
 {
-    location = location_set;
-    obstacle_function = std::make_unique<WangObstacleFunction>("/controller/NF/constraints/obstacle/", radius);
+    double radius;
+    agent.retrieveEigen("NF/beta/obstacle_" + std::to_string(count) + "/location", location, l_set);
+    agent.retrieveParameter("NF/beta/obstacle_" + std::to_string(count) + "/radius", radius);
+    
+    obstacle_function = std::make_unique<WangObstacleFunction>(agent, radius);
 }
 
 double ObjectObstacle::getDistance(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js)
@@ -97,24 +118,20 @@ double ObjectObstacle::getDistance(const Eigen::VectorXd& r_i, const Eigen::Vect
 }
 
 /* Wang Obstacle Function */
-WangObstacleFunction::WangObstacleFunction(std::string retrieval_name, double R_set){
-        
-    R = R_set;
-    
+WangObstacleFunction::WangObstacleFunction(Agent& agent, double R_set)
+    : R(R_set)
+{
     // Retrieve function parameters    
-    ros::NodeHandle nh;
-    helpers::safelyRetrieve(nh, retrieval_name + "delta", delta, 0.15);
+    agent.retrieveParameter("NF/beta/function/delta", delta, 0.15);
     
     initParameters();
 }
 
-WangObstacleFunction::WangObstacleFunction(std::string retrieval_name)
-{
-    ros::NodeHandle nh;
-    
+WangObstacleFunction::WangObstacleFunction(Agent& agent)
+{    
     // Retrieve function parameters
-    helpers::safelyRetrieve(nh, retrieval_name + "R", R, 0.1);
-    helpers::safelyRetrieve(nh, retrieval_name + "delta", delta, 0.15);
+    agent.retrieveParameter("NF/beta/function/R", R, 0.1);
+    agent.retrieveParameter("NF/beta/function/delta", delta, 0.15);
     
     initParameters();
     

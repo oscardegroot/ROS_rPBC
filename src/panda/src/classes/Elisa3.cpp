@@ -23,7 +23,7 @@
 #include "Elisa3.h"
 
 Elisa3::Elisa3(int set_address, int set_sampling_rate)
-        :System(2, 2, 2)
+        :System(2, 2, 2, "elisa_3")
 {
     logMsg("Elisa3", "Initialising...", 2);
 
@@ -52,14 +52,12 @@ Elisa3::Elisa3(int set_address, int set_sampling_rate)
     Eigen::VectorXd h(2);
     h(0, 0) = actual_q(0) + L*std::cos(actual_q(2));
     h(1, 0) = actual_q(1) + L*std::sin(actual_q(2));
+    
     // Initialise all state related values
-    // These are the feedback linearised states,...
+    // These are the feedback linearised states
     this->setState(h,
                    Eigen::VectorXd::Zero(n),
                    h);
-
-    // Set the agent type
-    this->setAgent(nh_private, "elisa3");
 
     // Initialise the transformation from velocities to wheel velocities
     initMatrices();
@@ -80,6 +78,8 @@ Elisa3::Elisa3(int set_address, int set_sampling_rate)
     readout_sub = nh_global.subscribe<panda::Readout>("elisa3_" + std::to_string(address) + "_readout",
                                                       20, &Elisa3::readSensors, this);
 
+    cmm->performHandshake();
+
     logMsg("Elisa3", "Done!", 2);
 }
 
@@ -89,10 +89,8 @@ Elisa3::~Elisa3() {
 /// Convert the control input to the system inputs and actuate
 bool Elisa3::sendInput(const Eigen::VectorXd & tau){
 
-    //logTmp(int(helpers::normOf(tau) / 0.01));
-
     data_received = false;
-   // logTmp(tau);
+    
     // Apply feedback linearisation around the hand point (output = F, tau)
     Eigen::VectorXd output = feedbackLinearisation(tau);
 
@@ -103,27 +101,27 @@ bool Elisa3::sendInput(const Eigen::VectorXd & tau){
     // Convert to wheel velocities
     output = wheel_matrix*output;
 
-    // Convert them to integer values STATIC CAST
-    //signed int wheel_right = std::ceil(output(0)*1000.0/5.0); // maybe just round up?
+    // Convert them to integer values
     signed int wheel_right = std::ceil(output(0)*1000.0/5.0); // maybe just round up?
     signed int wheel_left = std::ceil(output(1)*1000.0/5.0);
 
     // Saturate the speed to the max speed (and scale if necessary)
     saturateSpeed(wheel_right, wheel_left);
 
-    //logTmp("Setting speed to " + std::to_string(wheel_left));
     // Apply the speeds
     move_msg.address = address;
     move_msg.wheel_right = wheel_right;
     move_msg.wheel_left = wheel_left;
     move_pub.publish(move_msg);
 
-    //logTmp(std::to_string(wheel_left) + ", " + std::to_string(wheel_right));
     //int tau_color = std::min(100, int(helpers::normOf(tau) / 0.003));
     //setColor(tau_color*(address%3 == 0), tau_color*(address%3 == 1), tau_color*(address%3 == 2));
     return true;
 }
 
+// This readout message can be a standard 3D message probably.
+// Message should be send directly from the camera node. 
+// Possibly addition of odometry in between measurements? -> can one update the current odometry state externally when camera data arrives?
 /// Read Sensors from the Elisa3 (determines q, h and dh)
 void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
 
@@ -134,12 +132,13 @@ void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
 //    a *= (9.81/64.0);
 
     /// Retrieve the state from odometry (ACTUAL STATE)
-    Eigen::VectorXd q(3); // X and Y swapped? Yes
+    Eigen::VectorXd q(3); // X and Y are swapped compared to my convention
     double x = msg->x;
     double y = msg->y;
     q(0, 0) = q0(0) + std::cos(q0(2, 0))*x + std::sin(q0(2, 0))*y;
     q(1, 0) = q0(1) - std::sin(q0(2, 0))*x + std::cos(q0(2, 0))*y;
     q(2, 0) = q0(2) + msg->theta;
+    
     if(q(2) > 2*M_PI){
         q(2) -= 2*M_PI;
     }else if(q(2) < 0){
@@ -148,8 +147,7 @@ void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
 
     // Save values
     actual_q = q;
-    //logTmp("Received: ", actual_q);
-//
+    
     if(test_pub.trylock()) {
         test_pub.msg_.data.resize(q.size());
 
@@ -164,7 +162,6 @@ void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
     Eigen::VectorXd h(2);
     h(0, 0) = actual_q(0) + L*std::cos(actual_q(2));
     h(1, 0) = actual_q(1) + L*std::sin(actual_q(2));
-   // logTmp("h", h);
 
     /// Find hand velocities for control
     Eigen::VectorXd dh(2);
@@ -172,6 +169,7 @@ void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
     A << std::cos(actual_q(2)), -L*std::sin(actual_q(2)),
          std::sin(actual_q(2)), L*std::cos(actual_q(2));
     dh = A * actual_dq;
+    
     // Set the public state
     this->setState(h, dh, h);
 
@@ -200,18 +198,31 @@ void Elisa3::lowpassFilter(Eigen::VectorXd filtered_value, const Eigen::VectorXd
 }
 
 /// Dynamical Matrices and Vectors
-void Elisa3::M(Eigen::MatrixXd& M_out){
+Eigen::MatrixXd& Elisa3::M(){
 
-    M_out = Eigen::MatrixXd::Identity(n, n);
+    m_m = Eigen::MatrixXd::Identity(n, n);
+    return m_m;
 }
 
-void Elisa3::dVdq(Eigen::VectorXd& dVdq_out){
+Eigen::VectorXd& Elisa3::dVdq(){
 
-    dVdq_out = Eigen::VectorXd::Zero(n);
+    dvdq = Eigen::VectorXd::Zero(n);
+    return dvdq;
 }
 
-void Elisa3::Psi(Eigen::MatrixXd& Psi_out){
-    Psi_out = this->selectPsi(Eigen::MatrixXd::Identity(n, n));
+Eigen::MatrixXd& Elisa3::Psi(){
+    psi = this->selectPsi(Eigen::MatrixXd::Identity(n, n));
+    return psi;
+}
+
+Eigen::MatrixXd& Elisa3::dM(){
+    dm = Eigen::MatrixXd::Zero(n, n);
+    return dm;
+}
+
+Eigen::MatrixXd& Elisa3::dPsi(){
+    dpsi = Eigen::MatrixXd::Zero(n, n);
+    return dpsi;
 }
 
 /// Apply feedback linearisation
@@ -287,6 +298,13 @@ void Elisa3::setColor(int r, int g, int b){
 
 bool Elisa3::dataReady(){
     return data_received;
+}
+
+
+Eigen::MatrixXd& Elisa3::dMinv()
+{
+    dminv = Eigen::MatrixXd::Zero(n, n);
+    return dminv;
 }
 
 
