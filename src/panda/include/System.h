@@ -90,6 +90,10 @@ public:
     Eigen::MatrixXd& dPsi() = 0;
 
 
+    // Test!
+    virtual
+    Eigen::VectorXd& dTdq();
+
     virtual
     bool dataReady();
         
@@ -98,6 +102,9 @@ public:
      * @param[in] new_qd velocities.
      * @param[in] new_z end-effector coordinates. */
 	void setState(Eigen::VectorXd new_q, Eigen::VectorXd new_qd, Eigen::VectorXd new_z);
+
+    /** Reset all updated parameters */
+    void resetUpdatedFlags();
 
     /** Check the safety state of this system and throw an exception if safety is violated */
 	virtual

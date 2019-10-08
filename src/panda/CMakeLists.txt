@@ -111,6 +111,7 @@ add_library(${PROJECT_NAME}
 	src/classes/Panda.cpp
 	src/classes/IDAPBC.cpp
  	src/classes/rPBC.cpp
+ 	src/classes/Formation.cpp
 	src/pc-side-elisa3-library/elisa3-lib.c
 	src/pc-side-elisa3-library/usb-comm.c
 	src/classes/Controller.cpp

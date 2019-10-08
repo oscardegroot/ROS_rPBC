@@ -23,19 +23,20 @@
 class Potential{
 
 public:
-    Potential(int l_set);
+    Potential(int l_set, const Eigen::VectorXd& r_star_set);
         
     virtual PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) = 0;
     virtual Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) = 0;
     
 protected:
     int l;
+    Eigen::VectorXd r_star;
 };
 
 class QuadraticPotential : public Potential{
     
 public:
-    QuadraticPotential(int l_set);
+    QuadraticPotential(int l_set, const Eigen::VectorXd& r_star_set);
     
     PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
@@ -46,7 +47,7 @@ public:
 class AdvancedPotential : public Potential{
 
 public:    
-    AdvancedPotential(int l_set);
+    AdvancedPotential(int l_set, const Eigen::VectorXd& r_star_set);
     virtual void addGoalFcn(const std::shared_ptr<Goal>& goal_set);
     virtual void addObstacleFcn(const std::shared_ptr<Obstacle>& obstacle);
     
@@ -62,7 +63,7 @@ class NavigationFunction : public AdvancedPotential {
 public:
 
     // Automatic retrieval and construction
-    NavigationFunction(Agent& agent, int l_set);
+    NavigationFunction(Agent& agent, int l_set, const Eigen::VectorXd& r_star_set);
 
     PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;

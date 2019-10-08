@@ -1,5 +1,5 @@
 ID: 1
-goal_type: 2
+goal_type: 3
 sampling_rate: 1000
 default_goal:
   - 0.1

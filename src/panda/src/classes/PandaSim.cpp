@@ -158,12 +158,7 @@ void PandaSim::readStateCallback(const sensor_msgs::JointState::ConstPtr& msg){
 
     this->setState(new_q, new_qd, getZ(new_q));
     
-    psi_updated = false;
-    m_updated = false;
-    dvdq_updated = false;
-    dpsi_updated = false;
-    dm_updated = false;
-    dminv_updated = false;
+    resetUpdatedFlags();
 }
 
 

@@ -3,31 +3,33 @@
 //
 #include "Potential.h"
 
-Potential::Potential(int l_set){
-    l = l_set;
+Potential::Potential(int l_set, const Eigen::VectorXd& r_star_set)
+    : l(l_set), r_star(r_star_set)
+{
+    
 }
 
-QuadraticPotential::QuadraticPotential(int l_set)
-    : Potential(l_set)
+QuadraticPotential::QuadraticPotential(int l_set, const Eigen::VectorXd& r_star_set)
+    : Potential(l_set, r_star_set)
 {
         
 }
 
-AdvancedPotential::AdvancedPotential(int l_set)
-    : Potential(l_set) {
+AdvancedPotential::AdvancedPotential(int l_set, const Eigen::VectorXd& r_star_set)
+    : Potential(l_set, r_star_set) {
 
 }
 
 Eigen::VectorXd QuadraticPotential::gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){
-    return (r_js - r_i);
+    return (r_js - r_i - r_star);
 }
 
 PotentialFactors QuadraticPotential::gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){
     return PotentialFactors(-Eigen::MatrixXd::Identity(l, l), 1.0);
 }
 
-NavigationFunction::NavigationFunction(Agent& agent, int l_set)
-    : AdvancedPotential(l_set)
+NavigationFunction::NavigationFunction(Agent& agent, int l_set, const Eigen::VectorXd& r_star_set)
+    : AdvancedPotential(l_set, r_star_set)
 {
 
     agent.retrieveParameter("NF/alpha", alpha, 5.0);
@@ -53,26 +55,11 @@ NavigationFunction::NavigationFunction(Agent& agent, int l_set)
         k++;
         obstacle_path = "NF/beta/obstacle_" + std::to_string(k);
     }
-        
-        
-//    std::shared_ptr<Obstacle> z_bound_ = std::make_shared<BoundObstacle>(l, b_z, 1.15, 2);
-//    
-//    Eigen::VectorXd obstacle_location(l);
-//    obstacle_location << -0.2, 0.2, 0.7;
-//    std::shared_ptr<Obstacle> object_1_ = std::make_shared<ObjectObstacle>(l, obstacle_location, 0.2);
-//    potential = std::make_unique<NavigationFunction>(agent, l);
-//    potential->addGoalFcn(goal_);
-//    potential->addObstacleFcn(z_bound_); 
-//    potential->addObstacleFcn(object_1_);
 }
 
-void initialiseObstacle(Agent& agent){
-    
-}
 
 void AdvancedPotential::addGoalFcn(const std::shared_ptr<Goal>& goal_set) {
-    goal = goal_set;
-
+    goal = std::shared_ptr<Goal>(goal_set);
 }
 
 void AdvancedPotential::addObstacleFcn(const std::shared_ptr<Obstacle>& obstacle) {
@@ -82,17 +69,20 @@ void AdvancedPotential::addObstacleFcn(const std::shared_ptr<Obstacle>& obstacle
 // Get the multipliers of r_i and r_js for the current gradient based on the selected potential function
 PotentialFactors NavigationFunction::gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) {
 
-    double d = helpers::normOf(r_js - r_i);
-    
-    // Find all individual gradient values
+
+    // Find obstacle gradient and value
     PotentialFactors beta_gradient = obstacleGradient(r_i, r_js);
     double beta = obstacleValue(r_i, r_js);
+    
+    // Find goal gradient and value
+    double d = helpers::normOf(r_js - r_i - r_star);
     double gamma_gradient = goal->gradient(d);
     double gamma = goal->value(d);
 
     double denom = alpha * std::pow(std::pow(gamma, alpha) + beta, 1.0/alpha + 1.0);
     
     // Calculate the factors based on the general NF gradient
+    /** @todo: FIX R_STAR -> POTENTIAL FACTORS NEEDS AN R_STAR TERM!! */
     return PotentialFactors((-alpha*beta*gamma_gradient*Eigen::MatrixXd::Identity(l, l) - gamma*beta_gradient.i_matrix) / denom,
                             (alpha*beta*gamma_gradient - gamma*beta_gradient.js_multiplier) / denom);
 }
@@ -104,8 +94,7 @@ Eigen::VectorXd NavigationFunction::gradient(const Eigen::VectorXd& r_i, const E
     PotentialFactors gradient_f = gradient_factors(r_i, r_js);
     
     // Multiply with r_i, r_js respectively
-    return gradient_f.i_matrix*r_i + gradient_f.js_multiplier*r_js;
-    
+    return gradient_f.i_matrix*(r_i + r_star) + gradient_f.js_multiplier*r_js;
 }
 
 

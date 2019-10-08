@@ -22,7 +22,7 @@ System::System(int n_set, int m_set, int lmax_set, const std::string& name)
     dm = Eigen::MatrixXd::Zero(n, n);
     dvdq = Eigen::VectorXd::Zero(n);
     
-    m_previous = m_m;
+    m_previous = m_m; /* This should be initialised such that the initial values aren infinite...*/
     psi_previous = psi;
 
 }
@@ -97,4 +97,19 @@ Eigen::VectorXd System::selectZ(const Eigen::VectorXd& z){
 Eigen::MatrixXd System::approximateDerivative(const Eigen::MatrixXd& A_current, const Eigen::MatrixXd& A_previous) const {
     
     return (double)(cmm->agent->getSamplingRate()) * (A_current - A_previous);
+}
+
+void System::resetUpdatedFlags()
+{
+    m_updated = false;
+    psi_updated = false;
+    dvdq_updated = false;
+    dminv_updated = false;
+    dm_updated = false;
+    dpsi_updated = false;
+}
+
+
+Eigen::VectorXd& System::dTdq(){
+    return dvdq;/* Note: don use! */
 }

@@ -47,6 +47,7 @@
       <File Name="src/classes/Potential.cpp"/>
       <File Name="src/classes/Agent.cpp"/>
       <File Name="src/classes/ConnectedPandasim.cpp"/>
+      <File Name="src/classes/Formation.cpp"/>
     </VirtualDirectory>
     <File Name="src/Elisa3_Station.cpp"/>
     <File Name="src/TextInterface.cpp"/>
@@ -140,5 +141,6 @@
     <File Name="include/PotentialFactors.h"/>
     <File Name="include/Agent.h"/>
     <File Name="include/ConnectedPandasim.h"/>
+    <File Name="include/Formation.h"/>
   </VirtualDirectory>
 </CodeLite_Project>

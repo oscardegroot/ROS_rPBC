@@ -7,8 +7,10 @@ network_gain:
   - 3.0
   - 3.0
   - 3.0
-lambda: 14.0
-gamma: 1.0
+lambda: 7.0
+gamma: 3.0
+
+output: z
 
 panda:
   type: panda/Panda

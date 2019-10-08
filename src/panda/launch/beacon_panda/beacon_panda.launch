@@ -12,9 +12,6 @@
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm_hand.urdf.xacro'" if="$(arg load_gripper)" />
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm.urdf.xacro'" unless="$(arg load_gripper)" />
 
-  <!-- Remote Monitoring Node -->
-  <node name="remote" pkg="panda" type="Remote" respawn="false" output="screen"/>
-
   <!-- Load the controller node -->
   <node name="franka_control" pkg="franka_control" type="franka_control_node" output="screen" required="true">
     <rosparam command="load" file="$(find franka_control)/config/franka_control_node.yaml" />
@@ -39,6 +36,11 @@
   <node name="beacon_1" pkg="panda" type="Beacon_node" respawn="false" output="screen">
     <rosparam command="load" file="$(find panda)/launch/beacon_panda/beacon.yaml"/>
   </node>
+
+  <!-- Remote Monitoring Node -->
+  <node name="remote" pkg="panda" type="Remote" respawn="false" output="screen"/>
+  
+
 
   <!-- Setup visualisation tools etc. -->
   <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] agent_z/data[1] agent_z/data[2] reference/data[0] reference/data[1] reference/data[2]"  />

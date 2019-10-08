@@ -1,5 +1,3 @@
-# Goal types for Elisa3
-
 goals/3/goal1:
   - 0.45
   - -0.3
@@ -24,3 +22,9 @@ goals/3/goal5:
   - 0.2
   - 0.05
   - 0.9
+
+# Note implementation in edgeflex is missing
+formation:
+  type: line
+  radius: 0.2
+  spacing: 0.2

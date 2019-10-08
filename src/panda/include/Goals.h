@@ -16,13 +16,14 @@ Contains a number of functions describing formations and other cooperative goals
 #include "panda/Waves.h"
 #include "CustomLog.h"
 #include "Exceptions.h"
+#include "Formation.h"
 
 #include "Helpers.h"
 
-struct connection {
-	int id;
-	Eigen::VectorXd r_star;
-};
+//struct connection {
+//	int id;
+//	Eigen::VectorXd r_star;
+//};
 
 struct leader {
     int id;
@@ -36,21 +37,11 @@ public:
 
 	// The construct takes the number of agents
 	Goals();
-	~Goals();
-
-	void Init(int N_set, int l_dim);
-
-	// A function that sets a zero formation
-	void setConsensus();
-    void setCircle(const double radius, const double phase_offset);
-    void setLine(const double spacing, const double angle);
-
-	void setGraphFC();
+    
+    std::unique_ptr<Formation> formation;
+    Formation getFormation(const std::string& formation_type);
 
 	void initLeaders(ros::NodeHandle & nh);
-
-	std::vector<connection> retrieveConnectionsOf(int agent_id);
-	bool retrieveConnectionBetween(u_int id_i, u_int id_j, Eigen::VectorXd & r_star);
     bool isAgentLeader(u_int id, Eigen::VectorXd & ref, Eigen::VectorXd & gain);
 
 
@@ -58,12 +49,8 @@ private:
 	
 	// Agent count and cooperative dimension
 	int N, l;
-
-	// A vector with connections for every agent
-	std::vector<std::vector<connection>> connections;
-
-	// A bool matrix specifying connections
-	std::vector<std::vector<bool>> graph;
+    
+//	std::vector<std::vector<bool>> graph;
 	std::vector<leader> leaders;
 
 

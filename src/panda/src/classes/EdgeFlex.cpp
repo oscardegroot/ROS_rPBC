@@ -15,19 +15,21 @@ l_set: dimension of the channel
 EdgeFlex::EdgeFlex(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
 	: Edge(agent, j, gain_set, l_set, r_star_set, rate_mp_set){
 
-    // Retrieval is fully internal
-    potential = std::make_unique<NavigationFunction>(agent, l);
+    // Multiply the formation distance by lambda if rPBC is used
+    std::string output;
+    helpers::safelyRetrieve(nh, "/output", output);
+    
+    if(output == "r"){
+        double lambda;
+        helpers::safelyRetrieve(nh, "/lambda", lambda);
+        
+        r_star *= lambda;
+    }
+    
+    // Retrieval is fully internal, Formations nog included atm
+    potential = std::make_unique<NavigationFunction>(agent, l, r_star);
+    
     /* When bound influences beacond, control goes wrong! */
-//    std::shared_ptr<Goal> goal_ = std::make_shared<WangGoal>(l);
-//    std::shared_ptr<Obstacle> z_bound_ = std::make_shared<BoundObstacle>(l, b_z, 1.15, 2);
-//    
-//    Eigen::VectorXd obstacle_location(l);
-//    obstacle_location << -0.2, 0.2, 0.7;
-//    std::shared_ptr<Obstacle> object_1_ = std::make_shared<ObjectObstacle>(l, obstacle_location, 0.2);
-//    potential = std::make_unique<NavigationFunction>(agent, l);
-//    potential->addGoalFcn(goal_);
-//    potential->addObstacleFcn(z_bound_); 
-//    potential->addObstacleFcn(object_1_);
 
 	// Set the scattering gain
 	setScatteringGain(gain_set);
@@ -74,6 +76,7 @@ Eigen::VectorXd EdgeFlex::sample(Eigen::VectorXd r_i){
 
 	// Lastly publish the waves and return the output
 	publishWave(s_out);
+    
 	return tau;
 }
 
@@ -91,19 +94,14 @@ Eigen::VectorXd EdgeFlex::fullSTLoop(Eigen::VectorXd& tau, Eigen::VectorXd& r_js
 
 	// Determine the output waves
 	return calculateWaves(tau, r_js);
-
 }
 
 
-void EdgeFlex::STIterations(Eigen::VectorXd& r_js, Eigen::VectorXd r_i, Eigen::VectorXd s_in){
+void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, const Eigen::VectorXd& s_in){
 
 	// For calculating the improvement over the loop
 	Eigen::VectorXd r_js_prev(l);
 	r_js_prev = r_js_last;
-
-	// Construct a vector with only the z component
-    Eigen::VectorXd z_i(l);
-    z_i << 0.0, 0.0, 1.0;
 
 	// Initiate with the final value of the last sampling period
 	r_js = r_js_last;
@@ -113,23 +111,22 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, Eigen::VectorXd r_i, Eigen::V
 	double diff = 10.0;
     
 	/* Possibly efficiency by iterating 3 times always */
-	while (diff > 0.1 && k < 100){
+	while (diff > 0.01 && k < 100){
 
         // Calculate the gradient of the potential function
         PotentialFactors gradient = potential->gradient_factors(r_i, r_js);
-
+        
 		// Calculate r*[k] for all dimensions
 		for(int i = 0; i < l; i++){
 
             // The RHS of the algebraic loop
-            double factor_i = matrix_ST(i, i)*s_in(i) + matrix_ST(i, l+i)*gain(i, i) * gradient.i_matrix(i, i)*r_i(i);
-            
-            // The factor for r_js
-            double factor_js = 1 - matrix_ST(i, l+i) * gain(i, i) * gradient.js_multiplier;
-            
-            // The next iteration step is the RHS divided by the factor before r_js
-            r_js(i) = factor_i / factor_js;
+            double RHS = matrix_ST(i, i)*s_in(i) + matrix_ST(i, l+i)*gain(i, i) * gradient.i_matrix(i, i)*(r_i(i) + r_star(i));
 
+            // The factor for r_js
+            double factor_js = 1.0 - matrix_ST(i, l+i) * gain(i, i) * gradient.js_multiplier;
+
+            // The next iteration step is the RHS divided by the factor before r_js
+            r_js(i) = RHS / factor_js;
 		}
 
 		// Calculate the improvement
@@ -137,7 +134,6 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, Eigen::VectorXd r_i, Eigen::V
 
 		// Remember the last value of r_js
 		r_js_prev = r_js;
-
 		k++;
 	}
 
@@ -198,10 +194,3 @@ void EdgeFlex::setScatteringGain(Eigen::MatrixXd gain){
 	matrix_ST << agent_i*std::sqrt(2)*Binv, -Binv*Binv,
 					-Eigen::MatrixXd::Identity(l, l), agent_i*std::sqrt(2)*Binv;
 }
-
-//void EdgeFlex::lowpassFilter(Eigen::VectorXd& filtered_data, Eigen::VectorXd new_data, double alpha){
-//
-//  	for (size_t i = 0; i < filtered_data.size(); i++) {
-//    	filtered_data[i] = (1 - alpha) * filtered_data[i] + alpha * new_data[i];
-//  	}
-//}

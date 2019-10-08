@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm_camera.urdf.xacro'" />
 	<include file="$(find panda_simulation)/launch/sim.launch"/>
 
 	<rosparam command="load" file="$(find panda)/launch/gazebo/params.yaml" />

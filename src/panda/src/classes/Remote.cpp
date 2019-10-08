@@ -13,7 +13,7 @@ Remote::Remote(){
 	helpers::safelyRetrieve(n, "/N_agents", N);
 
 	goals = std::make_unique<Goals>();
-	goals->Init(N, l);
+
     status = REGISTERING_AGENTS;
     
 	// Start servers
@@ -26,7 +26,7 @@ Remote::Remote(){
     ros::Subscriber topic_create = n.subscribe("/agent_z", 1, &Remote::fakeCallback, this);
 
     // 2 second timer
-    timer = std::make_unique<helpers::SimpleTimer>(2.5);
+    timer = std::make_unique<helpers::SimpleTimer>(4.0);
     
 	logMsg("Remote", "Formation server initiated", 2);
 
@@ -48,9 +48,9 @@ void Remote::initiateNetwork(){
 
 
     for(int i = 0; i < agents.size(); i++){
+        
         ros::ServiceClient init_client = n.serviceClient<std_srvs::Empty>("/agent" + std::to_string(agents[i]->getID()) +
                 "/initEdges");
-
 
         std_srvs::Empty srv;
         
@@ -63,18 +63,15 @@ void Remote::initiateNetwork(){
         helpers::repeatedAttempts(server_call, 1.0, "Failed to start the network of agent " + agents[i]->getType() + "!");
         
         logMsg("Remote", "Network of agent " + agents[i]->getType() + " started.", 2);
-
     }
     
-
-
 }
 
 bool Remote::getConnectionsOf(panda::getConnectionsOf::Request &req, panda::getConnectionsOf::Response &res){
 
 	Eigen::VectorXd r_star = Eigen::VectorXd::Zero(l);
-	res.is_connected = goals->retrieveConnectionBetween(req.id_i, req.id_j, r_star);
-
+	res.is_connected = goals->formation->retrieveConnectionBetween(req.id_i, req.id_j, r_star);
+    
 	// Convert from vector to msg
 	std_msgs::Float64MultiArray r_star_vec;
 

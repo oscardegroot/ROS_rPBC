@@ -5,7 +5,7 @@
 Agent::Agent(std::string type_name_set)
     : type_name(type_name_set)
 {
-    logTmp("node name", ros::this_node::getName()); //= /agent_0
+    //logTmp("node name", ros::this_node::getName()); //= /agent_0
     nh_private = std::make_unique<ros::NodeHandle>(ros::this_node::getName()); // Declare a private nodehandle
 
     retrieveParameter("ID", ID);
@@ -36,15 +36,30 @@ void Agent::registerToServer()
     ros::NodeHandle nh_global;
     ros::ServiceClient register_client = nh_global.serviceClient<panda::registerAgent>("/registerAgent");
     
+    // This could be the issue
+    /** Previous: one call */
     // Define the request
-    auto srv = agentToSrv();
+//    auto srv = agentToSrv();
+//
+//    // Call the service
+//    if(register_client.call(srv)){
+//        logMsg("Agent", "Registered " + getType() + " succesfully", 2);
+//    }else{
+//        throw RegisteringException("Agent could not register!");
+//    }
     
-    // Call the service
-    if(register_client.call(srv)){
-        logMsg("Agent", "Registered " + getType() + " succesfully", 2);
-    }else{
-        throw RegisteringException("Agent could not register!");
-    }
+    /* Attempt to register until the remote responds or the attempt times out */
+    auto srv = agentToSrv();
+        
+    // Declare a server call lambda to be repeated
+    auto register_call = [&](){ 
+            return register_client.call(srv);
+        };
+    
+    // Call the service until it works or until a second has passed
+    helpers::repeatedAttempts(register_call, 1.0, "Agent " + getType() + "could not register!");
+    
+    logMsg("Agent", "Registered " + getType() + " succesfully", 2);
 }
 
 // Convert this agents parameters to a service call

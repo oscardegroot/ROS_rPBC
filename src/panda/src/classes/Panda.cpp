@@ -117,8 +117,14 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	cmm->agent->retrieveParameter("initial_pause", initial_pause, 0.0);
 
 	// Initialise the controller
-	controller = std::make_unique<IDAPBC>(*(cmm->agent));
+    std::string output;
+    cmm->agent->retrieveParameter("/output", output);
 
+    if(output == "z"){
+        controller = std::make_unique<IDAPBC>(*(cmm->agent));
+    }else{
+        controller = std::make_unique<rPBC>(*(cmm->agent));
+    }
 	//torques_publisher_.init(nh, "torque_comparison", 1);
 	std::fill(dq_filtered.begin(), dq_filtered.end(), 0);
 
@@ -168,6 +174,8 @@ void Panda::checkSafety(){
 
 void Panda::retrieveState(){
 
+    resetUpdatedFlags();
+    
 	this->state.q = helpers::arrayToVector<7>(robot_state.q);
 
 	filterVelocity(robot_state.dq);
@@ -191,7 +199,7 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 	robot_state = cartesian_pose_handle_->getRobotState();
 	cartesian_pose_handle_->setCommand(initial_pose_);
 
-	// Network sampled
+	// Retrieve robot matrices
 	retrieveState();
 
 	// Check for errors
@@ -221,14 +229,6 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
 
 } // mandatory
 
-// Eigen::Map<const Eigen::Matrix<double, 7, 1> > coriolis(coriolis_array.data());
-// Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
-// Eigen::Map<const Eigen::Matrix<double, 7, 1> > q(robot_state.q.data());
-// Eigen::Map<const Eigen::Matrix<double, 7, 1> > dq(robot_state.dq.data());
-// Eigen::Affine3d transform(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
-// Eigen::Vector3d position(transform.translation());
-// Eigen::Quaterniond orientation(transform.linear());
-
 bool Panda::sendInput(const Eigen::VectorXd& tau){
 	for (size_t i = 0; i < 7; ++i) {
 		joint_handles_[i].setCommand(tau[i]);
@@ -237,6 +237,13 @@ bool Panda::sendInput(const Eigen::VectorXd& tau){
 
 void Panda::retrieveMatrices(){
 	
+    // If this is not the initial run, save the previous run 
+    if(initial_matrices){
+        
+        m_previous = m_m;
+        psi_previous = psi;
+    }
+    
 	// Get the Jacobian of the EE
 	std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(
 	 					franka::Frame::kEndEffector);
@@ -250,30 +257,44 @@ void Panda::retrieveMatrices(){
     
     //Get the gravity vector
     dvdq = helpers::arrayToVector<7>(model_handle_->getGravity());
+    
+    // If this is the initial run, initialise the previous matrix values to the current ones such that the numerical derivative is zero.
+    if(!initial_matrices){
+        
+        m_previous = m_m;
+        psi_previous = psi;
+        initial_matrices = true;
+    }
+
+// Not actually used    
+//    psi_updated = true;
+//    m_updated = true;
+//    dvdq_updated = true;
 }
 
 Eigen::MatrixXd& Panda::M(){
+    
 	return m_m;
 }
 
 
 Eigen::MatrixXd& Panda::Psi(){
+    
 	return psi;
 }
 
 /* From Franka Emika: Saturates the torque rate (not torque itself)*/
-std::array<double, 7> Panda::saturateTorqueRate(
-    const Eigen::VectorXd& torques,
-    const std::array<double, 7>& tau_J_d) {
+std::array<double, 7> Panda::saturateTorqueRate(const Eigen::VectorXd& torques, const std::array<double, 7>& tau_J_d) {
 
-  std::array<double, 7> tau_d_saturated{};
+    std::array<double, 7> tau_d_saturated{};
 
-  for (size_t i = 0; i < 7; i++) {
-    double difference = torques[i] - tau_J_d[i];
-    tau_d_saturated[i] = tau_J_d[i] + std::max(std::min(difference, kDeltaTauMax), -kDeltaTauMax);
-  }
+    for (size_t i = 0; i < 7; i++) {
+        
+        double difference = torques[i] - tau_J_d[i];
+        tau_d_saturated[i] = tau_J_d[i] + std::max(std::min(difference, kDeltaTauMax), -kDeltaTauMax);
+    }
 
-  return tau_d_saturated;
+    return tau_d_saturated;
 }
 
 std::array<double, 7> Panda::checkTorque(const Eigen::VectorXd& torques, const std::array<double, 7>& tau_J_d){
@@ -300,28 +321,33 @@ void Panda::filterVelocity(std::array<double, 7> input_v){
 }
 
 Eigen::VectorXd& Panda::dVdq(){
-	//dvdq = helpers::arrayToVector<7>(model_handle_->getGravity());
+    
     return dvdq;
 }
 
 
 /** @brief Approximate matrix derivatives by finite distance approximation */
 Eigen::MatrixXd& Panda::dMinv(){
+    
     if(!dminv_updated)
     {
-        dminv = -M().inverse()*dM()*M().inverse();
+        Eigen::MatrixXd dminv_input = -M().inverse()*dM()*M().inverse();
+        helpers::lowpassFilter(dminv, dminv_input, 0.95);
         dminv_updated = true;
     }
-    
+        //logTmp("dminv", dminv);
+
     return dminv;
 }
 
 Eigen::MatrixXd& Panda::dM(){
 
     if(!dm_updated){
-        dm = this->approximateDerivative(M(), m_previous);
+        Eigen::MatrixXd dm_input = this->approximateDerivative(M(), m_previous);
+        helpers::lowpassFilter(dm, dm_input, 0.95);
         dm_updated = true;
     }
+    //logTmp("dm", dm);
 
     return dm;
 }
@@ -329,10 +355,11 @@ Eigen::MatrixXd& Panda::dM(){
 Eigen::MatrixXd& Panda::dPsi(){
     //RunCheck check("dPsi");
     if(!dpsi_updated){
-        dpsi = this->approximateDerivative(Psi(), psi_previous);
+        Eigen::MatrixXd dpsi_input = this->approximateDerivative(Psi(), psi_previous);
+        helpers::lowpassFilter(dpsi, dpsi_input, 0.95);
         dpsi_updated = true;
     }
-
+    //logTmp("dpsi", dpsi);
     return dpsi;
 }
 

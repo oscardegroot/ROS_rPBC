@@ -38,6 +38,8 @@ public:
 private:
 
 	double lambda, gamma;
+    
+    Benchmarker benchmarker;
 
 };
 

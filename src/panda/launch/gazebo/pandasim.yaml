@@ -2,8 +2,8 @@ ID: 0
 sampling_rate: 1000
 controller:
   publish_rate: 30
-  kq: 3.0
-  kz: 6.0
+  kq: 6.0
+  kz: 3.0
   gravity_compensation:
     enabled: true
   local_potential:

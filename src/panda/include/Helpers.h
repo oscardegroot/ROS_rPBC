@@ -10,6 +10,7 @@
 #include <cmath>
 #include <chrono>
 #include "ros/ros.h"
+#include "termios.h"
 #include <franka/exception.h>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -220,7 +221,7 @@ inline void repeatedAttempts(std::function<bool()> fcnPtr, double max_duration, 
 
 /** @brief apply lowpass filtering on some vector, matrix or scalar */
 template <class T>
-void lowpassFilter(T& filtered_input, const T& input, double alpha)
+void lowpassFilter(T& filtered_input, const T& input, double alpha){
 
     try{
         filtered_input = (1.0 - alpha) * filtered_input + alpha * input;
@@ -230,4 +231,20 @@ void lowpassFilter(T& filtered_input, const T& input, double alpha)
 
 }
 
+// Copied from https://answers.ros.org/question/63491/keyboard-key-pressed/
+inline int getch()
+{
+  static struct termios oldt, newt;
+  tcgetattr( STDIN_FILENO, &oldt);           // save old settings
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON);                 // disable buffering      
+  tcsetattr( STDIN_FILENO, TCSANOW, &newt);  // apply new settings
+
+  int c = getchar();  // read character (non-blocking)
+
+  tcsetattr( STDIN_FILENO, TCSANOW, &oldt);  // restore old settings
+  return c;
+}
+
+}
 #endif

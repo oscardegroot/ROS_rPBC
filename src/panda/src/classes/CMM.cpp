@@ -11,20 +11,7 @@ CMM::CMM(std::string agent_type){//int set_id, int set_sampling_rate){
 
 	logMsg("CMM", "Initiating..", 2);
     
-    agent = std::make_unique<Agent>(agent_type);
-    
-    int network_rate;
-    helpers::safelyRetrieve(n, "sampling_rate", network_rate);
-    
-    // Check if parameters are correct
-    if(agent->getSamplingRate() % network_rate != 0){
-        throw ParameterException("Sampling rate of agent " + std::to_string(agent->getID()) + " is not a multiple of the network rate!");
-    }
-    
-    // Calculate the rate multiplier
-    rate_mp = agent->getSamplingRate() / network_rate;
-    
-	// Retrieve parameters
+    // Retrieve parameters
 	helpers::safelyRetrieve(n, "/l", l);
 	helpers::safelyRetrieve(n, "/N_agents", N);
     
@@ -32,15 +19,28 @@ CMM::CMM(std::string agent_type){//int set_id, int set_sampling_rate){
 	helpers::safelyRetrieveEigen(n, "/network_gain", gain_e, l);
 	gain = Eigen::MatrixXd(gain_e.asDiagonal());
 
+    int network_rate;
+    helpers::safelyRetrieve(n, "sampling_rate", network_rate);
+    
 	// Connect to the remote
 	connect_client = n.serviceClient<panda::getConnectionsOf>("/getConnectionsOf");
     leader_client = n.serviceClient<panda::isAgentLeader>("/isAgentLeader");
+    
+    /* Create an agent */
+    agent = std::make_unique<Agent>(agent_type);
+    
     init_server = n.advertiseService("/agent" + std::to_string(agent->getID()) + "/initEdges", &CMM::initEdges, this);
+
+    // Check if parameters are correct
+    if(agent->getSamplingRate() % network_rate != 0){
+        throw ParameterException("Sampling rate of agent " + std::to_string(agent->getID()) + " is not a multiple of the network rate!");
+    }
+    
+    // Calculate the rate multiplier
+    rate_mp = agent->getSamplingRate() / network_rate;
 
 	// Retrieve connections and create communication edges
     status = WAITING_FOR_OTHER;
-
-//    performHandshake();
     
 	logMsg("CMM", "Done!", 2);
 }
@@ -128,6 +128,8 @@ void CMM::setupEdges(){
 
 					// Create a communication edge
 					edges.push_back(std::make_unique<EdgeFlex>(*agent, j, gain, l, r_star, rate_mp));
+                    
+                    logMsg("CMM", "Edge Created", 2);
 					
 				}
 			}else{
@@ -153,6 +155,7 @@ Eigen::VectorXd CMM::sample(Eigen::VectorXd r){
 	// Sample all edges
 	for(int i = 0; i < edges.size(); i++){
 		tau += edges[i]->sample(r);
+        
     }
     
 	// Return the combined input

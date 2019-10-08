@@ -73,8 +73,15 @@ int main(int argc, char **argv){
     cmm->agent->retrieveParameter("goal_type", goal_type, -1);
     cmm->agent->retrieveEigen("default_goal", valued_goal, l);
     
+    std::string output;
     double lambda;
-    helpers::safelyRetrieve(nh, "/lambda", lambda);
+    helpers::safelyRetrieve(nh, "/output", output);
+
+    if(output == "z"){
+        lambda = 1.0;
+    }else{
+        helpers::safelyRetrieve(nh, "/lambda", lambda);
+    }
 
 	// For centerpoint initially
     ref = valued_goal;
@@ -96,7 +103,7 @@ int main(int argc, char **argv){
 
 		// Sample the network
         // LOOKS LIKE THE VARIANCE CONTROL PROBLEM IS RELATED TO RPBC, IDAPBC WORKS FINE NOW //
-		Eigen::VectorXd tau_network = cmm->sample(ref);//*lambda
+		Eigen::VectorXd tau_network = cmm->sample(ref*lambda);//*lambda
 		
 		plotMarker(marker_pub, ref);
 
@@ -183,13 +190,14 @@ void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref){
 	p.x = ref(0, 0);
 	p.y = ref(1, 0);
 	p.z = ref(2, 0);
-
-	geometry_msgs::Point TEST_OBJECT;
-	TEST_OBJECT.x = 0;
-	TEST_OBJECT.y = 0;
-	TEST_OBJECT.z = 1.0;
     points.points.push_back(p);
-    points.points.push_back(TEST_OBJECT);
+
+    
+//	geometry_msgs::Point TEST_OBJECT;
+//	TEST_OBJECT.x = 0;
+//	TEST_OBJECT.y = 0;
+//	TEST_OBJECT.z = 1.0;
+//    points.points.push_back(TEST_OBJECT);
 
     pub.publish(points);
 

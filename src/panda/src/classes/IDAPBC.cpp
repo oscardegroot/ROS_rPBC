@@ -63,7 +63,7 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, const Eigen::VectorXd& ta
 		tau += system.dVdq();
 	}
 
-	// Apply IDA-PBC (The actual panda autocompensates for gravity)
+    // Apply IDA-PBC (The actual panda autocompensates for gravity)
 	tau += -dVsdq(system);
 	tau += - kq * system.state.dq;
 	

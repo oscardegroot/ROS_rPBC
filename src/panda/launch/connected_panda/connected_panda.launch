@@ -3,7 +3,7 @@
 <launch>
  	<arg name="robot_ip" default="172.16.0.2"/>
 	<arg name="load_gripper" default="false" />
-	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm.urdf.xacro'" />
+	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm_camera.urdf.xacro'" />
 	<include file="$(find panda_simulation)/launch/sim.launch"/>
 	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="connectedpandasim"/>
 

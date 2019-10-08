@@ -20,16 +20,24 @@ int main(int argc, char **argv){
 	// Initialise ROS
 	ros::init(argc, argv, "Agent");
 
-	// Initialise the system and controller
-	std::unique_ptr<System> system = std::make_unique<PandaSim>();  // Mass matrix takes a long time
-	std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*(system->cmm->agent));   // First thing is init of publishers
-
     ros::NodeHandle nh = ros::NodeHandle("~");
 
+    std::string output;
+    helpers::safelyRetrieve(nh, "/output", output);
+
+	// Initialise the system and controller
+	std::unique_ptr<System> system = std::make_unique<PandaSim>();
+    std::unique_ptr<Controller> controller;
+    if(output == "z"){
+         controller = std::make_unique<IDAPBC>(*(system->cmm->agent));
+    }else{
+         controller = std::make_unique<rPBC>(*(system->cmm->agent));
+    }
+
+
 	// Get a nodehandle
-	helpers::safelyRetrieve(nh, "ID", id);
-	helpers::safelyRetrieve(nh, "/l", l);
-	helpers::safelyRetrieve(nh, "/N_agents", N);
+	//helpers::safelyRetrieve(nh, "/l", l);
+	//helpers::safelyRetrieve(nh, "/N_agents", N);
 
     // Perform handshake after controller initialisation!
     system->cmm->performHandshake();

@@ -26,8 +26,7 @@ public:
 									Eigen::VectorXd r_i, Eigen::VectorXd s_in);
 
 	// Iteratively solves the algebraic loop for r_js
-	void STIterations(Eigen::VectorXd& r_js, Eigen::VectorXd r_i,
-					 Eigen::VectorXd s_in);
+	void STIterations(Eigen::VectorXd& r_js,  const Eigen::VectorXd& r_i, const Eigen::VectorXd&);
 
 
 	Eigen::VectorXd elementSign(Eigen::VectorXd s_in);

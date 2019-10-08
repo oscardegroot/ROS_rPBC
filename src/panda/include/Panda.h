@@ -140,6 +140,7 @@ namespace panda {
 
         // Pointer to controller
         std::unique_ptr<Controller> controller;
-
+        
+        bool initial_matrices = false;
     };
 }
