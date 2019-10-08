@@ -28,3 +28,6 @@ goals/3/goal5:
 # Note implementation in edgeflex is missing
 formation:
   type: consensus
+  # type: circle
+  # radius: 0.2
+  # phase: 1.3

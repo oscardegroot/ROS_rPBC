@@ -1,0 +1,15 @@
+ID: 1
+sampling_rate: 100
+default_goal:
+  - 0.0
+  - 0.33 #1cm space -> result ~4 cm space
+goal_type: 2
+z_select:
+  - 1
+  - 1
+
+NF:
+  alpha: 5.0
+  gamma:
+    r_w: 1.5
+    eps: 0.10

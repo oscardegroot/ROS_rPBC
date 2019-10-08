@@ -104,7 +104,6 @@ int main(int argc, char **argv){
 		// Sample the network
         // LOOKS LIKE THE VARIANCE CONTROL PROBLEM IS RELATED TO RPBC, IDAPBC WORKS FINE NOW //
 		Eigen::VectorXd tau_network = cmm->sample(ref*lambda);//*lambda
-		
 		plotMarker(marker_pub, ref);
 
 		publishReference(pub, ref);

@@ -182,7 +182,7 @@ void Panda::retrieveState(){
 	this->state.dq = helpers::arrayToVector<7>(dq_filtered);
 
 	std::array<double, 3> z{{robot_state.O_T_EE[12], robot_state.O_T_EE[13], robot_state.O_T_EE[14]}};
-	this->state.z = helpers::arrayToVector<3>(z);
+	this->state.z = this->selectZ(helpers::arrayToVector<3>(z));
 
 	retrieveMatrices();
 
@@ -249,7 +249,7 @@ void Panda::retrieveMatrices(){
 	 					franka::Frame::kEndEffector);
 
 	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
-	psi = jacobian.transpose().block(0, 0, 7, 3);
+	psi = this->selectPsi(jacobian.transpose().block(0, 0, 7, 6));
 
 	// Get the mass matrix
 	std::array<double, 49> mass_array = model_handle_->getMass();

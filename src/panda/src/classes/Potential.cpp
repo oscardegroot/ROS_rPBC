@@ -25,7 +25,7 @@ Eigen::VectorXd QuadraticPotential::gradient(const Eigen::VectorXd& r_i, const E
 }
 
 PotentialFactors QuadraticPotential::gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){
-    return PotentialFactors(-Eigen::MatrixXd::Identity(l, l), 1.0);
+    return PotentialFactors(-Eigen::MatrixXd::Identity(l, l), 1.0, -1.0);
 }
 
 NavigationFunction::NavigationFunction(Agent& agent, int l_set, const Eigen::VectorXd& r_star_set)
@@ -69,7 +69,6 @@ void AdvancedPotential::addObstacleFcn(const std::shared_ptr<Obstacle>& obstacle
 // Get the multipliers of r_i and r_js for the current gradient based on the selected potential function
 PotentialFactors NavigationFunction::gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) {
 
-
     // Find obstacle gradient and value
     PotentialFactors beta_gradient = obstacleGradient(r_i, r_js);
     double beta = obstacleValue(r_i, r_js);
@@ -84,7 +83,8 @@ PotentialFactors NavigationFunction::gradient_factors(const Eigen::VectorXd& r_i
     // Calculate the factors based on the general NF gradient
     /** @todo: FIX R_STAR -> POTENTIAL FACTORS NEEDS AN R_STAR TERM!! */
     return PotentialFactors((-alpha*beta*gamma_gradient*Eigen::MatrixXd::Identity(l, l) - gamma*beta_gradient.i_matrix) / denom,
-                            (alpha*beta*gamma_gradient - gamma*beta_gradient.js_multiplier) / denom);
+                            (alpha*beta*gamma_gradient - gamma*beta_gradient.js_multiplier) / denom,
+                            -(alpha*beta*gamma_gradient)/denom); // Formation is only the goal part and equal to the term of r_i
 }
 
 // Get the actual value of the gradient
@@ -94,7 +94,7 @@ Eigen::VectorXd NavigationFunction::gradient(const Eigen::VectorXd& r_i, const E
     PotentialFactors gradient_f = gradient_factors(r_i, r_js);
     
     // Multiply with r_i, r_js respectively
-    return gradient_f.i_matrix*(r_i + r_star) + gradient_f.js_multiplier*r_js;
+    return gradient_f.i_matrix*r_i + gradient_f.js_multiplier*r_js + gradient_f.formation_multiplier*r_star;
 }
 
 

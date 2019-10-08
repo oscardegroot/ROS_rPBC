@@ -15,16 +15,11 @@ System::System(int n_set, int m_set, int lmax_set, const std::string& name)
 
     initSelectors();
     
-    psi = Eigen::MatrixXd::Zero(n, lmax_set);
-    dpsi = Eigen::MatrixXd::Zero(n, lmax_set);
-
     m_m = Eigen::MatrixXd::Zero(n, n);
     dm = Eigen::MatrixXd::Zero(n, n);
     dvdq = Eigen::VectorXd::Zero(n);
     
     m_previous = m_m; /* This should be initialised such that the initial values aren infinite...*/
-    psi_previous = psi;
-
 }
 		
 
@@ -71,6 +66,12 @@ void System::initSelectors(){
             occurences++;
         }
     }
+    
+    // Use the coordinate count to initialise matrices
+    psi = Eigen::MatrixXd::Zero(n, cur_l);
+    dpsi = Eigen::MatrixXd::Zero(n, cur_l);
+    psi_previous = psi;
+
 }
 
 /// Keep only currently cooperative controlled parts

@@ -59,7 +59,7 @@ double WangGoal::value(const double& d)
     }else{
         v_gamma = a2*std::pow(d, 3.0) + b2*std::pow(d, 2.0) + c2*d + d2;
     }
-
+    
     return v_gamma;
     
 }

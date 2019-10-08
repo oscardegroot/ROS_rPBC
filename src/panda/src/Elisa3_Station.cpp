@@ -10,14 +10,14 @@ int main(int argc, char **argv){
     // Initialise ROS
     ros::init(argc, argv, "Elisa3_Station");
 
-    nh_ = ros::NodeHandlePtr(new ros::NodeHandle);
+    nh = ros::NodeHandlePtr(new ros::NodeHandle);
 
-    elisa3_register = nh_->advertiseService("/registerElisa3", registerElisa3);
-    elisa3_color = nh_->advertiseService("/colorElisa3", colorElisa3);
+    elisa3_register = nh->advertiseService("/registerElisa3", registerElisa3);
+    elisa3_color = nh->advertiseService("/colorElisa3", colorElisa3);
 
-    int elisa3_rate;
-    helpers::safelyRetrieve(*nh_, "/elisa3/sampling_rate", elisa3_rate, 100);
-    ros::Rate loop_rate(elisa3_rate);
+    int sampling_rate;
+    helpers::safelyRetrieve(*nh, "/sampling_rate", sampling_rate, 100);
+    ros::Rate loop_rate(sampling_rate);
 
     ros::spinOnce();
     ros::Duration(1.0).sleep();
@@ -61,7 +61,6 @@ int main(int argc, char **argv){
     stopCommunication();
 
     return 0;
-
 }
 
 
@@ -70,22 +69,18 @@ bool moveElisa3(const panda::Move::ConstPtr& msg) {
     setRightSpeed(msg->address, msg->wheel_right);
     setLeftSpeed(msg->address, msg->wheel_left);
     return true;
-
 }
 
 bool registerElisa3(panda::registerElisa3::Request &req, panda::registerElisa3::Response &res){
 
-//    if(communication_started) {
-//        //stopCommunication();
-//    }
 
     elisa3_addresses.push_back(req.address);
 
 
-    move_subs.push_back(nh_->subscribe<panda::Move>("elisa3_" +
+    move_subs.push_back(nh->subscribe<panda::Move>("elisa3_" +
         std::to_string(req.address) + "_move", 20, &moveElisa3));
 
-    readout_pubs.push_back(nh_->advertise<panda::Readout>("elisa3_" +
+    readout_pubs.push_back(nh->advertise<panda::Readout>("elisa3_" +
         std::to_string(req.address) + "_readout", 20));
 
     communication_started = true;
@@ -103,22 +98,22 @@ bool colorElisa3(panda::colorElisa3::Request &req, panda::colorElisa3::Response 
         setColor(req.address, req.red, req.green, req.blue);
     }else{
         switch(req.color_type){
-            case 1:
+            case COLOR_RED:
                 setColor(req.address, 80, 0, 0);
                 break;
-            case 2:
+            case COLOR_GREEN:
                 setColor(req.address, 0, 80, 0);
                 break;
-            case 3:
+            case COLOR_BLUE:
                 setColor(req.address, 0, 0, 80);
                 break;
-            case 4:
+            case COLOR_ORANGE:
                 setColor(req.address, 60, 60, 0);
                 break;
-            case 5:
+            case COLOR_CYAN:
                 setColor(req.address, 0, 60, 60);
                 break;
-            case 6:
+            case COLOR_PINK:
                 setColor(req.address, 60, 0, 60);
                 break;
         }

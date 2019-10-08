@@ -54,35 +54,36 @@ rPBC::rPBC(Agent& agent)
 Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_c){
 	
     benchmarker.start();// ~ 70 - 140 us!
-    //logTmp("Tau_c", tau_c);
+
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
     
 	// Compensate gravity if necessary
 	if(gravity_enabled){
 		tau += system.dVdq(); // maybe dMdq here as well...
-        tau += system.dTdq();
+        //tau += system.dTdq();
         //tau += 0.5*system.dM()*system.state.dq;// -> should be actual dMdq...
 	}
 
-	Eigen::MatrixXd pinv_psi;
-    
+    /**@todo add dTdq() */
+
     // Calculate pseudo inverse and null space
+    Eigen::MatrixXd pinv_psi;
 	pinv_psi = helpers::pseudoInverse(system.Psi().transpose());
 
-//    // Null space calculations
+    // Null space calculations
 	Eigen::FullPivLU<Eigen::MatrixXd> psi_lu(system.Psi().transpose());
 	Eigen::MatrixXd nullPsi = psi_lu.kernel().transpose();
     
     /* We can simplify two terms with dMinv() * M. (There are three: in Kz, in Kv local and in Kv coop, only Kv local stays).*/
-    Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose() + 
-                        system.Psi().transpose()*system.dMinv()*system.M(); // using inv(M)' = -M_dot * Minv * Mdot
-// Last term dissappears due to damping??
-    Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + system.Psi().transpose()*Kv(system)*system.state.dq;
+    Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose();// + 
+                        //system.Psi().transpose()*system.dMinv()*system.M(); // using inv(M)' = -M_dot * Minv * Mdot
+
+    Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + kq*system.Psi().transpose()*system.state.dq;// + system.Psi().transpose()*Kv(system)*system.state.dq;
     
     // Use the rPBC control law to control the agent
-	tau += system.M()*(pinv_psi*tau_hat - Kv(system)*system.state.dq);
-    //logTmp(nullPsi.transpose()*nullPsi);
+	tau += system.M()*(pinv_psi*tau_hat - (system.dM() + kq*Eigen::MatrixXd::Identity(system.n, system.n))*system.state.dq);
+
     // Local objectives
     tau -= nullPsi.transpose()*nullPsi*dVsdq(system);
     benchmarker.end();
@@ -94,10 +95,8 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
 
 Eigen::VectorXd rPBC::getOutput(System& system){
 
-	// Define the output
-	Eigen::VectorXd r(l);
-
 	// r = lambda*z + zdot
+	Eigen::VectorXd r(l);
 	r = lambda*system.state.z + system.Psi().transpose()*system.state.dq;
     
 	// Publish it for debugging

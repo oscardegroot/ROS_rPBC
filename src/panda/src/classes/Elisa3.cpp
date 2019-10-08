@@ -22,28 +22,26 @@
  */
 #include "Elisa3.h"
 
-Elisa3::Elisa3(int set_address, int set_sampling_rate)
+Elisa3::Elisa3()
         :System(2, 2, 2, "elisa_3")
 {
     logMsg("Elisa3", "Initialising...", 2);
 
     // Retrieve parameters
-    address = set_address;
-    sampling_rate = set_sampling_rate;
-    Ts = 1.0/sampling_rate;
+    Ts = 1.0/((double)(cmm->agent->getSamplingRate()));
 
-    ros::NodeHandle nh("/elisa3/");
-    ros::NodeHandle nh_private("~"); // Private.
-    ros::NodeHandle nh_global;
+    ros::NodeHandle nh;
 
-    helpers::safelyRetrieve(nh, "L", L); // Retrieve the hand distance
+    cmm->agent->retrieveParameter("address", address); // Retrieve the hand distance
+    cmm->agent->retrieveParameter("L", L); // Retrieve the hand distance
+    cmm->agent->retrieveEigen("init_state", q0, 3);
 
-    helpers::safelyRetrieveEigen(nh_private, "init_state", q0, 3);
+    //helpers::safelyRetrieveEigen(nh_private, "init_state", q0, 3);
 
-    int id;
-    helpers::safelyRetrieve(nh_private, "ID", id);
+//    int id;
+//    helpers::safelyRetrieve(nh_private, "ID", id);
 
-    test_pub.init(nh_private, "q", 1);
+    test_pub.init(cmm->agent->getPrivateNh(), "q", 1);
 
     // And these are the actual system states
     actual_q = q0;
@@ -55,14 +53,12 @@ Elisa3::Elisa3(int set_address, int set_sampling_rate)
     
     // Initialise all state related values
     // These are the feedback linearised states
-    this->setState(h,
-                   Eigen::VectorXd::Zero(n),
-                   h);
+    setState(h, Eigen::VectorXd::Zero(n), h);
 
     // Initialise the transformation from velocities to wheel velocities
     initMatrices();
 
-    ros::ServiceClient connect_client = nh_global.serviceClient<panda::registerElisa3>("/registerElisa3");
+    ros::ServiceClient connect_client = nh.serviceClient<panda::registerElisa3>("/registerElisa3");
 
     panda::registerElisa3 srv;
     srv.request.address = address;
@@ -71,12 +67,16 @@ Elisa3::Elisa3(int set_address, int set_sampling_rate)
         throw RegisteringException("Could not register this Elisa3!");
     }
 
-    color_client = nh_global.serviceClient<panda::colorElisa3>("/colorElisa3");
-    setColor(id + 4);
+    color_client = nh.serviceClient<panda::colorElisa3>("/colorElisa3");
 
-    move_pub = nh_global.advertise<panda::Move>("elisa3_" + std::to_string(address) + "_move", 20);
-    readout_sub = nh_global.subscribe<panda::Readout>("elisa3_" + std::to_string(address) + "_readout",
-                                                      20, &Elisa3::readSensors, this);
+    std::string color_name;
+    cmm->agent->retrieveParameter("color", color_name);
+    setColor(color_name);
+    
+    move_pub = nh.advertise<panda::Move>("elisa3_" + std::to_string(address) + "_move", 20);
+    
+    readout_sub = nh.subscribe<panda::Readout>("elisa3_" + std::to_string(address) + "_readout",
+                     20, &Elisa3::readSensors, this);
 
     cmm->performHandshake();
 
@@ -89,6 +89,7 @@ Elisa3::~Elisa3() {
 /// Convert the control input to the system inputs and actuate
 bool Elisa3::sendInput(const Eigen::VectorXd & tau){
 
+    //logTmp("Elisa3 running");
     data_received = false;
     
     // Apply feedback linearisation around the hand point (output = F, tau)
@@ -113,10 +114,9 @@ bool Elisa3::sendInput(const Eigen::VectorXd & tau){
     move_msg.wheel_right = wheel_right;
     move_msg.wheel_left = wheel_left;
     move_pub.publish(move_msg);
-
+    return true;
     //int tau_color = std::min(100, int(helpers::normOf(tau) / 0.003));
     //setColor(tau_color*(address%3 == 0), tau_color*(address%3 == 1), tau_color*(address%3 == 2));
-    return true;
 }
 
 // This readout message can be a standard 3D message probably.
@@ -190,14 +190,7 @@ void Elisa3::checkSafety(){
     return;
 }
 
-/// Lowpass filter an input vector
-void Elisa3::lowpassFilter(Eigen::VectorXd filtered_value, const Eigen::VectorXd & value,
-        const double alpha){
-
-    filtered_value = (1 - alpha) * filtered_value + alpha * value;
-}
-
-/// Dynamical Matrices and Vectors
+/** Dynamical Matrices and Vectors*/
 Eigen::MatrixXd& Elisa3::M(){
 
     m_m = Eigen::MatrixXd::Identity(n, n);
@@ -221,12 +214,18 @@ Eigen::MatrixXd& Elisa3::dM(){
 }
 
 Eigen::MatrixXd& Elisa3::dPsi(){
-    dpsi = Eigen::MatrixXd::Zero(n, n);
+    dpsi = this->selectPsi(Eigen::MatrixXd::Zero(n, n));
     return dpsi;
 }
 
+Eigen::MatrixXd& Elisa3::dMinv()
+{
+    dminv = Eigen::MatrixXd::Zero(n, n);
+    return dminv;
+}
+
 /// Apply feedback linearisation
-Eigen::VectorXd Elisa3::feedbackLinearisation(const Eigen::VectorXd tau){
+Eigen::VectorXd Elisa3::feedbackLinearisation(const Eigen::VectorXd& tau){
     // Define the transformation (todo Optimise)
     Eigen::MatrixXd A(n, n);
     Eigen::VectorXd dA(n);
@@ -241,7 +240,7 @@ Eigen::VectorXd Elisa3::feedbackLinearisation(const Eigen::VectorXd tau){
 }
 
 /// Convert the vector [u, w] into [v_r, v_l]
-Eigen::VectorXd Elisa3::velocityToWheelSpeed(const Eigen::VectorXd vel){
+Eigen::VectorXd Elisa3::velocityToWheelSpeed(const Eigen::VectorXd& vel){
     // Gives [Vr, Vl]'
     return wheel_matrix*vel;
 }
@@ -274,6 +273,23 @@ void Elisa3::initMatrices(){
     F << 1.0/m, 0.0, 0.0, 1.0/J;
 }
 
+void Elisa3::setColor(const std::string& color){
+    
+    if(color == "blue"){
+        setColor(COLOR_BLUE);
+    }else if(color == "green"){
+        setColor(COLOR_GREEN);
+    }else if(color == "red"){
+        setColor(COLOR_RED);
+    }else if(color == "orange"){
+        setColor(COLOR_ORANGE);
+    }else if(color == "cyan"){
+        setColor(COLOR_CYAN);
+    }else if(color == "pink"){
+        setColor(COLOR_PINK);
+    }
+}
+
 void Elisa3::setColor(int color_type){
     panda::colorElisa3 srv_color;
     srv_color.request.address = address;
@@ -298,13 +314,6 @@ void Elisa3::setColor(int r, int g, int b){
 
 bool Elisa3::dataReady(){
     return data_received;
-}
-
-
-Eigen::MatrixXd& Elisa3::dMinv()
-{
-    dminv = Eigen::MatrixXd::Zero(n, n);
-    return dminv;
 }
 
 

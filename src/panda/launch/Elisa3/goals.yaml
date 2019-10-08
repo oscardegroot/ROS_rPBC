@@ -19,3 +19,6 @@ goals/2/goal4:
 goals/2/goal5:
   - 0.2
   - 0.5
+
+formation:
+  type: consensus

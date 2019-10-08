@@ -18,40 +18,19 @@ int main(int argc, char **argv){
 
     // Initialise ROS
     ros::init(argc, argv, "elisa_3");
-
-    // Get a nodehandle
-    ros::NodeHandle nh_private("~");
-    ros::NodeHandle nh("/elisa3/");
-
-    // Retrieve important agent specific parameters
-    int id, address, sampling_rate;
-    helpers::safelyRetrieve(nh_private, "ID", id);
-    helpers::safelyRetrieve(nh_private, "address", address);
-//    Eigen::VectorXd init_state;
-//    helpers::safelyRetrieveEigen(nh_private, "init_state", init_state, 3);
-//    logTmp(init_state);
-
-    double initial_delay;
-    helpers::safelyRetrieve(nh, "sampling_rate", sampling_rate, 100);
-    helpers::safelyRetrieve(nh, "initial_delay", initial_delay, 2.0);
-
+    
     // Create a system and a controller
-    std::unique_ptr<System> system = std::make_unique<Elisa3>(address, sampling_rate);
+    std::unique_ptr<System> system = std::make_unique<Elisa3>();
     std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*(system->cmm->agent));
 
-    // Create a Communication Management Module
-    //CMM cmm("elisa_3");//id, system->agent->getSamplingRate());
-
     // Define loop rate
-    ros::Rate loop_rate(sampling_rate);
+    ros::Rate loop_rate(system->cmm->agent->getSamplingRate());
 
     // Wait for everything to startup
-    ros::Duration(initial_delay).sleep();
-    int counter_yes = 0;
-    int counter_no = 0;
+    ros::Duration(2.0).sleep();
+
     while(ros::ok()){
         if(system->dataReady()) {
-            counter_yes++;
             /// Retrieve the cooperative input
             Eigen::VectorXd tau_network = system->cmm->sample(controller->getOutput(*system));
 
@@ -61,7 +40,6 @@ int main(int argc, char **argv){
             /// Send the input to the system
             system->sendInput(tau);
         }else{
-            counter_no++;
             //logTmp(ros::Time::now());
         }
 
@@ -69,8 +47,7 @@ int main(int argc, char **argv){
         ros::spinOnce();
         loop_rate.sleep();
     }
-    logTmp("y", counter_yes);
-    logTmp("n", counter_no);
+
     return 0;
 
 }

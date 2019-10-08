@@ -88,7 +88,9 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	s_received = Eigen::VectorXd::Zero(l);
 	for(int i = 0; i < l; i++){
 
-		s_received(i, 0) = s[i];// / double(rate_mp); // divide by sampling discrepancy! (this is the passive interpolator)
+		s_received(i, 0) = s[i];
+        // EXPANDER!
+        //helpers::sgn(s[i])*std::sqrt(std::pow(s[i], 2)/double(rate_mp));// / double(rate_mp); // divide by sampling discrepancy! (this is the passive interpolator)
         // NOT WORKING YET!! RECONSTRUCTION IS APPLIED ON THE WRONG SIDE...
 	}
 
@@ -107,11 +109,11 @@ void Edge::publishWave(Eigen::VectorXd s_out){
     
 //    s_out_compressed += s_out;
 //    for(int i = 0; i < l; i++){
-//        s_out_squared(i,0) += s_out(i,0)*s_out(i,0);
+//        s_out_squared(i) += std::pow(s_out(i), 2);
 //
 //    }
-        
-    //if(pub_counter.trigger()){
+//        
+//    if(pub_counter.trigger()){
     
         // The message to send
         panda::Waves msg;
@@ -123,8 +125,8 @@ void Edge::publishWave(Eigen::VectorXd s_out){
         msg_vec.data.resize(l);
         for(int i = 0; i < l; i++){
             // This is where the compression equation gets applied
-            msg_vec.data[i] = s_out(i, 0);//helpers::sgn(s_out_compressed(i, 0)) * 
-                            //std::sqrt(s_out_squared(i, 0));  
+            msg_vec.data[i] = s_out(i, 0);
+            //msg_vec.data[i] = helpers::sgn(s_out_compressed(i)) * std::sqrt(s_out_squared(i));  
         }
         
         // Set the message
@@ -141,6 +143,6 @@ void Edge::publishWave(Eigen::VectorXd s_out){
         s_out_compressed = Eigen::VectorXd::Zero(l);
         s_out_squared = Eigen::VectorXd::Zero(l);
 
-    //}
+   // }
 
 }

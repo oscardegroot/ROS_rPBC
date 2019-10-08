@@ -5,6 +5,13 @@
 #ifndef SRC_ELISA3_STATION_H
 #define SRC_ELISA3_STATION_H
 
+#define COLOR_BLUE 1
+#define COLOR_GREEN 2
+#define COLOR_RED 3
+#define COLOR_ORANGE 4
+#define COLOR_CYAN 5
+#define COLOR_PINK 6
+
 #include "ros/ros.h"
 
 #include "elisa3-lib.h"
@@ -28,15 +35,14 @@ bool colorElisa3(panda::colorElisa3::Request &req,
 bool communication_started = false;
 
 bool moveElisa3(const panda::Move::ConstPtr& msg);
-ros::NodeHandlePtr nh_;
 
 void setColor(int address, int r, int g, int b);
 
-
 std::vector<int> elisa3_addresses;
 
-
 ros::ServiceServer elisa3_register, elisa3_color;
+
+ros::NodeHandlePtr nh;
 
 // Subscriber to move messages
 std::vector<ros::Publisher> readout_pubs;

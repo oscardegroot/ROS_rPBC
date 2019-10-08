@@ -36,7 +36,7 @@ protected:
     ros::NodeHandle nh;
     
     // Convert 2D positions to connections (possibly extend to the N dimensional case)
-    void connectionsFromPositions(const std::vector<Eigen::Matrix<double, 2, 1>>& positions);
+    void connectionsFromPositions(const std::vector<Eigen::Matrix<double, 3, 1>>& positions);
     
 	// A vector with connections for every agent
 	std::vector<std::vector<connection>> connections;

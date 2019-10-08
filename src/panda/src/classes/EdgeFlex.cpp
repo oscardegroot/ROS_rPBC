@@ -120,7 +120,8 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
 		for(int i = 0; i < l; i++){
 
             // The RHS of the algebraic loop
-            double RHS = matrix_ST(i, i)*s_in(i) + matrix_ST(i, l+i)*gain(i, i) * gradient.i_matrix(i, i)*(r_i(i) + r_star(i));
+            double RHS = matrix_ST(i, i)*s_in(i) + matrix_ST(i, l+i)*gain(i, i) * gradient.i_matrix(i, i)*r_i(i) 
+                        + matrix_ST(i, l+i)*gain(i, i) * gradient.formation_multiplier*r_star(i);
 
             // The factor for r_js
             double factor_js = 1.0 - matrix_ST(i, l+i) * gain(i, i) * gradient.js_multiplier;

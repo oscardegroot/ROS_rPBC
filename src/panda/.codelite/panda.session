@@ -1,166 +1,110 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/home/omdegroot/Documents/distributed_idapbc/src/panda/panda.workspace">
-  <int Value="22" Name="m_selectedTab"/>
+  <int Value="8" Name="m_selectedTab"/>
   <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/panda.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/Remote.h" Name="FileName"/>
-      <int Value="36" Name="FirstVisibleLine"/>
-      <int Value="22" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/Remote.cpp" Name="FileName"/>
-      <int Value="39" Name="FirstVisibleLine"/>
-      <int Value="70" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/Goals.h" Name="FileName"/>
-      <int Value="24" Name="FirstVisibleLine"/>
-      <int Value="51" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/Goals.cpp" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="55" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/Helpers.h" Name="FileName"/>
-      <int Value="55" Name="FirstVisibleLine"/>
-      <int Value="83" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/ConnectedPandasim.cpp" Name="FileName"/>
-      <int Value="163" Name="FirstVisibleLine"/>
-      <int Value="159" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/ConnectedPandasim.h" Name="FileName"/>
-      <int Value="6" Name="FirstVisibleLine"/>
-      <int Value="40" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/Beacon_Node.cpp" Name="FileName"/>
-      <int Value="22" Name="FirstVisibleLine"/>
-      <int Value="101" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
       <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/Panda.h" Name="FileName"/>
-      <int Value="51" Name="FirstVisibleLine"/>
+      <int Value="116" Name="FirstVisibleLine"/>
       <int Value="114" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/Panda.cpp" Name="FileName"/>
-      <int Value="21" Name="FirstVisibleLine"/>
-      <int Value="225" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/Goal.cpp" Name="FileName"/>
-      <int Value="3" Name="FirstVisibleLine"/>
-      <int Value="1" Name="CurrentLine"/>
+      <int Value="93" Name="FirstVisibleLine"/>
+      <int Value="106" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/System.h" Name="FileName"/>
-      <int Value="69" Name="FirstVisibleLine"/>
+      <int Value="96" Name="FirstVisibleLine"/>
       <int Value="94" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/System.cpp" Name="FileName"/>
-      <int Value="2" Name="FirstVisibleLine"/>
-      <int Value="104" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
       <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/rPBC.cpp" Name="FileName"/>
-      <int Value="72" Name="FirstVisibleLine"/>
-      <int Value="14" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/IDAPBC.cpp" Name="FileName"/>
-      <int Value="50" Name="FirstVisibleLine"/>
-      <int Value="71" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/CMM.cpp" Name="FileName"/>
-      <int Value="96" Name="FirstVisibleLine"/>
-      <int Value="31" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/Agent.cpp" Name="FileName"/>
-      <int Value="24" Name="FirstVisibleLine"/>
-      <int Value="38" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/Remote_Node.cpp" Name="FileName"/>
-      <int Value="33" Name="FirstVisibleLine"/>
-      <int Value="60" Name="CurrentLine"/>
+      <int Value="84" Name="FirstVisibleLine"/>
+      <int Value="128" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/EdgeFlex.cpp" Name="FileName"/>
-      <int Value="9" Name="FirstVisibleLine"/>
-      <int Value="37" Name="CurrentLine"/>
+      <int Value="42" Name="FirstVisibleLine"/>
+      <int Value="32" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/Potential.cpp" Name="FileName"/>
+      <int Value="75" Name="FirstVisibleLine"/>
+      <int Value="96" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/Elisa3.h" Name="FileName"/>
+      <int Value="78" Name="FirstVisibleLine"/>
+      <int Value="90" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/Elisa3.cpp" Name="FileName"/>
+      <int Value="42" Name="FirstVisibleLine"/>
+      <int Value="52" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/Edge.cpp" Name="FileName"/>
+      <int Value="11" Name="FirstVisibleLine"/>
+      <int Value="74" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/CMM.cpp" Name="FileName"/>
+      <int Value="5" Name="FirstVisibleLine"/>
+      <int Value="6" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/Elisa3_Node.cpp" Name="FileName"/>
+      <int Value="18" Name="FirstVisibleLine"/>
+      <int Value="49" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/Elisa3_Station.h" Name="FileName"/>
+      <int Value="12" Name="FirstVisibleLine"/>
+      <int Value="41" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/Elisa3_Station.cpp" Name="FileName"/>
       <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="8" Name="CurrentLine"/>
+      <int Value="2" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/Potential.h" Name="FileName"/>
-      <int Value="30" Name="FirstVisibleLine"/>
-      <int Value="42" Name="CurrentLine"/>
+      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/Agent.h" Name="FileName"/>
+      <int Value="48" Name="FirstVisibleLine"/>
+      <int Value="7" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/include/Goal.h" Name="FileName"/>
-      <int Value="6" Name="FirstVisibleLine"/>
-      <int Value="1" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/classes/Formation.cpp" Name="FileName"/>
-      <int Value="20" Name="FirstVisibleLine"/>
-      <int Value="47" Name="CurrentLine"/>
+      <wxString Value="/home/omdegroot/Documents/distributed_idapbc/src/panda/src/Beacon_Node.cpp" Name="FileName"/>
+      <int Value="79" Name="FirstVisibleLine"/>
+      <int Value="101" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>

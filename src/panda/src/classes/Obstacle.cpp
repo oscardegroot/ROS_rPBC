@@ -27,7 +27,7 @@ PotentialFactors Obstacle::gradient(const Eigen::VectorXd& r_i, const Eigen::Vec
     double gradient_value = obstacle_function->gradient_value(d);
     
     // Return the factors
-    return PotentialFactors(gradient_value*Eigen::MatrixXd::Identity(l, l), 0.0);
+    return PotentialFactors(gradient_value*Eigen::MatrixXd::Identity(l, l), 0.0, 0.0);
 }
 
 
@@ -82,10 +82,10 @@ PotentialFactors BoundObstacle::gradient(const Eigen::VectorXd& r_i, const Eigen
     
     /* Incorrect: should be only that dimension! */ 
     if(lower_bound_active){
-        return PotentialFactors(gradient_value*selector, 0.0);
+        return PotentialFactors(gradient_value*selector, 0.0, 0.0);
     }
     else{
-        return PotentialFactors(-gradient_value*selector, 0.0);
+        return PotentialFactors(-gradient_value*selector, 0.0, 0.0);
     }
 }
 
