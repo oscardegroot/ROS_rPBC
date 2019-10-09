@@ -13,7 +13,7 @@
 		<rosparam command="load" file="$(find panda)/launch/gazebo/pandasim.yaml" />
 	</node>
 
-	<node name="Beacon_1" pkg="panda" type="Beacon_node" output="screen">
+	<node name="Beacon_1" pkg="panda" type="Beacon_node" output="log">
 		<rosparam command="load" file="$(find panda)/launch/gazebo/beacon.yaml" />
 	</node>
 

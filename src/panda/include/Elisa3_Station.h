@@ -20,6 +20,7 @@
 #include "panda/Readout.h"
 #include "panda/colorElisa3.h"
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -42,7 +43,7 @@ std::vector<int> elisa3_addresses;
 
 ros::ServiceServer elisa3_register, elisa3_color;
 
-ros::NodeHandlePtr nh;
+std::unique_ptr<ros::NodeHandle> nh;
 
 // Subscriber to move messages
 std::vector<ros::Publisher> readout_pubs;

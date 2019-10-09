@@ -24,8 +24,7 @@ Eigen::VectorXd EdgeLeader::calculateControls(const Eigen::VectorXd& r_i, const 
 }
 
 // Retrieve the new wave from the scattering transformation
-Eigen::VectorXd EdgeLeader::calculateWaves(const Eigen::VectorXd& tau,
-                                         const Eigen::VectorXd& r_js){
+Eigen::VectorXd EdgeLeader::calculateWaves(const Eigen::VectorXd& tau, const Eigen::VectorXd& r_js){
 
     return Eigen::VectorXd::Zero(l);
 }

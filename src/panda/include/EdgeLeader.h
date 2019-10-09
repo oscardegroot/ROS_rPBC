@@ -16,14 +16,14 @@ public:
     Eigen::VectorXd calculateControls(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     Eigen::VectorXd calculateWaves(const Eigen::VectorXd& tau, const Eigen::VectorXd& r_js) override;
 
-    double gradient_gamma(double d);
-    double gamma(double d);
-
-    double gradient_G(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
-    double G(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
-
-    void initGamma();
-    void initG();
+//    double gradient_gamma(double d);
+//    double gamma(double d);
+//
+//    double gradient_G(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
+//    double G(Eigen::VectorXd r_i, Eigen::VectorXd r_js);
+//
+//    void initGamma();
+//    void initG();
 
 private:
 
@@ -33,11 +33,11 @@ private:
     // NF variables
     double alpha;
 
-    double Rw, eps, r;
-    double a1, b1, a2, b2, c2, d2;
-
-    double b_z, R_z, delta_z;
-    double af, bf, cf, df;
+//    double Rw, eps, r;
+//    double a1, b1, a2, b2, c2, d2;
+//
+//    double b_z, R_z, delta_z;
+//    double af, bf, cf, df;
 
     // The wave impedance B and network gain Kd
     Eigen::MatrixXd matrix_ST;

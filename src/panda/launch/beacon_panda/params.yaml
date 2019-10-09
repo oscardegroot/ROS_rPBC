@@ -1,6 +1,6 @@
 is_simulation: false
 
-sampling_rate: 1000
+sampling_rate: 100
 N_agents: 2
 l: 3
 network_gain:

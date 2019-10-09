@@ -31,6 +31,9 @@ EdgeFlex::EdgeFlex(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eig
     
     /* When bound influences beacond, control goes wrong! */
 
+    // Counter that handles sampling rate converting (trigger initially)
+    retrieval_counter = std::make_unique<helpers::Counter>(rate_mp, false);
+
 	// Set the scattering gain
 	setScatteringGain(gain_set);
 
@@ -45,31 +48,51 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
 	Eigen::VectorXd tau(l), r_js(l), s_out(l);
 	bool hls_applied = false;
 
-	if(!data_received){
+    /* Modified for sampling mismatch */
+    if(retrieval_counter->trigger()){
         
-		s_out = fullSTLoop(tau, r_js, r_i, s_buffer); // Gives tau, r_js, sij+
+        /* Reconstruct */
+        if(!data_received){
+            
+            /* This could be applyWvm();*/
+            s_out = fullSTLoop(tau, r_js, r_i, s_wvm_buffer); // Gives tau, r_js, sij+
 
-		if(s_out.transpose()*s_out > s_buffer.transpose()*s_buffer){
-			
-			hls_applied = true;
-			// Use this and its values, no more calculations
+            if(s_out.transpose()*s_out > s_wvm_buffer.transpose()*s_wvm_buffer){
+                
+                hls_applied = true;
+                s_sample = s_wvm_buffer;
+                // Use this and its values, no more calculations (not anymore for sampling rate stuff...)
 
-		}else{
+            }else{
 
-			// Reconstruct s received
-			s_received = elementSign(s_buffer).cwiseProduct(s_out.cwiseAbs());
-		}
+                // Reconstruct s received
+                s_sample = elementSign(s_wvm_buffer).cwiseProduct(s_out.cwiseAbs());
+                
+            }
 
-	}else{
-		// Otherwise make sure to update the buffer at this time
-		s_buffer = s_received;
-        data_received = false;
-	}
+        /* Buffer data*/
+        }else{
+            // Otherwise make sure to update the buffer at this time
+            s_wvm_buffer = s_received;
+            
+            // And use received data as sample
+            s_sample = s_received;
+            data_received = false;
+            
+        }
+        
+        /* Expand the incoming wave */
+        //logTmp(s_sample);
+        // Account for sampling rates
+        //expandWaves(s_sample);
+        //logTmp("after", s_sample);
+    }
 
 	// If HLS was not applied we still need to calculate tau, r_js and s_out
-	if(!hls_applied){
-		s_out = fullSTLoop(tau, r_js, r_i, s_received);
-	}
+	//if(!hls_applied){
+        // Calculate all values
+		s_out = fullSTLoop(tau, r_js, r_i, s_sample);
+	//}
 
 	// Save the correct values for the next sampling period
 	r_js_last = r_js;
@@ -79,6 +102,8 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
     
 	return tau;
 }
+
+
 
 
 // Calculates all variables in the ST loop with input s_in. Returns s_out

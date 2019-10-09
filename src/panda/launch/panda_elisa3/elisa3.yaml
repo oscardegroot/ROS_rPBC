@@ -1,0 +1,25 @@
+ID: 1
+address: 3658
+sampling_rate: 100
+init_state:
+  - 0.0
+  - 0.0
+  - 0.0
+color: orange
+
+initial_delay: 0.0
+z_select: [0, 1]
+L: 0.04
+NF:
+  alpha: 5.0
+  gamma:
+    r_w: 1.5
+    eps: 0.10
+
+controller:
+  publish_rate: 30.0
+  kq: 1.0
+  kz: 1.0
+
+
+  # Opzet: Elisa 3 met kop richting de office, consensus in diezelfde richting

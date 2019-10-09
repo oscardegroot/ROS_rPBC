@@ -31,7 +31,7 @@ void EdgeDelayFree::applyReconstruction(Eigen::VectorXd& wave_reference, const E
 
 	// Instead of reconstruction we set the data here
 	// such to have no delay
-	wave_reference = calculateBeaconWaves(s_buffer, goal);
+	wave_reference = calculateBeaconWaves(s_wvm_buffer, goal);
 
 }
 
@@ -39,7 +39,7 @@ void EdgeDelayFree::publishWave(const Eigen::VectorXd& s_out) {
 		
 	// Save the outgoing message to calculate the waves in the next 
 	// time step
-	s_buffer = s_out;	
+	s_wvm_buffer = s_out;	
 }
 
 // Retrieve tau from the scattering transforma)tion

@@ -27,7 +27,7 @@ int main(int argc, char **argv){
     ros::Rate loop_rate(system->cmm->agent->getSamplingRate());
 
     // Wait for everything to startup
-    ros::Duration(2.0).sleep();
+    ros::Duration(0.6).sleep();
 
     while(ros::ok()){
         if(system->dataReady()) {

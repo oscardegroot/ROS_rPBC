@@ -11,7 +11,7 @@ An interface for controllers using IDAPBC or rPBC control.
 Controller::Controller(Agent& agent){
 
 	tau_pub.init(nh, "agent_tau", 1);
-	z_pub.init(nh, "agent_z", 1);
+	z_pub.init(nh, "agent_" + std::to_string(agent.getID()), 1);
 
     helpers::safelyRetrieve(nh, "/l", l);
 

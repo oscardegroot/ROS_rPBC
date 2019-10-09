@@ -25,14 +25,15 @@ Edge::Edge(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::Vect
 	gain = gain_set;
 	r_star = r_star_set;
     
-    rate_mp = rate_mp_set;
-    pub_counter = helpers::Counter(rate_mp); // counts until rate_mp
-    
+    rate_mp = rate_mp_set;    
 	initChannels();
 
+    publish_counter = std::make_unique<helpers::Counter>(rate_mp);
+
 	// Initialise buffers
-	s_buffer = Eigen::VectorXd::Zero(l);
+	s_wvm_buffer = Eigen::VectorXd::Zero(l);
 	s_received = Eigen::VectorXd::Zero(l);
+    s_sample = Eigen::VectorXd::Zero(l);
     
     s_out_compressed = Eigen::VectorXd::Zero(l);
     s_out_squared = Eigen::VectorXd::Zero(l);
@@ -83,13 +84,15 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	
 	logMsg("Edge", "Wave received. Timestamp = " + std::to_string(msg->timestamp) + ".", 4);
 
+    /** @todo timestamp check, rejection for t > t_last */
+
 	std::vector<double> s = msg->s.data;
 
 	s_received = Eigen::VectorXd::Zero(l);
 	for(int i = 0; i < l; i++){
 
-		s_received(i, 0) = s[i];
-        // EXPANDER!
+		s_received(i) = s[i];
+        // EXPANDER! -> now seperate
         //helpers::sgn(s[i])*std::sqrt(std::pow(s[i], 2)/double(rate_mp));// / double(rate_mp); // divide by sampling discrepancy! (this is the passive interpolator)
         // NOT WORKING YET!! RECONSTRUCTION IS APPLIED ON THE WRONG SIDE...
 	}
@@ -106,14 +109,11 @@ void Edge::applyReconstruction(Eigen::VectorXd & wave_reference, const Eigen::Ve
 /// Publish a returning wave
 void Edge::publishWave(const Eigen::VectorXd& s_out){
     
-//    s_out_compressed += s_out;
-//    for(int i = 0; i < l; i++){
-//        s_out_squared(i) += std::pow(s_out(i), 2);
-//
-//    }
-//        
-//    if(pub_counter.trigger()){
+    //compressWaves(s_out);
     
+    /* If the publish counter is triggered, we send our compressed data sample */
+    if(publish_counter->trigger()){
+        //logTmp("before", s_out);
         // The message to send
         panda::Waves msg;
 
@@ -126,6 +126,7 @@ void Edge::publishWave(const Eigen::VectorXd& s_out){
             // This is where the compression equation gets applied
             msg_vec.data[i] = s_out(i, 0);
             //msg_vec.data[i] = helpers::sgn(s_out_compressed(i)) * std::sqrt(s_out_squared(i));  
+            //logTmp("s_after(" + std::to_string(i) + ")", msg_vec.data[i]);
         }
         
         // Set the message
@@ -142,6 +143,28 @@ void Edge::publishWave(const Eigen::VectorXd& s_out){
         s_out_compressed = Eigen::VectorXd::Zero(l);
         s_out_squared = Eigen::VectorXd::Zero(l);
 
-   // }
+    }
 
+}
+
+// Expand waves for sampling
+void Edge::expandWaves(Eigen::VectorXd& waves){
+
+    for(size_t i = 0; i < l; i++){
+        
+        waves(i) = helpers::sgn(waves(i))*std::sqrt(std::pow(waves(i), 2.0) / (double)(rate_mp));
+    }
+    
+}
+
+void Edge::compressWaves(const Eigen::VectorXd& waves){
+    
+    s_out_compressed += waves;
+    
+    for(int i = 0; i < l; i++){
+        
+        s_out_squared(i) += std::pow(waves(i), 2);
+    }
+    
+    
 }

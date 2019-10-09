@@ -38,6 +38,8 @@ private:
 
     std::unique_ptr<AdvancedPotential> potential;
 
+    std::unique_ptr<helpers::Counter> retrieval_counter;
+
 	// Save of the iterated tau and tau in the last loop
 	double agent_i;
 

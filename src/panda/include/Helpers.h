@@ -31,7 +31,7 @@ Eigen::VectorXd messageToEigen(std_msgs::Float64MultiArray msg, int l);
 class Counter{
 
 private:
-    unsigned int count;
+    int count;
     unsigned int rate;
 public:
     Counter(){
@@ -39,11 +39,17 @@ public:
         count = 0;
     }
     
-    Counter(unsigned int rate_set){
+    Counter(unsigned int rate_set, bool initial_trigger = false){
         rate = rate_set;
-        count = 0;
+        
+        if(initial_trigger){
+            count = -1;
+        }else{
+            count = 0;
+
+        }
     }
-    
+
     bool trigger(){
         
         count = (count + 1)%rate;

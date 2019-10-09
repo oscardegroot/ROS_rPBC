@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!-- Launch script for a simulation of the panda while connected to the robot directly -->
+<launch>
+ 	<arg name="robot_ip" default="172.16.0.2"/>
+	<arg name="load_gripper" default="false" />
+	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm_camera.urdf.xacro'" />
+	<include file="$(find panda_simulation)/launch/sim.launch"/>
+	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="connectedpandasim"/>
+
+	<rosparam command="load" file="$(find panda)/launch/connected_panda/1D/params.yaml" />
+	<rosparam command="load" file="$(find panda)/launch/connected_panda/1D/goals.yaml" />
+
+	<node name="Remote" pkg="panda" type="Remote" output="screen"/>
+
+
+
+	<node name="franka_control" pkg="franka_control" type="franka_control_node" output="screen" required="true">
+		<rosparam command="load" file="$(find franka_control)/config/franka_control_node.yaml" />
+		<rosparam command="load" file="$(find panda)/launch/connected_panda/1D/panda.yaml"/>
+		<param name="robot_ip" value="$(arg robot_ip)" />
+	</node>
+
+	<rosparam command="load" file="$(find franka_control)/config/default_controllers.yaml" />
+	<node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_state_controller"/>
+
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
+
+	<node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
+		<rosparam if="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states, franka_gripper/joint_states] </rosparam>
+		<rosparam  unless="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states] </rosparam>
+		<param name="rate" value="30"/>
+	</node>
+		
+
+	<node name="Beacon_1" pkg="panda" type="Beacon_node" output="screen">
+		<rosparam command="load" file="$(find panda)/launch/connected_panda/1D/beacon.yaml" />
+	</node>
+
+
+	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] reference/data[0]"/>
+
+
+	<!-- <node name="plotjes2" pkg="rqt_plot" type="rqt_plot" args="/robot1/panda_joint1_controller/command/data /robot1/panda_joint2_controller/command/data /robot1/panda_joint3_controller/command/data" /> -->
+ 
+
+	<!-- <include file="$(find franka_control)/launch/franka_control.launch">
+	    <arg name="robot_ip" value="$(arg robot_ip)" />
+	    <arg name="load_gripper" value="$(arg load_gripper)" />
+	</include> -->
+
+</launch>

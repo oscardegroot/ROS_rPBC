@@ -2,6 +2,8 @@
 // Created by omdegroot on 12-08-19.
 //
 
+/** @todo rewrite this as a class for the remote_node. */
+
 #include "Elisa3_Station.h"
 
 
@@ -10,7 +12,7 @@ int main(int argc, char **argv){
     // Initialise ROS
     ros::init(argc, argv, "Elisa3_Station");
 
-    nh = ros::NodeHandlePtr(new ros::NodeHandle);
+    nh = std::make_unique<ros::NodeHandle>();
 
     elisa3_register = nh->advertiseService("/registerElisa3", registerElisa3);
     elisa3_color = nh->advertiseService("/colorElisa3", colorElisa3);
@@ -59,7 +61,6 @@ int main(int argc, char **argv){
     }
 
     stopCommunication();
-
     return 0;
 }
 
@@ -73,7 +74,10 @@ bool moveElisa3(const panda::Move::ConstPtr& msg) {
 
 bool registerElisa3(panda::registerElisa3::Request &req, panda::registerElisa3::Response &res){
 
-
+    // Lock to prevent pushing back misordered entries
+    std::mutex mtx;
+    mtx.lock();
+    
     elisa3_addresses.push_back(req.address);
 
 
@@ -83,8 +87,9 @@ bool registerElisa3(panda::registerElisa3::Request &req, panda::registerElisa3::
     readout_pubs.push_back(nh->advertise<panda::Readout>("elisa3_" +
         std::to_string(req.address) + "_readout", 20));
 
+    mtx.unlock();
+    
     communication_started = true;
-    ros::Duration(0.2).sleep();
     logMsg("Elisa Station", "Succesfully added a new Elisa3 with address " + std::to_string(req.address) + "!", 2);
 
     return true;

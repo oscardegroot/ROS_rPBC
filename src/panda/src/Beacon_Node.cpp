@@ -165,7 +165,6 @@ void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref){
 
 void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref){
 
-	//logTmp(ref);
 	visualization_msgs::Marker points;
     points.header.frame_id = "/panda_link0";
     points.header.stamp = ros::Time::now();
@@ -238,7 +237,7 @@ void setGoalType(int goal_type){
 			goal_string += ")";
 		}
 	}
-
+    
 	logMsg("Beacon Node", "Goal set to " + goal_string + " (type=" + std::to_string(goal_type) + ")", 2);
 
 }

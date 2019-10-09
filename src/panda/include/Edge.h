@@ -45,6 +45,10 @@ public:
 	virtual 
     Eigen::VectorXd calculateWaves(const Eigen::VectorXd& s_in,	const Eigen::VectorXd& r_i) = 0;
 
+    // Waves for dealing with sampling frequencies
+    void expandWaves(Eigen::VectorXd& waves);
+    void compressWaves(const Eigen::VectorXd& waves);
+
 
 protected:
 
@@ -53,7 +57,7 @@ protected:
 	Eigen::VectorXd r_star;
     
     int rate_mp;
-    helpers::Counter pub_counter;
+    std::unique_ptr<helpers::Counter> publish_counter;
 
 	// The last received timestamp
 	int timestamp = 0;
@@ -66,8 +70,8 @@ protected:
 	ros::Publisher wave_pub;
 	ros::Subscriber wave_sub;
     
-    // The buffer for WVM purposes
-	Eigen::VectorXd s_buffer, s_received;
+    // WVM buffer, received buffer, actual used sample (possibly expanded)
+	Eigen::VectorXd s_wvm_buffer, s_received, s_sample;
     Eigen::VectorXd s_out_compressed, s_out_squared;
 
 };

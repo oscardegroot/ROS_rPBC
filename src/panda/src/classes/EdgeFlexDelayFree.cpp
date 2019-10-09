@@ -68,7 +68,7 @@ void EdgeFlexDelayFree::publishWave(const Eigen::VectorXd& s_out) {
 		
 	// Save the outgoing message to calculate the waves in the next 
 	// time step
-	//s_buffer = s_out;	
+	//s_wvm_buffer = s_out;	
 	return;
 }
 
@@ -83,7 +83,7 @@ void EdgeFlexDelayFree::publishWave(const Eigen::VectorXd& s_out) {
 // 	}else{
 // 		logMsg("FlexibleEdge", "Used received data", 5);
 // 		data_received = false;
-// 		s_buffer = s_received;
+// 		s_wvm_buffer = s_received;
 // 	}
 	
 // }

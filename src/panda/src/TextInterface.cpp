@@ -28,7 +28,20 @@ int main(int argc, char **argv){
         ros::Duration(0.2).sleep();
         
         std::cout << "Please enter a new goal (1-5): ";
-        int goal_select = helpers::getch() - 48; // 48 = 0 on keyboard
+        int goal_select = helpers::getch(); // 48 = 0 on keyboard
+        
+        // Space bar
+        if(goal_select == 32){
+            goal_select = -2;
+        // number
+        }else{
+            goal_select -= 48;
+        }
+        
+        if(goal_select > 9 || goal_select < -2){
+            logMsg("Interface", "Incorrect goal given! Input is ignored. (goal = " + std::to_string(goal_select) + ")", 1);
+            continue;
+        }
         //std::cin >> goal_select;
         publisher.publish(goal_select);
 

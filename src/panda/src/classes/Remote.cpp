@@ -23,7 +23,9 @@ Remote::Remote(){
     cmm_server = n.advertiseService("/cmmReady", &Remote::acknowledgeCMMReady, this);
 
     // Workaround!
-    ros::Subscriber topic_create = n.subscribe("/agent_z", 1, &Remote::fakeCallback, this);
+    for(int i = 0; i < N; i++){
+        ros::Subscriber topic_create = n.subscribe("/agent_" + std::to_string(i), 1, &Remote::fakeCallback, this);
+    }
 
     // 2 second timer
     timer = std::make_unique<helpers::SimpleTimer>(4.0);
@@ -83,7 +85,7 @@ bool Remote::getConnectionsOf(panda::getConnectionsOf::Request &req, panda::getC
 	res.r_star = r_star_vec;
 
 	logMsg("Remote", "Responded to connection request between " + std::to_string(req.id_i) +
-	" and " + std::to_string(req.id_j) + ", r* = " + std::to_string(r_star(0)) + ", " + std::to_string(r_star(1)), 2);
+	" and " + std::to_string(req.id_j) + ", (in 3D) r* = " + std::to_string(r_star(0)) + ", " + std::to_string(r_star(1)) + ", " + std::to_string(r_star(2)), 2);
 
 
 	return true;

@@ -1,0 +1,14 @@
+is_simulation: true
+
+N_agents: 2
+l: 1
+sampling_rate: 100
+network_gain:
+  - 3.0
+lambda: 1.0
+gamma: 1.0
+
+output: r
+
+connectedpandasim:
+  type: panda/ConnectedPandasim

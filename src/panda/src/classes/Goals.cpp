@@ -29,6 +29,8 @@ Formation Goals::getFormation(const std::string& formation_type){
         return CircleFormation();
     }else if(formation_type == "line"){
         return LineFormation();
+    }else if(formation_type == "manual"){
+        return ManualFormation();
     }else{
         return Consensus();
     }

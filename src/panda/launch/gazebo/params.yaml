@@ -2,12 +2,12 @@ is_simulation: true
 
 N_agents: 2
 l: 3
-sampling_rate: 1000
+sampling_rate: 100
 network_gain:
   - 3.0
   - 3.0
   - 3.0
-lambda: 7.0
+lambda: 1.0
 gamma: 3.0
 
 output: z

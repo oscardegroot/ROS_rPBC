@@ -146,7 +146,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 void Panda::checkSafety(){
 
 	// Check if the panda is not below its lower bound
-	if(this->state.z(2) < z_lower_bound){
+	if(z_coordinate < z_lower_bound){
 		throw BoundException(
 			"Panda: Panda fell below lower bound!");
 	}
@@ -182,6 +182,8 @@ void Panda::retrieveState(){
 	this->state.dq = helpers::arrayToVector<7>(dq_filtered);
 
 	std::array<double, 3> z{{robot_state.O_T_EE[12], robot_state.O_T_EE[13], robot_state.O_T_EE[14]}};
+    z_coordinate = z[2];
+
 	this->state.z = this->selectZ(helpers::arrayToVector<3>(z));
 
 	retrieveMatrices();
@@ -249,7 +251,7 @@ void Panda::retrieveMatrices(){
 	 					franka::Frame::kEndEffector);
 
 	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
-	psi = this->selectPsi(jacobian.transpose().block(0, 0, 7, 6));
+	psi = selectPsi(jacobian.transpose().block(0, 0, 7, 6));
 
 	// Get the mass matrix
 	std::array<double, 49> mass_array = model_handle_->getMass();

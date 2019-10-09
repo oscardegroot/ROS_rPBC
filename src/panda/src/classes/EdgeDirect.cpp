@@ -27,24 +27,24 @@ void EdgeDirect::applyReconstruction(Eigen::VectorXd& wave_reference, const Eige
 	if(!data_received)
 	{
 		// Calculate the wave when we apply HLS
-		Eigen::VectorXd s_HLS = calculateWaves(s_buffer, r_i);
+		Eigen::VectorXd s_HLS = calculateWaves(s_wvm_buffer, r_i);
 
 		// If that's allowed, use it, otherwise reconstruct by amplitude
-		if(s_HLS.transpose()*s_HLS > s_buffer.transpose()*s_buffer)
+		if(s_HLS.transpose()*s_HLS > s_wvm_buffer.transpose()*s_wvm_buffer)
 		{
 		 	logMsg("Edge", "WVM applied HLS", 5);
-			wave_reference = s_buffer;
+			wave_reference = s_wvm_buffer;
 
 		}else{
 			logMsg("Edge", "WVM applied reconstruction", 5);
-			wave_reference = elementSign(s_buffer).cwiseProduct(s_HLS.cwiseAbs());
+			wave_reference = elementSign(s_wvm_buffer).cwiseProduct(s_HLS.cwiseAbs());
 		}
 		
 		
 	}else{
 		logMsg("Edge", "Used received data", 5);
 		data_received = false;
-		s_buffer = s_received;
+		s_wvm_buffer = s_received;
 	}
 	
 }

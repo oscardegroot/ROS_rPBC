@@ -78,7 +78,7 @@ void ConnectedPandasim::retrieveMatrices()
     // Het lijkt erop dat deze niet klopt in de franka library, ze roepen gewoon *(robot_state) aan ipv mijn argumentjes.
 	std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(franka::Frame::kEndEffector, q_array, identity_16, identity_16);
 	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
-	psi = jacobian.transpose().block(0, 0, 7, 3);
+	psi = selectPsi(jacobian.transpose().block(0, 0, 7, 3));
     //logTmp(psi);
     
 	// Get the mass matrix
@@ -191,6 +191,7 @@ void ConnectedPandasim::readStateCallback(const sensor_msgs::JointState::ConstPt
     // Pose is goed!
     
     // Write to the state
+    z_coordinate = new_z[2];
     setState(new_q, new_qd, new_z);
     mtx.unlock();
 }

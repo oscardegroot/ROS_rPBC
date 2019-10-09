@@ -25,6 +25,9 @@ goals/3/goal5:
 
 # Note implementation in edgeflex is missing
 formation:
-  type: line
-  radius: 0.2
-  spacing: 0.2
+  type: consensus
+
+# formation:
+#   type: line
+#   radius: 0.2
+#   spacing: 0.2

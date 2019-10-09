@@ -1,0 +1,20 @@
+is_simulation: false
+
+sampling_rate: 100
+N_agents: 2
+l: 1
+network_gain:
+  - 3.0
+lambda: 1.0
+gamma: 3.0
+
+output: r
+
+panda:
+  type: panda/Panda
+
+formation:
+  type: consensus
+  # type: circle
+  # radius: 0.1
+  # phase: 1.3

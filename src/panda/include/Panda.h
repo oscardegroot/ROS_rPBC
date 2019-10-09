@@ -134,6 +134,9 @@ namespace panda {
         std::array<double, 7> dq_filtered;
 
         Eigen::VectorXd last_z;
+        
+        // For safety when the geometric z is not selected
+        double z_coordinate;
 
         // Torque rate limit
         static constexpr double kDeltaTauMax{1.0};

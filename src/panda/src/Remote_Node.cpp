@@ -76,11 +76,11 @@ int main(int argc, char **argv){
         }
         ros::spinOnce();
     }
-    
+    /** @todo Add case spinning and Elisa_Station */
                     
-    if(is_simulation){
-        remote.unpauseGazebo();
-    }
+//    if(is_simulation){
+//        remote.unpauseGazebo();
+//    }
 
 	ros::spin();
 
