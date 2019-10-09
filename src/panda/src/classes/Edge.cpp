@@ -63,7 +63,7 @@ void Edge::initChannels(){
 Edge::~Edge(){}
 
 // Sample the edge, retrieving a data point for the cooperative control and returning a wave in the process
-Eigen::VectorXd Edge::sample(Eigen::VectorXd r_i){
+Eigen::VectorXd Edge::sample(const Eigen::VectorXd& r_i){
 
 	// Reconstruct the wave if nothing was received
 	applyReconstruction(s_received, r_i);
@@ -99,13 +99,12 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 }
 
 /// Reconstruct the signal if necessary
-void Edge::applyReconstruction(Eigen::VectorXd & wave_reference,
-									 Eigen::VectorXd r_i){
+void Edge::applyReconstruction(Eigen::VectorXd & wave_reference, const Eigen::VectorXd& r_i){
 	return;
 }
 
 /// Publish a returning wave
-void Edge::publishWave(Eigen::VectorXd s_out){
+void Edge::publishWave(const Eigen::VectorXd& s_out){
     
 //    s_out_compressed += s_out;
 //    for(int i = 0; i < l; i++){

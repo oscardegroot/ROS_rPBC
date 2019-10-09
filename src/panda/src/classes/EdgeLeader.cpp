@@ -13,7 +13,7 @@ EdgeLeader::EdgeLeader(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set,
 }
 
 /* Main public function that samples this edge */
-Eigen::VectorXd EdgeLeader::sample(Eigen::VectorXd r_i){
+Eigen::VectorXd EdgeLeader::sample(const Eigen::VectorXd& r_i){
 
     return gain*(r_star - r_i);
 }

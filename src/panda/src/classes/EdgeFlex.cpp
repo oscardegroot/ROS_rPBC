@@ -40,7 +40,7 @@ EdgeFlex::EdgeFlex(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eig
 }
 
 /* Main public function that samples this edge */
-Eigen::VectorXd EdgeFlex::sample(Eigen::VectorXd r_i){
+Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
 
 	Eigen::VectorXd tau(l), r_js(l), s_out(l);
 	bool hls_applied = false;
@@ -83,7 +83,7 @@ Eigen::VectorXd EdgeFlex::sample(Eigen::VectorXd r_i){
 
 // Calculates all variables in the ST loop with input s_in. Returns s_out
 Eigen::VectorXd EdgeFlex::fullSTLoop(Eigen::VectorXd& tau, Eigen::VectorXd& r_js,
-									Eigen::VectorXd r_i, Eigen::VectorXd s_in){
+									const Eigen::VectorXd& r_i, const Eigen::VectorXd& s_in){
 
 	// Determine r_js via iterations over the gradient
 	// (Solves the algebraic loop of the ST)
@@ -145,7 +145,7 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
 }
 
 // Apply the element wise sign operator
-Eigen::VectorXd EdgeFlex::elementSign(Eigen::VectorXd s_in){
+Eigen::VectorXd EdgeFlex::elementSign(const Eigen::VectorXd& s_in){
 
 	Eigen::VectorXd s_out = Eigen::VectorXd::Zero(s_in.size());
 	for(int i = 0; i < s_in.size(); i++){
@@ -179,7 +179,7 @@ Eigen::VectorXd EdgeFlex::calculateWaves(const Eigen::VectorXd& tau, const Eigen
 	return result;
 }
 
-void EdgeFlex::setScatteringGain(Eigen::MatrixXd gain){
+void EdgeFlex::setScatteringGain(const Eigen::MatrixXd& gain){
 	// Define the gains on this edge and the impedance
 	Eigen::MatrixXd B(l, l);
  	B = gain.cwiseSqrt();

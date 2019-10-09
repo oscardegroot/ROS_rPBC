@@ -12,7 +12,7 @@ public:
     // Constructor and destructor
     EdgeLeader(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set);
 
-    Eigen::VectorXd sample(Eigen::VectorXd r_i) override;
+    Eigen::VectorXd sample(const Eigen::VectorXd& r_i) override;
     Eigen::VectorXd calculateControls(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     Eigen::VectorXd calculateWaves(const Eigen::VectorXd& tau, const Eigen::VectorXd& r_js) override;
 

@@ -30,8 +30,7 @@ void EdgeFlexDelayFree::waveCallback(const panda::Waves::ConstPtr& msg){
 }
 
 /* Reconstruct data if necessary */
-void EdgeFlexDelayFree::applyReconstruction(Eigen::VectorXd & wave_reference,
-									 Eigen::VectorXd r_i){
+void EdgeFlexDelayFree::applyReconstruction(Eigen::VectorXd & wave_reference, const Eigen::VectorXd& r_i){
 
 	// Instead of reconstruction we set the data here
 	// such to have no delay
@@ -65,7 +64,7 @@ void EdgeFlexDelayFree::applyReconstruction(Eigen::VectorXd & wave_reference,
 // 	return tau_jsi;
 // }
 
-void EdgeFlexDelayFree::publishWave(Eigen::VectorXd s_out) {
+void EdgeFlexDelayFree::publishWave(const Eigen::VectorXd& s_out) {
 		
 	// Save the outgoing message to calculate the waves in the next 
 	// time step

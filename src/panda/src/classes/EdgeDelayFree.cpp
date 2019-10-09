@@ -27,7 +27,7 @@ void EdgeDelayFree::waveCallback(const panda::Waves::ConstPtr& msg){
 
 
 /* Reconstruct data if necessary */
-void EdgeDelayFree::applyReconstruction(Eigen::VectorXd& wave_reference, Eigen::VectorXd r_i){
+void EdgeDelayFree::applyReconstruction(Eigen::VectorXd& wave_reference, const Eigen::VectorXd& r_i){
 
 	// Instead of reconstruction we set the data here
 	// such to have no delay
@@ -35,7 +35,7 @@ void EdgeDelayFree::applyReconstruction(Eigen::VectorXd& wave_reference, Eigen::
 
 }
 
-void EdgeDelayFree::publishWave(Eigen::VectorXd s_out) {
+void EdgeDelayFree::publishWave(const Eigen::VectorXd& s_out) {
 		
 	// Save the outgoing message to calculate the waves in the next 
 	// time step
@@ -55,14 +55,14 @@ Eigen::VectorXd EdgeDelayFree::calculateWaves(const Eigen::VectorXd& s_in, const
 }
 
 // Retrieve the new wave from the scattering transformation
-Eigen::VectorXd EdgeDelayFree::calculateBeaconWaves(Eigen::VectorXd s_in, Eigen::VectorXd r_i){
+Eigen::VectorXd EdgeDelayFree::calculateBeaconWaves(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i){
 
 	return gain_wave_beacon.block(0, 0, l, l) * s_in + gain_wave_beacon.block(0, l, l, l)*r_i;
 }
 
 
 // 
-void EdgeDelayFree::setScatteringGain(Eigen::MatrixXd gain){
+void EdgeDelayFree::setScatteringGain(const Eigen::MatrixXd& gain){
 	// Define the gains on this edge and the impedance
 	Eigen::MatrixXd Kd(l, l);
 	Eigen::MatrixXd B(l, l);

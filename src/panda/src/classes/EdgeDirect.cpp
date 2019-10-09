@@ -21,7 +21,7 @@ EdgeDirect::EdgeDirect(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set,
 
 
 /* Reconstruct data if necessary */
-void EdgeDirect::applyReconstruction(Eigen::VectorXd& wave_reference, Eigen::VectorXd r_i){
+void EdgeDirect::applyReconstruction(Eigen::VectorXd& wave_reference, const Eigen::VectorXd& r_i){
 
 	/*We need to apply WVM*/
 	if(!data_received)
@@ -50,7 +50,7 @@ void EdgeDirect::applyReconstruction(Eigen::VectorXd& wave_reference, Eigen::Vec
 }
 
 // Apply the element wise sign operator
-Eigen::VectorXd EdgeDirect::elementSign(Eigen::VectorXd s_in){
+Eigen::VectorXd EdgeDirect::elementSign(const Eigen::VectorXd& s_in){
 
 	Eigen::VectorXd s_out = Eigen::VectorXd::Zero(s_in.size());
 	for(int i = 0; i < s_in.size(); i++){
@@ -77,7 +77,7 @@ Eigen::VectorXd EdgeDirect::calculateWaves(const Eigen::VectorXd& s_in, const Ei
 
 
 // 
-void EdgeDirect::setScatteringGain(Eigen::MatrixXd gain){
+void EdgeDirect::setScatteringGain(const Eigen::MatrixXd& gain){
 	// Define the gains on this edge and the impedance
 	Eigen::MatrixXd Kd(l, l);
 	Eigen::MatrixXd B(l, l);
