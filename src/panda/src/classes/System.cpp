@@ -12,6 +12,9 @@ System::System(int n_set, int m_set, int lmax_set, const std::string& name)
 {
     // Initialise the communication management module
     cmm = std::make_unique<CMM>(name);
+    
+    ros::NodeHandle nh;
+    enable_server = nh.advertiseService("/Agent_" + std::to_string(cmm->agent->getID()) + "/enable", &System::enableSystem, this);
 
     initSelectors();
     
@@ -113,4 +116,11 @@ void System::resetUpdatedFlags()
 
 Eigen::VectorXd& System::dTdq(){
     return dvdq;/* Note: don use! */
+}
+
+bool System::enableSystem(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+    is_enabled = true;
+    
+    return true;
 }

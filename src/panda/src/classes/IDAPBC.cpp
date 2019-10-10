@@ -57,7 +57,11 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, const Eigen::VectorXd& ta
     benchmark.start();
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
-
+    
+    if(!system.isEnabled()){
+        return tau;
+    }
+    
 	// Compensate gravity if necessary
 	if(gravity_enabled){
 		tau += system.dVdq();

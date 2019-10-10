@@ -135,6 +135,7 @@ bool AgentStation::registerAgent(panda::registerAgent::Request &req, panda::regi
 
     // Add the received agent to the list
     agents.push_back(std::make_unique<Agent>(req.id, req.sampling_rate, req.type));
+    enable_clients.push_back(nh.serviceClient<std_srvs::Empty>("/Agent_" + std::to_string(req.id) + "/enable"));
 
     logMsg("Remote", "Added new agent of type " + agents[agents.size() - 1]->getType() + " with ID " +
     std::to_string(agents[agents.size() - 1]->getID()) + ".", 2);
@@ -199,4 +200,9 @@ bool AgentStation::finishedRegistering(){
 void AgentStation::enableStation()
 {
     unpauseGazebo();
+    std_srvs::Empty srv;
+    for(auto& client : enable_clients){
+        
+        client.call(srv);
+    }
 }

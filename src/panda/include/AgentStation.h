@@ -83,6 +83,7 @@ private:
 
 	// The server
 	ros::ServiceServer connect_server, leader_server, register_server, cmm_server;
+    std::vector<ros::ServiceClient> enable_clients;
     
     /**
      * @brief Startup the network by sending start messages to all CMM

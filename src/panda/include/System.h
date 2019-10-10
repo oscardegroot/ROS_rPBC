@@ -110,6 +110,12 @@ public:
 	virtual
     void checkSafety();
 
+    /**
+     * @brief Enable this system, starting the controller
+     */
+    bool enableSystem(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+    bool isEnabled() const { return is_enabled;};
+
 protected:
 
     // Selector for Psi and z
@@ -122,6 +128,9 @@ protected:
     Eigen::MatrixXd m_m, psi, dm, dpsi, dminv;
     Eigen::VectorXd dvdq;
     Eigen::MatrixXd psi_previous, m_previous;
+
+    bool is_enabled = false;
+    ros::ServiceServer enable_server;
 
     // Update parameters
     bool m_updated, dm_updated, psi_updated, dpsi_updated, dvdq_updated, dminv_updated;

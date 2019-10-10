@@ -55,8 +55,13 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
 	
     benchmarker.start();// ~ 70 - 140 us!
 
+
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
+    
+    if(!system.isEnabled()){
+        return tau;
+    }
     
 	// Compensate gravity if necessary
 	if(gravity_enabled){
