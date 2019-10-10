@@ -70,8 +70,9 @@ Elisa3::Elisa3()
     color_client = nh.serviceClient<panda::colorElisa3>("/colorElisa3");
 
     std::string color_name;
-    cmm->agent->retrieveParameter("color", color_name);
-    setColor(color_name);
+    cmm->agent->retrieveParameter("color", color_name);   
+    //setColor(color_name);
+    /** @todo Fix! Elisastation hasn started communication when this is executed...*/
     
     move_pub = nh.advertise<panda::Move>("elisa3_" + std::to_string(address) + "_move", 20);
     
@@ -88,7 +89,9 @@ Elisa3::~Elisa3() {
 
 /// Convert the control input to the system inputs and actuate
 bool Elisa3::sendInput(const Eigen::VectorXd & tau){
+        //setColor(color_name);
 
+    setColor("orange");
     //logTmp("Elisa3 running");
     data_received = false;
     
@@ -307,9 +310,14 @@ void Elisa3::setColor(int r, int g, int b){
     srv_color.request.color_type = 0;
     srv_color.request.red = r; srv_color.request.green = g; srv_color.request.blue = b;
 
-    if(!color_client.call(srv_color)){
-        logMsg("Elisa3", "Color Setting Failed!", 1);
-    }
+    auto color_call = [&]{
+        return color_client.call(srv_color);
+    };
+    
+    helpers::repeatedAttempts(color_call, 2.0, "Color Setting Failed!");
+//    if(!color_client.call(srv_color)){
+//        logMsg("Elisa3", "Color Setting Failed!", 1);
+//    }
 }
 
 bool Elisa3::dataReady(){

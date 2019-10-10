@@ -13,7 +13,8 @@ ConnectedPandasim::ConnectedPandasim()
     
 	this->setState(Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(3));
     state_previous = {Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(3)};
-
+    z_coordinate = 1.0;
+    
 	for(int i = 0; i < n; i++){
 		tau_pubs[i] = nh.advertise<std_msgs::Float64>("/robot1/panda_joint" +
                     to_string(i+1) + "_controller/command", 100);

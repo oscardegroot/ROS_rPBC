@@ -4,7 +4,7 @@
 	<rosparam command="load" file="$(find panda)/launch/Elisa3/Single/params.yaml" />
 	<rosparam command="load" file="$(find panda)/launch/Elisa3/goals.yaml" />
 
-  <node pkg="panda" type="Elisa3_Station" name="station" output="screen" />
+  <!-- <node pkg="panda" type="Elisa3_Station" name="station" output="screen" /> -->
   <node pkg="panda" type="Remote" name="remote" output="screen" />
   <node pkg="panda" type="Elisa3_Node" name="elisa3_1" output="screen">
     <rosparam command="load" file="$(find panda)/launch/Elisa3/Single/elisa3.yaml" />

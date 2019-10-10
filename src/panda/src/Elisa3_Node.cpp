@@ -11,6 +11,7 @@
 #include "System.h"
 #include "Controller.h"
 #include "IDAPBC.h"
+#include "rPBC.h"
 #include "CMM.h"
 #include "elisa3-lib.h"
 
@@ -21,7 +22,7 @@ int main(int argc, char **argv){
     
     // Create a system and a controller
     std::unique_ptr<System> system = std::make_unique<Elisa3>();
-    std::unique_ptr<Controller> controller = std::make_unique<IDAPBC>(*(system->cmm->agent));
+    std::unique_ptr<Controller> controller = std::make_unique<rPBC>(*(system->cmm->agent));
 
     // Define loop rate
     ros::Rate loop_rate(system->cmm->agent->getSamplingRate());

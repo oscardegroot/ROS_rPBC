@@ -5,7 +5,7 @@
 #include "System.h"
 #include "Helpers.h"
 #include "Exceptions.h"
-#include "Elisa3_Station.h"
+#include "ElisaStation.h"
 
 #include <realtime_tools/realtime_publisher.h>
 #include "std_msgs/Float64MultiArray.h"

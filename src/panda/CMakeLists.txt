@@ -95,11 +95,11 @@ add_library(${PROJECT_NAME}
 	src/classes/EdgeFlex.cpp
 	src/classes/EdgeLeader.cpp
 	src/classes/Agent.cpp
-	#src/classes/EdgeIntegral.cpp
 	src/classes/EdgeDelayFree.cpp
 	src/classes/EdgeFlexDelayFree.cpp
 	src/classes/Goals.cpp
-	src/classes/Remote.cpp
+	src/classes/AgentStation.cpp
+	src/classes/ElisaStation.cpp
 	src/classes/System.cpp
 	src/classes/CMM.cpp
 	src/classes/Elisa3.cpp
@@ -125,8 +125,8 @@ add_library(${PROJECT_NAME}
 add_executable(Elisa3_Node src/Elisa3_Node.cpp)
 target_link_libraries(Elisa3_Node ${catkin_LIBRARIES} ${PROJECT_NAME} elisa3 pthread usb-1.0)
 
-add_executable(Elisa3_Station src/Elisa3_Station.cpp)
-target_link_libraries(Elisa3_Station ${catkin_LIBRARIES} ${PROJECT_NAME} elisa3 pthread usb-1.0)
+# add_executable(Elisa3_Station src/Elisa3_Station.cpp)
+# target_link_libraries(Elisa3_Station ${catkin_LIBRARIES} ${PROJECT_NAME} elisa3 pthread usb-1.0)
 
 
 # The agent Node
@@ -176,11 +176,11 @@ target_link_libraries(Beacon_node ${catkin_LIBRARIES}
 add_dependencies(Beacon_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # The remote node
-add_executable(Remote src/Remote_Node.cpp)
-target_link_libraries(Remote ${catkin_LIBRARIES}
+add_executable(Server src/ServerNode.cpp)
+target_link_libraries(Server ${catkin_LIBRARIES}
                                  ${PROJECT_NAME}
                                  ${Franka_LIBRARIES})
-add_dependencies(Remote ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(Server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ###################################################################################
 

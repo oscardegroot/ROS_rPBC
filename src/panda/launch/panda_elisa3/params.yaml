@@ -1,10 +1,12 @@
 is_simulation: false
+register_time: 0.5
+elisa_station: true
 
 sampling_rate: 100
 N_agents: 2
 l: 1
 network_gain:
-  - 1.0
+  - 3.0
 lambda: 1.0
 gamma: 3.0
 

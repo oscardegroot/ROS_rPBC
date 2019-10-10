@@ -87,7 +87,6 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
     // Local objectives
     tau -= nullPsi.transpose()*nullPsi*dVsdq(system);
     benchmarker.end();
-    
     //publishValue(tau_pub, tau_rate, tau);
 
 	return tau;

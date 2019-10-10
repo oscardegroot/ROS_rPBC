@@ -6,7 +6,7 @@
 
 	<rosparam command="load" file="$(find panda)/launch/gazebo/params.yaml" />
 	<rosparam command="load" file="$(find panda)/launch/gazebo/goals.yaml" />
-	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] agent_z/data[1] agent_z/data[2] reference/data[0] reference/data[1] reference/data[2]"/>
+	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_0/data[1] agent_0/data[2] reference/data[0] reference/data[1] reference/data[2]"/>
 
 	<node name="Remote" pkg="panda" type="Remote" output="screen"/>
 	<node name="Agent_0" pkg="panda" type="Agent_node" output="screen">

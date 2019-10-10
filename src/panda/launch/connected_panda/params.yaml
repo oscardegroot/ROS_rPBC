@@ -1,4 +1,5 @@
 is_simulation: true
+register_time: 2.0
 
 N_agents: 2
 l: 3

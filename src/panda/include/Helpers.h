@@ -96,6 +96,18 @@ bool safelyRetrieve(ros::NodeHandle& nh, const std::string name, T& param){
 
 }
 
+inline bool ifParameter(ros::NodeHandle& nh, const std::string name){
+
+    bool param;
+	if (!nh.getParam(name, param)) {
+        logMsg("Helpers", "Failed to find parameter " + nh.getNamespace() + "/" + name + ", defaulted to false", 1);
+        return false;
+	}
+
+	return param;
+
+}
+
 template <class T> 
 bool safelyRetrieve(ros::NodeHandle& nh, const std::string name,
 					 T& param, const T default_value){

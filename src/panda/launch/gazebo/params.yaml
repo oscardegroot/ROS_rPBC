@@ -1,4 +1,5 @@
 is_simulation: true
+register_time: 4.0
 
 N_agents: 2
 l: 3
@@ -8,9 +9,9 @@ network_gain:
   - 3.0
   - 3.0
 lambda: 1.0
-gamma: 3.0
+gamma: 1.0
 
-output: z
+output: r
 
 panda:
   type: panda/Panda
