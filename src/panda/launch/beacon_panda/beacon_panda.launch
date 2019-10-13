@@ -38,7 +38,7 @@
   </node>
 
   <!-- Remote Monitoring Node -->
-  <node name="remote" pkg="panda" type="Remote" respawn="false" output="screen"/>
+  <node name="server" pkg="panda" type="Server" respawn="false" output="screen"/>
   
 
 

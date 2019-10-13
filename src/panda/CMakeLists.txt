@@ -109,6 +109,7 @@ add_library(${PROJECT_NAME}
 	src/classes/Obstacle.cpp
 	src/classes/Goal.cpp
 	src/classes/Panda.cpp
+	src/classes/Selector.cpp
 	src/classes/IDAPBC.cpp
  	src/classes/rPBC.cpp
  	src/classes/Formation.cpp

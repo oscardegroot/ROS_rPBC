@@ -5,18 +5,18 @@
 	<include file="$(find panda_simulation)/launch/sim.launch"/>
 
 	<rosparam command="load" file="$(find panda)/launch/gazebo/params.yaml" />
-	<rosparam command="load" file="$(find panda)/launch/gazebo/goals.yaml" />
+	<rosparam command="load" file="$(find panda)/launch/goals.yaml" />
 	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_0/data[1] agent_0/data[2] reference/data[0] reference/data[1] reference/data[2]"/>
 
-	<node name="Remote" pkg="panda" type="Remote" output="screen"/>
 	<node name="Agent_0" pkg="panda" type="Agent_node" output="screen">
 		<rosparam command="load" file="$(find panda)/launch/gazebo/pandasim.yaml" />
 	</node>
 
-	<node name="Beacon_1" pkg="panda" type="Beacon_node" output="log">
+	<node name="Beacon_1" pkg="panda" type="Beacon_node" output="screen">
 		<rosparam command="load" file="$(find panda)/launch/gazebo/beacon.yaml" />
 	</node>
 
+	<node name="Server" pkg="panda" type="Server" output="screen"/>
 
 
 

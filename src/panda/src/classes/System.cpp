@@ -12,11 +12,17 @@ System::System(int n_set, int m_set, int lmax_set, const std::string& name)
 {
     // Initialise the communication management module
     cmm = std::make_unique<CMM>(name);
-    
+    logTmp("coop", cmm->coopDim());
+    logTmp("leader", cmm->leaderDim());
     ros::NodeHandle nh;
     enable_server = nh.advertiseService("/Agent_" + std::to_string(cmm->agent->getID()) + "/enable", &System::enableSystem, this);
 
-    initSelectors();
+    selector = std::make_unique<Selector>(*(cmm->agent), lmax, "z_select", std::vector<int>{1, 2, 3});
+    
+    // Use the coordinate count to initialise matrices
+    psi = Eigen::MatrixXd::Zero(n, selector->dim());
+    dpsi = Eigen::MatrixXd::Zero(n, selector->dim());
+    psi_previous = psi;
     
     m_m = Eigen::MatrixXd::Zero(n, n);
     dm = Eigen::MatrixXd::Zero(n, n);
@@ -51,39 +57,38 @@ bool System::dataReady(){
 /* Note that z = S*z_all, Psi = Psi_all * S' */
 void System::initSelectors(){
 
-    // This is not nice! maybe this entire thing in helpers?
-    ros::NodeHandle nh;
-    std::vector<int> selector;
-    cmm->agent->retrieveArray("z_select", selector, lmax); //todo: Fix this!
-
-    // Count the number of activated coordinates
-    int cur_l = count(selector.begin(), selector.end(), 1);
-    S = Eigen::MatrixXd::Zero(cur_l, lmax);
-
-    // Create a matrix that selects the required entries
-    int occurences = 0;
-    for(int i = 0; i < selector.size(); i++) {
-
-        if(selector[i] == 1){
-            S(occurences, i) = 1;
-            occurences++;
-        }
-    }
-    
-    // Use the coordinate count to initialise matrices
-    psi = Eigen::MatrixXd::Zero(n, cur_l);
-    dpsi = Eigen::MatrixXd::Zero(n, cur_l);
-    psi_previous = psi;
+//    // This is not nice! maybe this entire thing in helpers?
+//    ros::NodeHandle nh;
+//    std::vector<int> selector;
+//    cmm->agent->retrieveArray("z_select", selector, lmax); //todo: Fix this!
+//
+//    // Count the number of activated coordinates
+//    int cur_l = count(selector.begin(), selector.end(), 1);
+//    S = Eigen::MatrixXd::Zero(cur_l, lmax);
+//    /** @todo: Is this right?! occurences, i assumes selected entries are next to each other!*/
+//    // Create a matrix that selects the required entries
+//    int occurences = 0;
+//    for(int i = 0; i < selector.size(); i++) {
+//
+//        if(selector[i] == 1){
+//            S(occurences, i) = 1;
+//            occurences++;
+//        }
+//    }
+    // Make a selector
+//    selector = std::make_unique<Selector>(cmm->agent, lmax, "z_select", std::vector<int>{1, 2, 3});
 
 }
 
 /// Keep only currently cooperative controlled parts
 Eigen::MatrixXd System::selectPsi(const Eigen::MatrixXd& psi){
-    return psi * S.transpose();
+    return selector->select(psi.transpose()).transpose(); /* This part matters!*/
+    //return psi * S.transpose();
 }
 
 Eigen::VectorXd System::selectZ(const Eigen::VectorXd& z){
-    return S*z;
+    return selector->select(z);
+    //return S*z;
 }
 
 ///** @todo Make purely virtual later */

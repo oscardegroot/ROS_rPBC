@@ -22,6 +22,7 @@ Manages cooperative communication by managing a number of connections
 #include "CustomLog.h"
 #include "Helpers.h"
 #include "Agent.h"
+#include "Selector.h"
 
 #include "std_srvs/Empty.h"
 #include "panda/getConnectionsOf.h"
@@ -42,12 +43,12 @@ public:
 	CMM(std::string agent_type);
 	~CMM();
     
-    Status status = STARTED;
+    Status status;
     
     //The contained agent
     std::unique_ptr<Agent> agent;
     
-	Eigen::VectorXd sample(Eigen::VectorXd r_i);
+	Eigen::VectorXd sample(const Eigen::VectorXd& r_i);
     
     /** @brief Wait for the server message to retrieve the network */
     void performHandshake();
@@ -59,23 +60,31 @@ public:
     void setupEdges();
 
     bool hasInitialised() const;
-	
+    
+    /**
+     * @brief Getters for cooperative dimensions
+     */
+    int coopDim() const { return coop_selector->dim();};
+    int leaderDim() const { return leader_selector->dim();};
+    int allDim() const { return coop_selector->dim() + leader_selector->dim();};
+    
+
 private:
 
 	//unsigned char agent_id;
 	int l, N;
 	Eigen::MatrixXd gain;
-	double torque_enable;
-	//int sampling_rate;
+    
     int rate_mp;
     
     bool initialised = false;
 
-	ros::NodeHandle n;
+	ros::NodeHandle nh;
 
 	ros::ServiceClient connect_client, leader_client;
 	ros::ServiceServer init_server;
 	std::vector<std::unique_ptr<Edge>> edges;
+    std::unique_ptr<Selector> coop_selector, leader_selector;
 
 };
 

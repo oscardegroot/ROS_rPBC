@@ -89,6 +89,14 @@ public:
     virtual
     Eigen::MatrixXd& dPsi() = 0;
 
+    virtual
+    Eigen::VectorXd Psi_z(){
+        return Eigen::VectorXd::Zero(lmax);
+    }
+    
+    virtual double get_z(){
+        return 0.0;
+    }
 
     // Test!
     virtual
@@ -119,7 +127,8 @@ public:
 protected:
 
     // Selector for Psi and z
-    Eigen::MatrixXd S;
+    //Eigen::MatrixXd S;
+    std::unique_ptr<Selector> selector;
     
     // Aproximates derivatives of matrices using (x[k] - x[k-1]) / h
     Eigen::MatrixXd approximateDerivative(const Eigen::MatrixXd& A_current, const Eigen::MatrixXd& A_previous) const;

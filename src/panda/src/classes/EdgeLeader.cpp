@@ -8,8 +8,7 @@
 
 EdgeLeader::EdgeLeader(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
     : Edge(agent, -1, gain_set, l_set, r_star_set, 1){
-    logTmp(r_star_set);
-    logTmp(gain_set);
+        
 }
 
 /* Main public function that samples this edge */

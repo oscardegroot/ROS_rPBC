@@ -11,7 +11,20 @@ network_gain:
 lambda: 1.0
 gamma: 1.0
 
-output: r
+output: z
+leader:
+  id: 0
+  gain:
+    - 3.0
+    - 3.0
+    - 8.0
+  ref:
+    - 0.0
+    - 0.0
+    - 0.6
+
+formation:
+  type: consensus
 
 panda:
   type: panda/Panda

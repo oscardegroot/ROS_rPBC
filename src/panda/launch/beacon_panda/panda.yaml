@@ -10,7 +10,7 @@ joint_names:
 - panda_joint7
 arm_id: panda
 vel_max: 0.05
-z_select: [1, 1, 1, 0, 0, 0]
+z_select: [1, 1, 2, 0, 0, 0] #1 = coop, 2 = leader, 3 = both
 z_lower_bound: 0.3
 velocity_element_bound: 2.0
 velocity_norm_bound: 0.3
@@ -25,19 +25,15 @@ NF:
   beta:
     function:
       R: 0.1
-      delta: 0.05
-    
+      delta: 0.5
     # obstacle_0:
-    #   type: z_bound
-    #   lower_bound: 0.2
-
-      # obstacle_1:
     #   type: obstacle
-    #   radius: 0.1
+    #   radius: 0.2
     #   location:
-    #     - -0.0
     #     - 0.0
-    #     - 1.0
+    #     - 0.0
+    #     - 0.3 # Iterations do not work!
+
 controller:
   publish_rate: 30
   kq: 1.0

@@ -1,0 +1,23 @@
+ID: 1
+goal_type: 4
+sampling_rate: 100
+default_goal:
+  - 0.3
+  - 0.3
+  - 0.0
+z_select:
+  - 1
+  - 1
+  - 0
+# cooperative_selector: #Indices!
+#   - 1
+#   - 1
+#   - 1
+dynamic:
+  radius: 0.2
+  speed: 0.8
+NF:
+  alpha: 5
+  gamma:
+    r_w: 1.0
+    eps: 0.13

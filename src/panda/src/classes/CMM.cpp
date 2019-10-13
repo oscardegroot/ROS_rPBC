@@ -11,25 +11,35 @@ CMM::CMM(std::string agent_type){//int set_id, int set_sampling_rate){
 
 	logMsg("CMM", "Initiating..", 2);
     
-    // Retrieve parameters
-	helpers::safelyRetrieve(n, "/l", l);
-	helpers::safelyRetrieve(n, "/N_agents", N);
+    status = STARTED;
     
-	Eigen::VectorXd gain_e;
-	helpers::safelyRetrieveEigen(n, "/network_gain", gain_e, l);
-	gain = Eigen::MatrixXd(gain_e.asDiagonal());
+    // Retrieve parameters
+	helpers::safelyRetrieve(nh, "/l", l);
+	helpers::safelyRetrieve(nh, "/N_agents", N);
 
     int network_rate;
-    helpers::safelyRetrieve(n, "sampling_rate", network_rate);
+    helpers::safelyRetrieve(nh, "sampling_rate", network_rate);
     
 	// Connect to the remote
-	connect_client = n.serviceClient<panda::getConnectionsOf>("/getConnectionsOf");
-    leader_client = n.serviceClient<panda::isAgentLeader>("/isAgentLeader");
-    
+	connect_client = nh.serviceClient<panda::getConnectionsOf>("/getConnectionsOf");
+    leader_client = nh.serviceClient<panda::isAgentLeader>("/isAgentLeader");
+
     /* Create an agent */
     agent = std::make_unique<Agent>(agent_type);
     
-    init_server = n.advertiseService("/agent" + std::to_string(agent->getID()) + "/initEdges", &CMM::initEdges, this);
+    // Make selectors to determine the dimensions of leader and cooperative agents
+    coop_selector = std::make_unique<Selector>(*agent, l, std::string("z_select"), std::vector<int>{1, 3});
+    leader_selector = std::make_unique<Selector>(*agent, l, std::string("z_select"), std::vector<int>{2, 3});
+    
+    // Retrieve the network gain
+    Eigen::VectorXd gain_e;
+	helpers::safelyRetrieveEigen(nh, "/network_gain", gain_e, l);
+    
+    // Apply the gain only on selected cooperative coordinates
+    gain_e = coop_selector->select(gain_e);
+	gain = Eigen::MatrixXd(gain_e.asDiagonal());
+    
+    init_server = nh.advertiseService("/agent" + std::to_string(agent->getID()) + "/initEdges", &CMM::initEdges, this);
 
     // Check if parameters are correct
     if(agent->getSamplingRate() % network_rate != 0){
@@ -71,6 +81,7 @@ void CMM::performHandshake(){
     }
 }
 
+/** @error Memory corruption here?*/
 bool CMM::retrieveConnections(){
     
     // Retrieve leader info from the server and create edges if necessary
@@ -82,9 +93,16 @@ bool CMM::retrieveConnections(){
     // Transition to the running state
     status = RUNNING;
     
-    auto ready_client = n.serviceClient<std_srvs::Empty>("/cmmReady");
-    std_srvs::Empty srv;
-    ready_client.call(srv);
+    auto ready_client = nh.serviceClient<std_srvs::Empty>("/cmmReady");
+
+    std_srvs::Empty srv;    
+    auto ready_call = [&](){
+        return ready_client.call(srv);
+        };
+    
+    helpers::repeatedAttempts(ready_call, 1.0, "Failed to get acknowledge from Agent Station!");
+        
+    return true;
 }
 
 void CMM::setupLeader(){
@@ -99,10 +117,17 @@ void CMM::setupLeader(){
             // Parse the retrieved vectors
             Eigen::VectorXd temp_gain = helpers::messageToEigen(srv.response.gain, l);
             Eigen::VectorXd temp_ref = helpers::messageToEigen(srv.response.ref, l);
-            Eigen::MatrixXd leader_gain = Eigen::MatrixXd(temp_gain.asDiagonal());
             
+            temp_gain = leader_selector->select(temp_gain);
+
+            Eigen::MatrixXd leader_gain = Eigen::MatrixXd(temp_gain.asDiagonal());
+
             // Create an edge
-            edges.push_back(std::make_unique<EdgeLeader>(*agent, -1, leader_gain, l, temp_ref));
+            edges.push_back(std::make_unique<EdgeLeader>(*agent, -1, leader_gain,
+                            leader_selector->dim(), leader_selector->select(temp_ref)));
+            
+            logMsg("CMM", "Leader edge created.", 2);
+
         }
     }
 }
@@ -126,10 +151,12 @@ void CMM::setupEdges(){
                     // Retrieve the formation data
                     Eigen::VectorXd r_star = helpers::vectorToEigen(srv.response.r_star.data);
 
-					// Create a communication edge
-					edges.push_back(std::make_unique<EdgeFlex>(*agent, j, gain, l, r_star, rate_mp));
-                    
-                    logMsg("CMM", "Edge Created", 2);
+					// Create a communication edge (select actually connected coordinates)
+					edges.push_back(std::make_unique<EdgeFlex>(*agent, j, gain, coop_selector->dim(),
+                            coop_selector->select(r_star), rate_mp));
+                    //edges.push_back(std::make_unique<EdgeFlex>(*agent, j, gain, l, r_star, rate_mp));
+
+                    logMsg("CMM", "Edge created.", 2);
 					
 				}
 			}else{
@@ -147,14 +174,20 @@ bool CMM::initEdges(std_srvs::Empty::Request &req, std_srvs::Empty::Response &re
     return true;
 }
 
-Eigen::VectorXd CMM::sample(Eigen::VectorXd r){
+Eigen::VectorXd CMM::sample(const Eigen::VectorXd& r){
 
 	// Initialise the combined input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(l);
 
 	// Sample all edges
 	for(int i = 0; i < edges.size(); i++){
-		tau += edges[i]->sample(r);
+        
+        // Note that the inputs are sized based on the size of the edge, so we need to convert the input to the full cooperative size l
+        if(edges[i]->isLeader()){
+            tau += leader_selector->deselect(edges[i]->sample(leader_selector->select(r)));
+        }else{
+            tau += coop_selector->deselect(edges[i]->sample(coop_selector->select(r)));
+        }
         
     }
     

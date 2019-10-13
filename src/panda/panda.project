@@ -50,6 +50,7 @@
       <File Name="src/classes/Station.cpp"/>
       <File Name="src/classes/ElisaStation.cpp"/>
       <File Name="src/classes/AgentStation.cpp"/>
+      <File Name="src/classes/Selector.cpp"/>
     </VirtualDirectory>
     <File Name="src/TextInterface.cpp"/>
     <File Name="src/Helpers.cpp"/>
@@ -143,5 +144,6 @@
     <File Name="include/Station.h"/>
     <File Name="include/ElisaStation.h"/>
     <File Name="include/AgentStation.h"/>
+    <File Name="include/Selector.h"/>
   </VirtualDirectory>
 </CodeLite_Project>

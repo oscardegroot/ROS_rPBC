@@ -20,7 +20,8 @@ namespace panda{
         /** @brief We retrieve the matrices from the robot directly but with simulation coordinates */
         void retrieveMatrices() override;
         void retrieveState() override;
-        
+        double get_z() override;
+        Eigen::VectorXd Psi_z() override;
         Eigen::VectorXd& dTdq() override; // partial from kinetic to coordinates
         
         /** @brief We want to receive simulation states */

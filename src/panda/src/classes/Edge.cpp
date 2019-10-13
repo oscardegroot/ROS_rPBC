@@ -10,14 +10,12 @@ gain: gain of the connection
 l_set: dimension of the channel
 */
 
-#define LOG(msg) std::cout << msg << std::endl
-
 #include "Edge.h"
 
 Edge::Edge(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set){
 
 	logMsg("Edge", "Initiating edge between " + std::to_string(agent.getID()) + " and " + std::to_string(j) + "..", 2);
-
+    
 	//Save the connection between agents
 	i_ID = agent.getID();
 	j_ID = j;
@@ -65,7 +63,7 @@ Edge::~Edge(){}
 
 // Sample the edge, retrieving a data point for the cooperative control and returning a wave in the process
 Eigen::VectorXd Edge::sample(const Eigen::VectorXd& r_i){
-
+    
 	// Reconstruct the wave if nothing was received
 	applyReconstruction(s_received, r_i);
 
@@ -90,7 +88,6 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 
 	s_received = Eigen::VectorXd::Zero(l);
 	for(int i = 0; i < l; i++){
-
 		s_received(i) = s[i];
         // EXPANDER! -> now seperate
         //helpers::sgn(s[i])*std::sqrt(std::pow(s[i], 2)/double(rate_mp));// / double(rate_mp); // divide by sampling discrepancy! (this is the passive interpolator)

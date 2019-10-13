@@ -16,6 +16,8 @@ public:
     Eigen::VectorXd calculateControls(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     Eigen::VectorXd calculateWaves(const Eigen::VectorXd& tau, const Eigen::VectorXd& r_js) override;
 
+
+    bool isLeader() const override { return true;};
 //    double gradient_gamma(double d);
 //    double gamma(double d);
 //

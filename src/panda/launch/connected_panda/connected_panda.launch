@@ -10,7 +10,7 @@
 	<rosparam command="load" file="$(find panda)/launch/connected_panda/params.yaml" />
 	<rosparam command="load" file="$(find panda)/launch/goals.yaml" />
 
-	<node name="Remote" pkg="panda" type="Remote" output="screen"/>
+	<node name="Server" pkg="panda" type="Server" output="screen"/>
 
 
 

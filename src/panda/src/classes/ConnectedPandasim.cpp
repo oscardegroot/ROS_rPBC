@@ -79,7 +79,7 @@ void ConnectedPandasim::retrieveMatrices()
     // Het lijkt erop dat deze niet klopt in de franka library, ze roepen gewoon *(robot_state) aan ipv mijn argumentjes.
 	std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(franka::Frame::kEndEffector, q_array, identity_16, identity_16);
 	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
-	psi = selectPsi(jacobian.transpose().block(0, 0, 7, 3));
+	psi = selectPsi(jacobian.transpose());
     //logTmp(psi);
     
 	// Get the mass matrix
@@ -108,6 +108,27 @@ void ConnectedPandasim::retrieveMatrices()
     psi_updated = true;
     m_updated = true;
     dvdq_updated = true;
+}
+
+Eigen::VectorXd ConnectedPandasim::Psi_z(){
+    /* Convert q to an array*/
+    std::array<double, 7> q_array;
+    for(int i = 0; i < 7; i++){
+        q_array[i] = state.q(i);
+    }
+        /* Clean this up ofc */
+    std::array<double, 16> identity_16 = {};
+    identity_16[0] = 1.0;
+    identity_16[5] = 1.0;
+    identity_16[10] = 1.0;
+    identity_16[15] = 1.0;
+    std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(franka::Frame::kEndEffector, q_array, identity_16, identity_16);
+	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
+	return jacobian.transpose().block(0, 2, 7, 1);
+}
+
+double ConnectedPandasim::get_z(){
+    return z_coordinate;
 }
 
 /* Not sure if it works, doesnt seem necessary for convergence */

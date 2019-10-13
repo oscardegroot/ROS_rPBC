@@ -58,10 +58,8 @@ int main(int argc, char **argv){
 
 	ros::Subscriber sub;
     sub = nh.subscribe<std_msgs::Int16>("/goal_setpoint", 1, &goalCallback);
-    cmm = std::make_unique<CMM>("beacon");
     
-    // Retrieve parameters
-    initSelectors();
+    cmm = std::make_unique<CMM>("beacon");
     
     // Dynamic parameters
 	double radius, speed;
@@ -71,8 +69,10 @@ int main(int argc, char **argv){
 	// Retrieve the goal
 	int goal_type;
     cmm->agent->retrieveParameter("goal_type", goal_type, -1);
-    cmm->agent->retrieveEigen("default_goal", valued_goal, l);
     
+    cmm->agent->retrieveEigen("default_goal", valued_goal, l);
+
+    logTmp("Beacon dimensions: ", cmm->allDim());
     std::string output;
     double lambda;
     helpers::safelyRetrieve(nh, "/output", output);
@@ -84,9 +84,9 @@ int main(int argc, char **argv){
     }
 
 	// For centerpoint initially
-    ref = valued_goal;
+    ref = Eigen::VectorXd::Zero(l);//valued_goal;
 	setGoalType(goal_type);
-
+    logTmp(ref);
     cmm->performHandshake();
 
 	ros::Rate loop_rate(cmm->agent->getSamplingRate());
@@ -102,8 +102,8 @@ int main(int argc, char **argv){
 	    }
 
 		// Sample the network
-        // LOOKS LIKE THE VARIANCE CONTROL PROBLEM IS RELATED TO RPBC, IDAPBC WORKS FINE NOW //
-		Eigen::VectorXd tau_network = cmm->sample(ref*lambda);//*lambda
+		Eigen::VectorXd tau_network = cmm->sample(ref*lambda);
+        
 		plotMarker(marker_pub, ref);
 
 		publishReference(pub, ref);
@@ -114,32 +114,6 @@ int main(int argc, char **argv){
 
 	return 0;
 
-}
-
-/// Initialise the selector matrix
-/* Note that z = S*z_all, Psi = Psi_all * S' */
-void initSelectors(){
-
-    // This is not nice! maybe this entire thing in helpers?
-    ros::NodeHandle nh;
-    std::vector<int> selector;
-    cmm->agent->retrieveParameter("z_select", selector);
-    
-    int lmax = selector.size();
-
-    // Count the number of activated coordinates
-    int cur_l = count(selector.begin(), selector.end(), 1);
-    S = Eigen::MatrixXd::Zero(cur_l, lmax);
-
-    // Create a matrix that selects the required entries
-    int occurences = 0;
-    for(int i = 0; i < selector.size(); i++) {
-
-        if(selector[i] == 1){
-            S(occurences, i) = 1;
-            occurences++;
-        }
-    }
 }
 
 //380mm
@@ -215,7 +189,7 @@ void setGoalType(int goal_type){
 
 
     if(goal_type == -1){
-        ref = S*valued_goal;
+        ref = valued_goal;
         return;
     }
 
@@ -226,7 +200,7 @@ void setGoalType(int goal_type){
     helpers::safelyRetrieveEigen(nh, "goals/" + std::to_string(l) +
     "/goal" + std::to_string(goal_type), temp_ref);
 
-    ref = S*temp_ref;
+    ref = temp_ref;
 	std::string goal_string = "(";
 
 	for (int i = 0; i < l; i++){

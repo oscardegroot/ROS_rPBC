@@ -264,5 +264,17 @@ inline int getch()
   return c;
 }
 
+inline unsigned int nonZeroCount(const Eigen::VectorXd& vec){
+    
+    unsigned int result = 0;
+    for(unsigned int i = 0; i < vec.rows(); i++){
+        if(vec[i] != 0.0){
+            result++;
+        }
+    }
+    
+    return result;
+}
+
 }
 #endif

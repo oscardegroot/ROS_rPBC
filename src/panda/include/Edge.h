@@ -48,6 +48,9 @@ public:
     // Waves for dealing with sampling frequencies
     void expandWaves(Eigen::VectorXd& waves);
     void compressWaves(const Eigen::VectorXd& waves);
+    
+    virtual
+    bool isLeader() const { return false;};
 
 
 protected:

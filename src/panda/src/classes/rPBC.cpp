@@ -123,6 +123,15 @@ Eigen::VectorXd rPBC::dVsdq(System& system){
 		dVsdq -= limit_avoidance_gains.cwiseProduct(limits_avg - system.state.q);
 	}
 
+// Does not seem to work (maybe purely because it conflicts with local coordinates?    
+//    if(true){
+//        if(system.get_z() > 0.6){
+//            dVsdq -= -5*(0.5 - system.get_z())*system.Psi_z();
+//        }
+//        logTmp(system.get_z());
+//        logTmp("Input: ", (0.5 - system.get_z())*system.Psi_z());
+//    }
+
 	// Return a linear gradient w.r.t. local coordinates
 	return dVsdq;
 }

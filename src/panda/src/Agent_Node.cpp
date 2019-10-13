@@ -34,21 +34,15 @@ int main(int argc, char **argv){
          controller = std::make_unique<rPBC>(*(system->cmm->agent));
     }
 
-
-	// Get a nodehandle
-	//helpers::safelyRetrieve(nh, "/l", l);
-	//helpers::safelyRetrieve(nh, "/N_agents", N);
-
     // Perform handshake after controller initialisation!
     system->cmm->performHandshake();
 
 	ros::Rate loop_rate(1000);
 
 	while(ros::ok()){
-        
         // Sample the network
         Eigen::VectorXd tau_network = system->cmm->sample(controller->getOutput(*system));
-        
+
         // Compute the input
         Eigen::VectorXd tau = controller->computeControl(*system, tau_network);
 

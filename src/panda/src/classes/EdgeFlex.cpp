@@ -29,8 +29,6 @@ EdgeFlex::EdgeFlex(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eig
     // Retrieval is fully internal, Formations nog included atm
     potential = std::make_unique<NavigationFunction>(agent, l, r_star);
     
-    /* When bound influences beacond, control goes wrong! */
-
     // Counter that handles sampling rate converting (trigger initially)
     retrieval_counter = std::make_unique<helpers::Counter>(rate_mp, false);
 
@@ -206,8 +204,10 @@ Eigen::VectorXd EdgeFlex::calculateWaves(const Eigen::VectorXd& tau, const Eigen
 
 void EdgeFlex::setScatteringGain(const Eigen::MatrixXd& gain){
 	// Define the gains on this edge and the impedance
-	Eigen::MatrixXd B(l, l);
- 	B = gain.cwiseSqrt();
+	Eigen::MatrixXd B = Eigen::MatrixXd::Zero(l, l);
+    for(int i = 0; i < l; i++){
+        B(i, i) = std::sqrt(gain(i, i));
+    }
 
 	// Take into account the different ST depending on which agent this is
     agent_i = (i_ID < j_ID) ? -1 : 1;

@@ -1,5 +1,6 @@
 is_simulation: true
 register_time: 2.0
+elisa_station: false
 
 N_agents: 2
 l: 3
@@ -17,12 +18,15 @@ connectedpandasim:
   type: panda/ConnectedPandasim
 
 formation:
-  type: manual
-  position_0:
-    - 0.0
-    - 0.0
-    - 0.7
-  position_1:
-    - 0.0
-    - 0.0
-    - 0.0
+  type: consensus
+
+# formation:
+#   type: manual
+#   position_0:
+#     - 0.0
+#     - 0.0
+#     - 0.7
+#   position_1:
+#     - 0.0
+#     - 0.0
+#     - 0.0

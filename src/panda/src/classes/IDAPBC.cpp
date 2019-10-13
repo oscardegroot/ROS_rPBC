@@ -53,7 +53,7 @@ IDAPBC::IDAPBC(Agent& agent)
 
 Eigen::VectorXd IDAPBC::computeControl(System& system, const Eigen::VectorXd& tau_c){
     //ScopeTimer timer("IDAPBC Control"); // ~25 us!
-    
+
     benchmark.start();
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
@@ -69,7 +69,7 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, const Eigen::VectorXd& ta
 
     // Apply IDA-PBC (The actual panda autocompensates for gravity)
 	tau += -dVsdq(system);
-	tau += - kq * system.state.dq;
+	tau += -kq * system.state.dq;
 	
     // Add the cooperative input
 	Eigen::MatrixXd pinv_psi;

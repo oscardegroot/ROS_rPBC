@@ -80,6 +80,7 @@ void AgentStation::initiateNetwork(){
     
 }
 
+
 bool AgentStation::getConnectionsOf(panda::getConnectionsOf::Request &req, panda::getConnectionsOf::Response &res){
 
 	Eigen::VectorXd r_star = Eigen::VectorXd::Zero(l);
