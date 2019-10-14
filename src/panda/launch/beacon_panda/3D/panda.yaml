@@ -10,11 +10,11 @@ joint_names:
 - panda_joint7
 arm_id: panda
 vel_max: 0.05
-z_select: [1, 1, 1, 0, 0, 0]
+z_select: [1, 1, 2, 0, 0, 0]
 z_lower_bound: 0.3
 velocity_element_bound: 2.0
 velocity_norm_bound: 0.3
-torque_bound: 12.0 #12.0
+torque_bound: 15.0 #12.0
 alpha: 0.95
 initial_pause: 0.0
 NF:

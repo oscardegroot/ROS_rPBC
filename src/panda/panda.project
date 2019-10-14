@@ -59,6 +59,7 @@
     <File Name="src/Beacon_Node.cpp"/>
     <File Name="src/CustomLog.cpp"/>
     <File Name="src/ServerNode.cpp"/>
+    <File Name="src/NetworkNode.cpp"/>
   </VirtualDirectory>
   <Description/>
   <Dependencies/>

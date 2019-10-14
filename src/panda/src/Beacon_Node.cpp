@@ -36,7 +36,7 @@ double phase = 0;
 //ros::NodeHandle nh;
 void initSelectors();
 void goalCallback(const std_msgs::Int16::ConstPtr & msg);
-void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref);
+void publishReference(ros::Publisher& pub, const Eigen::VectorXd& ref);
 void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref);
 void setGoalType(int goal_type);
 
@@ -70,9 +70,8 @@ int main(int argc, char **argv){
 	int goal_type;
     cmm->agent->retrieveParameter("goal_type", goal_type, -1);
     
-    cmm->agent->retrieveEigen("default_goal", valued_goal, l);
+    cmm->agent->retrieveEigen("default_goal", valued_goal, cmm->allDim());
 
-    logTmp("Beacon dimensions: ", cmm->allDim());
     std::string output;
     double lambda;
     helpers::safelyRetrieve(nh, "/output", output);
@@ -84,11 +83,21 @@ int main(int argc, char **argv){
     }
 
 	// For centerpoint initially
-    ref = Eigen::VectorXd::Zero(l);//valued_goal;
+    ref = Eigen::VectorXd::Zero(cmm->allDim());//valued_goal;
 	setGoalType(goal_type);
-    logTmp(ref);
+    
+    std::string ref_msg = "Reference set to (";
+    for(size_t i = 0; i < cmm->allDim(); i++){
+        if(i != 0){
+            ref_msg += ", ";
+        }
+        
+        ref_msg += std::to_string(ref(i));
+    }
+    ref_msg += ")";
+    logMsg("Beacon", ref_msg, 2);
+    
     cmm->performHandshake();
-
 	ros::Rate loop_rate(cmm->agent->getSamplingRate());
 
 	while(ros::ok()){
@@ -104,7 +113,7 @@ int main(int argc, char **argv){
 		// Sample the network
 		Eigen::VectorXd tau_network = cmm->sample(ref*lambda);
         
-		plotMarker(marker_pub, ref);
+		//plotMarker(marker_pub, ref); // Gives issues with low dimensional goals < 3
 
 		publishReference(pub, ref);
 
@@ -122,16 +131,17 @@ void goalCallback(const std_msgs::Int16::ConstPtr & msg){
 }
 
 
-void publishReference(ros::Publisher& pub, const Eigen::VectorXd ref){
+void publishReference(ros::Publisher& pub, const Eigen::VectorXd& ref){
 
 	std_msgs::Float64MultiArray msg;
 
 	// Put the wave in the messagge
 	msg.data.resize(ref.size());
-	for(int i = 0; i < l; i++){
+	for(int i = 0; i < cmm->allDim(); i++){
 		msg.data[i] = ref(i);
 	}
 
+	// Publish the message
 	// Publish the message
 	pub.publish(msg);
 
@@ -197,7 +207,7 @@ void setGoalType(int goal_type){
 
     // Get a nodehandle
     Eigen::VectorXd temp_ref;
-    helpers::safelyRetrieveEigen(nh, "goals/" + std::to_string(l) +
+    helpers::safelyRetrieveEigen(nh, "goals/" + std::to_string(cmm->allDim()) +
     "/goal" + std::to_string(goal_type), temp_ref);
 
     ref = temp_ref;

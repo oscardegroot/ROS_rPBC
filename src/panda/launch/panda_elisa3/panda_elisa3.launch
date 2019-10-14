@@ -6,6 +6,7 @@
 
   <!-- Load parameters (see files) -->
   <rosparam command="load" file="$(find panda)/launch/panda_elisa3/params.yaml" />
+  <rosparam command="load" file="$(find panda)/launch/network.yaml" />
 
   <!-- Initiate an urdf of the robot -->
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm_hand.urdf.xacro'" if="$(arg load_gripper)" />
@@ -28,12 +29,7 @@
     <param name="rate" value="30"/>
   </node>
 
-  
-
-  <!-- <node pkg="panda" type="Elisa3_Station" name="station" output="screen" /> -->
-  <!-- Remote Monitoring Node -->
-
-
+  <node name="NetworkNode" pkg="panda" type="NetworkNode" output="screen"/>
 
   <node name="server" pkg="panda" type="Server" respawn="false" output="screen"/>
   <!-- Create a beacon -->
@@ -43,7 +39,7 @@
 <!-- Spawn the panda controller -->
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="panda"/>
   <!-- Setup visualisation tools etc. -->
-  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_1/data[0]"  />
+  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_0/data[1] agent_0/data[2] agent_1/data[0] agent_1/data[1]"  />
   <!-- <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot_w_marker.rviz"/> -->
   <!-- <node name="interface" pkg="panda" type="TextInterface_Node" respawn="false" output="screen"/> -->
 <!-- agent_1/data[1] agent_1/data[2] -->

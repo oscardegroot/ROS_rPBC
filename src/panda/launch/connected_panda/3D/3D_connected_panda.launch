@@ -12,8 +12,6 @@
 
 	<node name="Server" pkg="panda" type="Server" output="screen"/>
 
-
-
 	<node name="franka_control" pkg="franka_control" type="franka_control_node" output="screen" required="true">
 		<rosparam command="load" file="$(find franka_control)/config/franka_control_node.yaml" />
 		<rosparam command="load" file="$(find panda)/launch/connected_panda/3D/panda.yaml"/>
@@ -21,11 +19,11 @@
 	</node>
 
 	<rosparam command="load" file="$(find franka_control)/config/default_controllers.yaml" />
-	<node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_state_controller"/>
+	<node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="log" args="franka_state_controller"/>
 
-	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="log"/>
 
-	<node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
+	<node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="log">
 		<rosparam if="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states, franka_gripper/joint_states] </rosparam>
 		<rosparam  unless="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states] </rosparam>
 		<param name="rate" value="30"/>
@@ -37,7 +35,7 @@
 	</node>
 
 
-	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_0/data[1] reference/data[0] reference/data[1]"/>
+	<node name="plotjes" output="log" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_0/data[1] agent_0/data[2] agent_0/data[3] agent_0/data[4] reference/data[0] reference/data[1]"/>
 
 
 	<!-- <node name="plotjes2" pkg="rqt_plot" type="rqt_plot" args="/robot1/panda_joint1_controller/command/data /robot1/panda_joint2_controller/command/data /robot1/panda_joint3_controller/command/data" /> -->

@@ -40,6 +40,11 @@ Formation Goals::getFormation(const std::string& formation_type){
 void Goals::initLeaders(ros::NodeHandle & nh){
 
     leaders = {};
+    
+    if(!helpers::hasParameter(nh, "/leader/")){
+        return;
+    }
+        
     int id;
     Eigen::VectorXd gain, ref;
 
@@ -51,6 +56,7 @@ void Goals::initLeaders(ros::NodeHandle & nh){
         leaders.push_back({id, ref, gain});
     }
     catch(RetrievalException exc){
+        logMsg("Goals", "Dimensions of leader matrices are not correct!", 0);
         return;
     }
 

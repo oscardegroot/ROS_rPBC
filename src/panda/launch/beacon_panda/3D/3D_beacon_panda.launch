@@ -38,12 +38,12 @@
   </node>
 
   <!-- Remote Monitoring Node -->
-  <node name="remote" pkg="panda" type="Remote" respawn="false" output="screen"/>
+  <node name="server" pkg="panda" type="Server" respawn="false" output="screen"/>
   
 
 
   <!-- Setup visualisation tools etc. -->
-  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_z/data[0] agent_z/data[1] agent_z/data[2] reference/data[0] reference/data[1] reference/data[2]"  />
+  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_0/data[1] agent_0/data[2] reference/data[0] reference/data[1] reference/data[2]"  />
   <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot_w_marker.rviz"/>
   <node name="interface" pkg="panda" type="TextInterface_Node" respawn="false" output="screen"/>
 

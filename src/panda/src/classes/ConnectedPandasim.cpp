@@ -124,7 +124,8 @@ Eigen::VectorXd ConnectedPandasim::Psi_z(){
     identity_16[15] = 1.0;
     std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(franka::Frame::kEndEffector, q_array, identity_16, identity_16);
 	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
-	return jacobian.transpose().block(0, 2, 7, 1);
+	return selectPsi(jacobian.transpose());
+    //return jacobian.transpose().block(0, 2, 7, 1);
 }
 
 double ConnectedPandasim::get_z(){
@@ -207,10 +208,14 @@ void ConnectedPandasim::readStateCallback(const sensor_msgs::JointState::ConstPt
     // Get the pose of the end effector
     std::array<double, 16> robot_pose = model_handle_->getPose(franka::Frame::kEndEffector, q_array, identity_16, identity_16);
 
+    // Calculate inverse rotations
+    // See https://en.wikibooks.org/wiki/Robotics_Kinematics_and_Dynamics/Description_of_Position_and_Orientation (inverse mapping z,x,z)
+    double roll = std::atan2(robot_pose[6], robot_pose[10]);
+    double yaw = std::atan2(robot_pose[1], robot_pose[0]);
+    double pitch = std::atan2(-robot_pose[2], std::cos(yaw)*robot_pose[0] + std::sin(yaw)*robot_pose[1]);
     // Keep only the translation
-	std::array<double, 3> z = {robot_pose[12], robot_pose[13], robot_pose[14]};
-	Eigen::Matrix<double, 3, 1> new_z = helpers::arrayToVector<3>(z);
-    // Pose is goed!
+	std::array<double, 6> z = {robot_pose[12], robot_pose[13], robot_pose[14], roll, pitch, yaw};
+	Eigen::Matrix<double, 6, 1> new_z = helpers::arrayToVector<6>(z);
     
     // Write to the state
     z_coordinate = new_z[2];

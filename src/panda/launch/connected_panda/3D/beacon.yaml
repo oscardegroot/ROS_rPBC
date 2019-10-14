@@ -1,18 +1,13 @@
 ID: 1
-goal_type: 4
+goal_type: -1
 sampling_rate: 100
 default_goal:
   - 0.3
   - 0.3
-  - 0.0
 z_select:
   - 1
   - 1
   - 0
-# cooperative_selector: #Indices!
-#   - 1
-#   - 1
-#   - 1
 dynamic:
   radius: 0.2
   speed: 0.8

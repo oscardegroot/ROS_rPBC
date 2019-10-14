@@ -180,8 +180,15 @@ void Panda::retrieveState(){
 
 	filterVelocity(robot_state.dq);
 	this->state.dq = helpers::arrayToVector<7>(dq_filtered);
+    
+    // Calculate inverse rotations
+    // See https://en.wikibooks.org/wiki/Robotics_Kinematics_and_Dynamics/Description_of_Position_and_Orientation (inverse mapping z,x,z)
+    //double alpha = std::atan2(robot_state.O_T_EE[8], -robot_state.O_T_EE[9]);
+    //double beta = std::atan2(-robot_state.O_T_EE[9]*std::cos(alpha) + robot_state.O_T_EE[8]*std::sin(alpha), robot_state.O_T_EE[10]);
+    //double gamma = std::atan2(robot_state.O_T_EE[2], robot_state.O_T_EE[6]);
 
-	std::array<double, 3> z{{robot_state.O_T_EE[12], robot_state.O_T_EE[13], robot_state.O_T_EE[14]}};
+    /* The angles dont work in this manner, so they are disabled */
+	std::array<double, 3> z{{robot_state.O_T_EE[12], robot_state.O_T_EE[13], robot_state.O_T_EE[14]}};//, alpha, beta, gamma}};
     z_coordinate = z[2];
 
 	this->state.z = this->selectZ(helpers::arrayToVector<3>(z));
@@ -251,7 +258,7 @@ void Panda::retrieveMatrices(){
 	 					franka::Frame::kEndEffector);
 
 	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
-	psi = selectPsi(jacobian.transpose().block(0, 0, 7, 6));
+	psi = selectPsi(jacobian.transpose());
 
 	// Get the mass matrix
 	std::array<double, 49> mass_array = model_handle_->getMass();

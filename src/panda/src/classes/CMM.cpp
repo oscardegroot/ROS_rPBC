@@ -30,7 +30,7 @@ CMM::CMM(std::string agent_type){//int set_id, int set_sampling_rate){
     // Make selectors to determine the dimensions of leader and cooperative agents
     coop_selector = std::make_unique<Selector>(*agent, l, std::string("z_select"), std::vector<int>{1, 3});
     leader_selector = std::make_unique<Selector>(*agent, l, std::string("z_select"), std::vector<int>{2, 3});
-    
+
     // Retrieve the network gain
     Eigen::VectorXd gain_e;
 	helpers::safelyRetrieveEigen(nh, "/network_gain", gain_e, l);
@@ -117,9 +117,8 @@ void CMM::setupLeader(){
             // Parse the retrieved vectors
             Eigen::VectorXd temp_gain = helpers::messageToEigen(srv.response.gain, l);
             Eigen::VectorXd temp_ref = helpers::messageToEigen(srv.response.ref, l);
-            
-            temp_gain = leader_selector->select(temp_gain);
 
+            temp_gain = leader_selector->select(temp_gain); // Deze select de verkeerde?
             Eigen::MatrixXd leader_gain = Eigen::MatrixXd(temp_gain.asDiagonal());
 
             // Create an edge

@@ -9,6 +9,7 @@
 
 	<rosparam command="load" file="$(find panda)/launch/connected_panda/params.yaml" />
 	<rosparam command="load" file="$(find panda)/launch/goals.yaml" />
+	<rosparam command="load" file="$(find panda)/launch/network.yaml" />
 
 	<node name="Server" pkg="panda" type="Server" output="screen"/>
 
@@ -30,16 +31,21 @@
 		<rosparam  unless="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states] </rosparam>
 		<param name="rate" value="30"/>
 	</node>
-		
+
+	<node name="NetworkNode" pkg="panda" type="NetworkNode" output="screen"/>
 
 	<node name="Beacon_1" pkg="panda" type="Beacon_node" output="screen">
 		<rosparam command="load" file="$(find panda)/launch/connected_panda/beacon.yaml" />
 	</node>
 
 
-	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_0/data[1] agent_0/data[2] reference/data[0] reference/data[1] reference/data[2]"/>
+	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_0/data[1] agent_0/data[2] reference/data[0] reference/data[1]"/>
 
+	<node pkg="rosbag" type="record" name="rosbag_agents"
+       args="record -o $(find panda)/bags/agents /agent_0 /reference"/>
 
+   <node pkg="rosbag" type="record" name="rosbag_waves"
+       args="record -o $(find panda)/bags/waves /s_01p_in /s_01p_out /s_01m_in /s_01m_out"/>
 	<!-- <node name="plotjes2" pkg="rqt_plot" type="rqt_plot" args="/robot1/panda_joint1_controller/command/data /robot1/panda_joint2_controller/command/data /robot1/panda_joint3_controller/command/data" /> -->
  
 

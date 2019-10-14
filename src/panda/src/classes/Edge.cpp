@@ -47,14 +47,22 @@ void Edge::initChannels(){
     if(i_ID == -1 || j_ID == -1){
         return;
     }
+    
+    std::string to_network = "";
+    std::string from_network = "";
+    
+    if(helpers::ifParameter(nh, "/network/enabled")){
+        to_network = "_in";
+        from_network = "_out";
+    }
 
     // If this is agent i, send on the positivily defined channel, listen to the negative channel
     if(i_ID < j_ID){
-        wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "p", 100);
-        wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "m", 100, &Edge::waveCallback, this);
+        wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "p" + to_network, 100);
+        wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "m" + from_network, 100, &Edge::waveCallback, this);
     }else /* Otherwise invert these */{
-        wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "m", 100);
-        wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "p", 100, &Edge::waveCallback, this);
+        wave_pub = nh.advertise<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "m" + to_network, 100);
+        wave_sub = nh.subscribe<panda::Waves>("s_" + std::to_string(j_ID) + std::to_string(i_ID) + "p" + from_network, 100, &Edge::waveCallback, this);
     }
 }
 

@@ -59,9 +59,12 @@ public:
         helpers::safelyRetrieve((*nh_private), name, param, default_value);
     }
     
-    template <class T>
-    void retrieveEigen(const std::string& name, T& param, const int expected_size){
+    void retrieveEigen(const std::string& name, Eigen::VectorXd& param, const int expected_size){
         helpers::safelyRetrieveEigen((*nh_private), name, param, expected_size);
+    }
+    
+    void retrieveEigen(const std::string& name, Eigen::VectorXd& param){
+        helpers::safelyRetrieveEigen((*nh_private), name, param);
     }
     
     template <class T>
@@ -69,6 +72,10 @@ public:
         helpers::safelyRetrieveArray((*nh_private), name, param, expected_size);
     }
     
+    inline bool ifParameter(const std::string& name){
+        return helpers::ifParameter((*nh_private), name);
+    }
+
     
     inline bool hasParameter(const std::string& name){
         return helpers::hasParameter((*nh_private), name);

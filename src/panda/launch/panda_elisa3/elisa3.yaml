@@ -2,13 +2,13 @@ ID: 1
 address: 3658
 sampling_rate: 100
 init_state:
-  - 0.0
+  - -0.51
   - 0.0
   - 0.0
 color: orange
 
 initial_delay: 0.0
-z_select: [0, 1]
+z_select: [1, 1]
 L: 0.04
 NF:
   alpha: 5.0

@@ -12,8 +12,7 @@ System::System(int n_set, int m_set, int lmax_set, const std::string& name)
 {
     // Initialise the communication management module
     cmm = std::make_unique<CMM>(name);
-    logTmp("coop", cmm->coopDim());
-    logTmp("leader", cmm->leaderDim());
+
     ros::NodeHandle nh;
     enable_server = nh.advertiseService("/Agent_" + std::to_string(cmm->agent->getID()) + "/enable", &System::enableSystem, this);
 

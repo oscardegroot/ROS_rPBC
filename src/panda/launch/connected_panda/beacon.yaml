@@ -1,10 +1,10 @@
 ID: 1
-goal_type: 3
+goal_type: -1
 sampling_rate: 100
 default_goal:
-  - -0.3
   - 0.3
-  - 0.0
+  - 0.3
+  - 0.7
 z_select:
   - 1
   - 1

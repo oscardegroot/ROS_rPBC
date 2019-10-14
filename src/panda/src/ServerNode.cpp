@@ -27,12 +27,12 @@ int main(int argc, char **argv){
 	ros::init(argc, argv, "Remote");
     ros::NodeHandle nh;
     
-    /* The elisa station */
-//    if(helpers::ifParameter(nh, "/elisa_station")){
-//        
-//        stations.push_back(std::make_unique<ElisaStation>());
-//    }
-    
+//    /* The elisa station */
+    if(helpers::ifParameter(nh, "/elisa_station")){
+        
+        stations.push_back(std::make_unique<ElisaStation>());
+    }
+        
     /* The agent station */
     stations.push_back(std::make_unique<AgentStation>());
     

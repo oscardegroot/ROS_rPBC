@@ -1,5 +1,5 @@
 ID: 1
-goal_type: -1
+goal_type: 3
 sampling_rate: 100
 default_goal:
   - -0.3
@@ -8,7 +8,7 @@ default_goal:
 z_select:
   - 1
   - 1
-  - 1
+  - 0
 dynamic:
   radius: 0.2
   speed: 0.3

@@ -70,6 +70,10 @@ public:
         start_time = std::chrono::system_clock::now();
     }
     
+    SimpleTimer(){
+        
+    }
+    
     bool finished(){
         auto end_time = std::chrono::system_clock::now();
         std::chrono::duration<double> current_duration = end_time - start_time;
@@ -96,7 +100,7 @@ bool safelyRetrieve(ros::NodeHandle& nh, const std::string name, T& param){
 
 }
 
-inline bool ifParameter(ros::NodeHandle& nh, const std::string name){
+inline bool ifParameter(ros::NodeHandle& nh, const std::string& name){
 
     bool param;
 	if (!nh.getParam(name, param)) {
@@ -152,9 +156,8 @@ template <typename T> int sgn(T val) {
 }
 
 /* Turn this into vector! */
-template <class T>
-bool safelyRetrieveEigen(ros::NodeHandle& nh, const std::string name,
-						 T& param, const int expected_size){
+inline bool safelyRetrieveEigen(ros::NodeHandle& nh, const std::string name,
+						 Eigen::VectorXd& param, const int expected_size){
 
 	std::vector<double> result_v;
 	safelyRetrieveArray(nh, name, result_v, expected_size);
@@ -165,9 +168,8 @@ bool safelyRetrieveEigen(ros::NodeHandle& nh, const std::string name,
 		
 }
 
-template <class T>
-bool safelyRetrieveEigen(ros::NodeHandle& nh, const std::string name,
-                         T& param){
+inline bool safelyRetrieveEigen(ros::NodeHandle& nh, const std::string name,
+                         Eigen::VectorXd& param){
 
     std::vector<double> result_v;
     safelyRetrieve(nh, name, result_v);

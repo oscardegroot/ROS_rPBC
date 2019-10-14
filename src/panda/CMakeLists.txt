@@ -138,6 +138,13 @@ target_link_libraries(Agent_node ${catkin_LIBRARIES}
 )
 add_dependencies(Agent_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_executable(NetworkNode src/NetworkNode.cpp)
+target_link_libraries(NetworkNode ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_dependencies(NetworkNode ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_include_directories(NetworkNode SYSTEM PUBLIC
+		${catkin_INCLUDE_DIRS}
+)
+
 # The Panda Node
 add_dependencies(panda
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
