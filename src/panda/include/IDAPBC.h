@@ -27,6 +27,7 @@ public:
 	/* Parameters necessary for IDA-PBC control */
 	// Define the local gradient
 	Eigen::VectorXd dVsdq(System& system) override;
+    void publishAll(System& system) override;
 
 	// Define damping
 	//Eigen::MatrixXd Kv(System& system) override;

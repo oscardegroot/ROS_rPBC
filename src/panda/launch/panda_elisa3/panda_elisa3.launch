@@ -3,44 +3,43 @@
 
   <arg name="robot_ip" default="172.16.0.2"/>
   <arg name="load_gripper" default="false" />
+  
+  <arg name="global_path" default="$(find panda)/launch/"/>
+  <arg name="local_path" default="#(arg global_path)/panda_elisa3"/>
+  
+  <!-- Artificial network -->
+  <arg name="network" default="true"/>
 
   <!-- Load parameters (see files) -->
-  <rosparam command="load" file="$(find panda)/launch/panda_elisa3/params.yaml" />
-  <rosparam command="load" file="$(find panda)/launch/network.yaml" />
+  <rosparam command="load" file="$(arg local_path)/params.yaml" />
 
-  <!-- Initiate an urdf of the robot -->
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm_hand.urdf.xacro'" if="$(arg load_gripper)" />
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm.urdf.xacro'" unless="$(arg load_gripper)" />
+  <!-- Launch the panda -->
+  <include file="$(arg global_path)/panda.launch">
+    <arg name="robot_ip" value="$(arg robot_ip)"/>
+    <arg name="load_gripper" value="$(arg load_gripper)"/>
+    <arg name="global_path" value="$(arg global_path)"/>
+    <arg name="local_path" value="$(arg local_path)"/>
+  </include>
 
-  <!-- Load the controller node -->
-  <node name="franka_control" pkg="franka_control" type="franka_control_node" output="screen" required="true">
-    <rosparam command="load" file="$(find franka_control)/config/franka_control_node.yaml" />
-    <rosparam command="load" file="$(find panda)/launch/panda_elisa3/panda.yaml"/>
-    <param name="robot_ip" value="$(arg robot_ip)" />
+  <!-- Launch general nodes -->
+  <include file="$(arg global_path)/general.launch">
+    <arg name="global_path" value="$(arg global_path)"/>
+    <arg name="local_path" value="$(arg local_path)"/>
+    <arg name="network" value="$(arg network)"/>
+  </include>
+
+  <!-- Launch the camera -->
+  <include file="$(find elisa_vision)/launch/elisa_vision.launch"/>
+
+  <!-- Launch Elisa robots -->
+  <node pkg="panda" type="Elisa3_Node" name="elisa3_0" output="screen">
+    <rosparam command="load" file="$(arg local_path)/elisa3_0.yaml" />
+    <rosparam command="load" file="$(arg global_path)/elisa/elisa3.yaml" />
   </node>
 
-  <!-- Spawn the franka controller and its publishers -->
-  <rosparam command="load" file="$(find franka_control)/config/default_controllers.yaml" />
-  <node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_state_controller"/>
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
-  <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
-    <rosparam if="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states, franka_gripper/joint_states] </rosparam>
-    <rosparam  unless="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states] </rosparam>
-    <param name="rate" value="30"/>
-  </node>
+  <!-- Plot cooperative coordinates -->
+  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] agents/1/z/data[0] agents/1/z/data[1]" />
 
-  <node name="NetworkNode" pkg="panda" type="NetworkNode" output="screen"/>
-
-  <node name="server" pkg="panda" type="Server" respawn="false" output="screen"/>
-  <!-- Create a beacon -->
-  <node pkg="panda" type="Elisa3_Node" name="elisa3_1" output="screen">
-    <rosparam command="load" file="$(find panda)/launch/panda_elisa3/elisa3.yaml" />
-  </node>
-<!-- Spawn the panda controller -->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="panda"/>
-  <!-- Setup visualisation tools etc. -->
-  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_0/data[1] agent_0/data[2] agent_1/data[0] agent_1/data[1]"  />
-  <!-- <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot_w_marker.rviz"/> -->
   <!-- <node name="interface" pkg="panda" type="TextInterface_Node" respawn="false" output="screen"/> -->
-<!-- agent_1/data[1] agent_1/data[2] -->
+
 </launch>

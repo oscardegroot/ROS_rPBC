@@ -39,10 +39,10 @@
 	</node>
 
 
-	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agent_0/data[0] agent_0/data[1] agent_0/data[2] reference/data[0] reference/data[1]"/>
+	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] reference/data[0] reference/data[1]"/>
 
 	<node pkg="rosbag" type="record" name="rosbag_agents"
-       args="record -o $(find panda)/bags/agents /agent_0 /reference"/>
+       args="record -o $(find panda)/bags/agents /agents/0/z /reference"/>
 
    <node pkg="rosbag" type="record" name="rosbag_waves"
        args="record -o $(find panda)/bags/waves /s_01p_in /s_01p_out /s_01m_in /s_01m_out"/>

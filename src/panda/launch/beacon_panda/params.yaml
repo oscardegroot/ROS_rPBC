@@ -1,5 +1,5 @@
 is_simulation: false
-register_time: 4.0
+register_time: 2.0
 
 sampling_rate: 100
 N_agents: 2

@@ -22,7 +22,7 @@ PotentialFactors Obstacle::gradient(const Eigen::VectorXd& r_i, const Eigen::Vec
 {
     // Get the distance
     double d = getDistance(r_i, r_js);
-
+    logTmp(d);
     // Calculate the gradient value at that distance
     double gradient_value = obstacle_function->gradient_value(d);
     
@@ -170,5 +170,5 @@ double WangObstacleFunction::gradient_value(const double& d)
         gradient = (3*af*d*d + 2*bf*d+cf);
     }
     
-    return gradient;
+    return gradient/d;
 }

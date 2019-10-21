@@ -79,7 +79,7 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, const Eigen::VectorXd& ta
 	tau += pinv_psi * (tau_c - kz*system.Psi().transpose()*system.state.dq);
     
     // Publish the input for debug purposes
-	publishValue(tau_pub, tau_rate, tau);
+	publish("tau", tau);
     
     benchmark.end();
     // Return the input
@@ -97,10 +97,18 @@ Eigen::VectorXd IDAPBC::getOutput(System& system){
 	r = system.state.z;
 
 	// Publish it for debugging
-	publishValue(z_pub, z_rate, r);
+	publishAll(system);
 
 	// Return the output
 	return r;
+}
+
+void IDAPBC::publishAll(System& system){
+    
+    // Publish it for debugging
+    publish("z", system.state.z);
+    publish("z_dot", system.Psi().transpose()*system.state.dq);
+
 }
 
 // Define the local gradient

@@ -55,9 +55,6 @@ public:
     void initSelectors();
     Eigen::MatrixXd selectPsi(const Eigen::MatrixXd& psi);
     Eigen::VectorXd selectZ(const Eigen::VectorXd& z);
-
-	virtual
-    void readSensors();
     
 	virtual
     bool sendInput(const Eigen::VectorXd & tau) = 0;
@@ -102,8 +99,6 @@ public:
     virtual
     Eigen::VectorXd& dTdq();
 
-    virtual
-    bool dataReady();
         
     /** Set the internal state of the system
      * @param[in] new_q coordinates.
@@ -116,8 +111,14 @@ public:
 
     /** Check the safety state of this system and throw an exception if safety is violated */
 	virtual
-    void checkSafety();
+    void checkSafety(){};
 
+    virtual
+    bool dataReady(){};
+    
+    virtual
+    void readSensors(){};
+    
     /**
      * @brief Enable this system, starting the controller
      */

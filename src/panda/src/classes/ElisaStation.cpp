@@ -25,17 +25,21 @@ void ElisaStation::starting()
 /* Read the sensors and send them to the robots */
 void ElisaStation::update()
 {
-    for(int i = 0; i < elisa3_addresses.size(); i++){
-        
-        int address = elisa3_addresses[i];
-        panda::Readout msg;
-
-        // Currently odometry via USB. When camera I probably dont need this in the station!
-        msg.x = -getOdomYpos(address)/1000.0;  // mm to m
-        msg.y = getOdomXpos(address)/1000.0;  // mm to m
-        msg.theta = getOdomTheta(address) / 180.0 * M_PI + M_PI_2; // Theta expressed in a tenth of degree
-        readout_pubs[i].publish(msg);
-    }
+    /** @odometry
+//    for(int i = 0; i < elisa3_addresses.size(); i++){
+//        
+//        int address = elisa3_addresses[i];
+//        panda::Readout msg;
+//
+//        // Currently odometry via USB. When camera I probably dont need this in the station!
+//        /* WITHOUT CAMERA
+//         * msg.x = -getOdomYpos(address)/1000.0;  // mm to m
+//        msg.y = getOdomXpos(address)/1000.0;  // mm to m
+//        msg.theta = getOdomTheta(address) / 180.0 * M_PI + M_PI_2; // Theta expressed in a tenth of degree
+//        readout_pubs[i].publish(msg);*/
+//        
+//        
+//    }*/
 }
 
 /* Stop the robots and the communication */
@@ -77,6 +81,8 @@ bool ElisaStation::registerElisa3(panda::registerElisa3::Request &req, panda::re
     
     // Create a publisher for sensor data
     readout_pubs.push_back(nh.advertise<panda::Readout>("elisa3_" + std::to_string(req.address) + "_readout", 20));
+    
+    vision_subs.push_back(nh.subscribe<panda::Readout>("Camera/Elisa3/" + std::to_string(req.address), 20, &ElisaStation::visionCallback, this));
 
     mtx.unlock();
     
@@ -124,4 +130,23 @@ void ElisaStation::setColor(int address, int r, int g, int b){
     setRed(address, r);
     setGreen(address, g);
     setBlue(address, b);
+}
+
+void ElisaStation::visionCallback(const panda::Readout::ConstPtr& msg)
+{
+    for(size_t i = 0; i < readout_pubs.size(); i++){
+
+        if(readout_pubs[i].getTopic() == "/elisa3_" + std::to_string(msg->address) + "_readout"){
+
+            panda::Readout new_msg;
+            
+            new_msg.x = msg->x/1000.0;
+            new_msg.y = msg->y/1000.0;
+            new_msg.theta = msg->theta;
+            new_msg.address = msg->address;
+            readout_pubs[i].publish(new_msg);
+        }
+    }
+
+
 }

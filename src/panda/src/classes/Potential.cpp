@@ -46,7 +46,11 @@ NavigationFunction::NavigationFunction(Agent& agent, int l_set, const Eigen::Vec
         
         agent.retrieveParameter(obstacle_path + "/type", obstacle_type);
         
-        if(obstacle_type == "z_bound"){
+        if(obstacle_type == "x_bound"){
+            addObstacleFcn(std::make_shared<BoundObstacle>(agent, k, l, 0));
+        }else if(obstacle_type == "y_bound"){
+            addObstacleFcn(std::make_shared<BoundObstacle>(agent, k, l, 1));
+        }else if(obstacle_type == "z_bound"){
             addObstacleFcn(std::make_shared<BoundObstacle>(agent, k, l, 2));
         }else if(obstacle_type == "obstacle"){
             addObstacleFcn(std::make_shared<ObjectObstacle>(agent, k, l));

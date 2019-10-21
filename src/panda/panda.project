@@ -60,6 +60,7 @@
     <File Name="src/CustomLog.cpp"/>
     <File Name="src/ServerNode.cpp"/>
     <File Name="src/NetworkNode.cpp"/>
+    <File Name="src/CameraNode.cpp"/>
   </VirtualDirectory>
   <Description/>
   <Dependencies/>

@@ -40,18 +40,6 @@ void System::setState(Eigen::VectorXd new_q, Eigen::VectorXd new_dq, Eigen::Vect
 	state.z = selectZ(new_z);
 }
 
-void System::checkSafety(){
-	return;
-}
-
-void System::readSensors(){
-    return;
-}
-
-bool System::dataReady(){
-    return false;
-}
-
 /// Initialise the selector matrix
 /* Note that z = S*z_all, Psi = Psi_all * S' */
 void System::initSelectors(){

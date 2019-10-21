@@ -32,14 +32,23 @@ public:
 
     Eigen::MatrixXd Kv(System& system) override;
 
+
+    void publishAll(System& system) override;
+
 	//Eigen::MatrixXd rightPseudoInverse(Eigen::MatrixXd A);
 
 
 private:
 
-	double lambda, gamma;
+	double lambda, gamma, kappa;
     
     Benchmarker benchmarker;
+    
+    Eigen::MatrixXd null_psi, pinv_psi;
+    
+    Eigen::MatrixXd& pinvPsi(System& system);
+    Eigen::MatrixXd& nullPsi(System& system);
+    bool pinv_psi_updated, null_psi_updated;
 
 };
 

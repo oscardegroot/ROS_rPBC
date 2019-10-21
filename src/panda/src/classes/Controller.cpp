@@ -10,16 +10,21 @@ An interface for controllers using IDAPBC or rPBC control.
 
 Controller::Controller(Agent& agent){
 
-	tau_pub.init(nh, "agent_tau", 1);
-	z_pub.init(nh, "agent_" + std::to_string(agent.getID()), 1);
+//	tau_pub.init(nh, "agent_tau", 1);
+//	z_pub.init(nh, "agent_" + std::to_string(agent.getID()) + "/z", 1);
+//	theta_pub.init(nh, "agent_" + std::to_string(agent.getID()) + "/theta", 1);
 
     helpers::safelyRetrieve(nh, "/l", l);
 
 	double publish_rate;
 	agent.retrieveParameter("controller/publish_rate", publish_rate, 10.0);
     
-	tau_rate = franka_hw::TriggerRate(publish_rate);
-	z_rate = franka_hw::TriggerRate(publish_rate);
+    //publishers.push_back(SignalPublisher(agent, nh, publish_rate, "z"));
+    publishers.emplace_back(agent, nh, publish_rate, "z");
+    publishers.emplace_back(agent, nh, publish_rate, "z_dot");
+    publishers.emplace_back(agent, nh, publish_rate, "theta_dot");
+    publishers.emplace_back(agent, nh, publish_rate, "tau");
+
 }
 
 Controller::~Controller(){};
@@ -28,17 +33,13 @@ Eigen::MatrixXd Controller::Kv(System& system){
 	return Eigen::MatrixXd::Identity(system.n, system.n);
 }
 
-void Controller::publishValue(realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray>& pub,
-	franka_hw::TriggerRate trigger_rate, const Eigen::VectorXd values) {
+void Controller::publish(const std::string& name, const Eigen::VectorXd& values) {
+    
+    for(size_t i = 0; i < publishers.size(); i++){
         
-    if (trigger_rate() && pub.trylock()) {
-
-        pub.msg_.data.resize(values.size());
-
-        for (int i = 0; i < values.size(); i++) {
-            pub.msg_.data[i] = values(i);
+        if(publishers[i].publishes(name)){
+            publishers[i].publish(values);
+            return;
         }
-
-        pub.unlockAndPublish();
     }
 }

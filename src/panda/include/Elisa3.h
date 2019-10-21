@@ -91,10 +91,11 @@ private:
     int address;
     
     // Initial state
-    Eigen::VectorXd q0;
+    //Eigen::VectorXd q0;
 
     bool data_received = false;
-    
+    std::string color_name;
+
     ros::NodeHandle nh;
     ros::Publisher move_pub;
     panda::Move move_msg;
@@ -116,7 +117,7 @@ private:
     static constexpr double l{0.0408}; // Distance between wheels (40.8mm)
     static constexpr double m{0.039}; // Total weight (39 g)
     static constexpr double J{0.000012187}; // Inertia (calculated as 0.5mr^2 for massive cylinder
-    static constexpr signed int max_speed{50}, min_speed{-30}, max_speed_rate{50};// Actual max/min at 127
+    static constexpr signed int max_speed{120}, min_speed{-120}, max_speed_rate{120};// Actual max/min at 127
     // For later
     // d = 50mm (body, not wheel!)
     // max speed 60cm/s

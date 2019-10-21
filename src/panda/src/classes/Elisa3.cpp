@@ -34,17 +34,12 @@ Elisa3::Elisa3()
 
     cmm->agent->retrieveParameter("address", address); // Retrieve the hand distance
     cmm->agent->retrieveParameter("L", L); // Retrieve the hand distance
-    cmm->agent->retrieveEigen("init_state", q0, 3);
-
-    //helpers::safelyRetrieveEigen(nh_private, "init_state", q0, 3);
-
-//    int id;
-//    helpers::safelyRetrieve(nh_private, "ID", id);
+    //cmm->agent->retrieveEigen("init_state", q0, 3);
 
     test_pub.init(cmm->agent->getPrivateNh(), "q", 1);
 
     // And these are the actual system states
-    actual_q = q0;
+    actual_q = Eigen::VectorXd::Zero(3);
     actual_dq = Eigen::VectorXd::Zero(3);
 
     Eigen::VectorXd h(2);
@@ -68,8 +63,6 @@ Elisa3::Elisa3()
     }
 
     color_client = nh.serviceClient<panda::colorElisa3>("/colorElisa3");
-
-    std::string color_name;
     cmm->agent->retrieveParameter("color", color_name);   
     //setColor(color_name);
     /** @todo Fix! Elisastation hasn started communication when this is executed...*/
@@ -91,7 +84,7 @@ Elisa3::~Elisa3() {
 bool Elisa3::sendInput(const Eigen::VectorXd & tau){
         //setColor(color_name);
 
-    setColor("orange");
+    //setColor(color_name);
     //logTmp("Elisa3 running");
     data_received = false;
     
@@ -128,6 +121,9 @@ bool Elisa3::sendInput(const Eigen::VectorXd & tau){
 /// Read Sensors from the Elisa3 (determines q, h and dh)
 void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
 
+    /** @x towards window
+     * @y towards panda
+     * @theta 0.0 when in x direction*/
     /// Retrieve the accelerations ( correct compared with gtronic )
 //    Eigen::VectorXd a(2); //SWAP X AND Y HERE!
 //    a(0,0) = -getAccY(address);// / 64.0 * 9.81;
@@ -135,7 +131,7 @@ void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
 //    a *= (9.81/64.0);
 
     /// Retrieve the state from odometry (ACTUAL STATE)
-    Eigen::VectorXd q(3); // X and Y are swapped compared to my convention
+    /*Eigen::VectorXd q(3); // X and Y are swapped compared to my convention
     double x = msg->x;
     double y = msg->y;
     q(0, 0) = q0(0) + std::cos(q0(2, 0))*x + std::sin(q0(2, 0))*y;
@@ -160,6 +156,13 @@ void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
 
         test_pub.unlockAndPublish();
     }
+*/
+
+    Eigen::VectorXd q(3);
+    q(0) = msg->x; // Inverted in the convention
+    q(1) = msg->y;
+    q(2) = msg->theta; // Is inverted in direction
+    actual_q = q;
 
     /// Convert to hand position
     Eigen::VectorXd h(2);

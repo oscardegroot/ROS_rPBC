@@ -1,0 +1,67 @@
+N_agents: 3
+l: 2
+network_gain:
+  - 0.3
+  - 0.3
+
+elisa3_1:
+  ID: 1
+  address: 3656
+  init_state:
+    - 0.0
+    - 0.0
+    - 0.0
+  sampling_rate: 100
+
+elisa3_2:
+  ID: 2
+  address: 3658
+  init_state:
+    - 0.256
+    - 0.256
+    - 0.0
+  sampling_rate: 100
+
+elisa3_3:
+  ID: 0
+  address: 3655
+  init_state:
+    - -0.256
+    - 0.256
+    - 3.14
+  sampling_rate: 100
+
+
+elisa3:
+  sampling_rate: 100
+  initial_delay: 2.0
+  z_select:
+    - 1
+    - 1
+  L: 0.045 #0.045
+
+controller:
+  kz: 1.0
+  NF:
+    alpha: 30.0
+    goal:
+      Rw: 1.2
+      eps: 0.12
+#    constraints:
+#      lower_bound:
+#        R_z: 0.1
+#        delta_z: 0.15
+#
+#formation:
+#  type: consensus
+#  radius: 0.05
+#  phase: 0.0
+
+#leader:
+#  id: 0
+#  gain:
+#    - 1.0
+#    - 0.0
+#  ref:
+#    - 0.1
+#    - 0.0

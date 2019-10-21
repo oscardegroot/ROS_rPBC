@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<launch>
+
+	<rosparam command="load" file="$(find panda)/launch/Elisa3/Single/params.yaml" />
+	<rosparam command="load" file="$(find panda)/launch/goals.yaml" />
+  
+  <include file="$(find elisa_vision)/launch/elisa_vision.launch"/>
+
+  <!-- <node pkg="panda" type="Elisa3_Station" name="station" output="screen" /> -->
+  <node pkg="panda" type="Server" name="server" output="screen" />
+  
+  <node pkg="panda" type="Elisa3_Node" name="elisa3_1" output="screen">
+    <rosparam command="load" file="$(find panda)/launch/Elisa3/Single/elisa3.yaml" />
+  </node>
+
+  <node pkg="panda" type="Beacon_node" name="beacon" output="screen">
+    <rosparam command="load" file="$(find panda)/launch/Elisa3/Single/beacon.yaml" />
+  </node>
+
+  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] reference/data[0] reference/data[1]"  />
+  <node pkg="panda" type="TextInterface_Node" name="text" output="screen"/>
+
+</launch>

@@ -13,7 +13,8 @@ rPBC::rPBC(Agent& agent)
 	: Controller(agent)
 {
 	logMsg("rPBC", "Initiating.. ", 2);
-
+    null_psi_updated = false;
+    pinv_psi_updated = false;
 	/* Retrieve controller gains */
 	ros::NodeHandle nh;
 	helpers::safelyRetrieve(nh, "/lambda", lambda);
@@ -71,14 +72,6 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
 	}
 
     /**@todo add dTdq() */
-
-    // Calculate pseudo inverse and null space
-    Eigen::MatrixXd pinv_psi;
-	pinv_psi = helpers::pseudoInverse(system.Psi().transpose());
-
-    // Null space calculations
-	Eigen::FullPivLU<Eigen::MatrixXd> psi_lu(system.Psi().transpose());
-	Eigen::MatrixXd nullPsi = psi_lu.kernel().transpose();
     
     /* We can simplify two terms with dMinv() * M. (There are three: in Kz, in Kv local and in Kv coop, only Kv local stays).*/
     Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose();// + 
@@ -87,12 +80,16 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
     Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + kq*system.Psi().transpose()*system.state.dq;// + system.Psi().transpose()*Kv(system)*system.state.dq;
     
     // Use the rPBC control law to control the agent
-	tau += system.M()*(pinv_psi*tau_hat - (system.dM() + kq*Eigen::MatrixXd::Identity(system.n, system.n))*system.state.dq);
+	tau += system.M()*(pinvPsi(system)*tau_hat - (system.dM() + kq*Eigen::MatrixXd::Identity(system.n, system.n))*system.state.dq);
 
     // Local objectives
-    tau -= nullPsi.transpose()*nullPsi*dVsdq(system);
+    tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);
+    
+    null_psi_updated = false;
+    pinv_psi_updated = false;
+    
     benchmarker.end();
-    //publishValue(tau_pub, tau_rate, tau);
+    //publish("tau", tau);
 
 	return tau;
 }
@@ -103,11 +100,19 @@ Eigen::VectorXd rPBC::getOutput(System& system){
 	Eigen::VectorXd r(l);
 	r = lambda*system.state.z + system.Psi().transpose()*system.state.dq;
     
-	// Publish it for debugging
-	publishValue(z_pub, z_rate, system.state.z);
-
+    publishAll(system);
+    
 	// Return the output
 	return r;
+}
+
+void rPBC::publishAll(System& system){
+    
+    // Publish it for debugging
+    publish("z", system.state.z);
+    publish("z_dot", system.Psi().transpose()*system.state.dq);
+    publish("theta_dot", nullPsi(system)*system.state.dq);
+
 }
 
 // Define the local gradient
@@ -138,6 +143,30 @@ Eigen::VectorXd rPBC::dVsdq(System& system){
 
 Eigen::MatrixXd rPBC::Kv(System& system)
 {
-    //return Eigen::MatrixXd::Zero(system.n, system.n);
-    return kq*Eigen::MatrixXd::Identity(system.n, system.n) + system.dMinv()*system.M();// + system.dPsi()*helpers::pseudoInverse(system.Psi());
+    /** @note Minv_dot * m cancels! */
+    //return kq*Eigen::MatrixXd::Identity(system.n, system.n) + system.dMinv()*system.M();// + system.dPsi()*helpers::pseudoInverse(system.Psi());
+    return helpers::pseudoInverse(null_psi) * system.dPsi() + kappa*Eigen::MatrixXd::Identity(system.n, system.n);
+}
+
+Eigen::MatrixXd& rPBC::pinvPsi(System& system)
+{ 
+    if(!pinv_psi_updated){
+        
+        pinv_psi = helpers::pseudoInverse(system.Psi().transpose());
+        pinv_psi_updated = true;
+    }
+    
+    return pinv_psi;
+}
+
+Eigen::MatrixXd& rPBC::nullPsi(System& system)
+{ 
+    if(!null_psi_updated){
+        
+        Eigen::FullPivLU<Eigen::MatrixXd> psi_lu(system.Psi().transpose());
+        null_psi = psi_lu.kernel().transpose();
+        null_psi_updated = true;
+    }
+    
+    return null_psi;
 }

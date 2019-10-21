@@ -30,7 +30,7 @@
 #define END_ESC "\033[0m"
 
 template <class T> 
-void logMsg(std::string from_class, T msg, int level=3){
+void logMsg(const std::string& from_class, const T& msg, int level=3){
 
 	if(level <= LOG_LEVEL){
 		switch(level){
@@ -46,7 +46,6 @@ void logMsg(std::string from_class, T msg, int level=3){
 				std::cout << ERROR_COLOR << "[" << from_class << "]: " << msg << END_ESC << std::endl;
 				break;
 
-
 			default:
 				std::cout << "[" << from_class << "]: " << msg << std::endl;
 				break;
@@ -55,14 +54,15 @@ void logMsg(std::string from_class, T msg, int level=3){
 	}
 }
 
+
 template <class T> 
-void logTmp(T msg){
+void logTmp(const T& msg){
 
 	std::cout << "Tmp Logging: \n" << msg << std::endl;
 }
 
 template <class T>
-void logTmp(std::string name, T msg){
+void logTmp(const std::string& name, const T& msg){
 
     std::cout << name + "\n" << msg << std::endl;
 }
@@ -76,7 +76,7 @@ inline void logAssert(bool input, const std::string& message){
     }
 }
 
-void logMsg(std::string from_class, std::string msg, int level=3);
+void logMsg(const std::string& from_class, const std::string& msg, int level=3);
 
 
 class RunCheck{

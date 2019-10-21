@@ -11,7 +11,11 @@ joint_names:
 arm_id: panda
 vel_max: 0.05
 z_select: [1, 1, 2, 0, 0, 0]
-z_lower_bound: 0.2
+safety:
+  lower_bound_z: 0.2
+  camera_bound:
+    z: 0.9
+    x: -0.5 
 velocity_element_bound: 2.0
 velocity_norm_bound: 0.3
 torque_bound: 12.0 #12.0

@@ -41,6 +41,12 @@ private:
     bool registerElisa3(panda::registerElisa3::Request &req, panda::registerElisa3::Response &res);
 
     /**
+     * @brief Callback from vision module
+     */
+    void visionCallback(const panda::Readout::ConstPtr& msg);
+
+
+    /**
      * @brief Callback for setting the color of Elisa3 robots.
      */
     bool colorElisa3(panda::colorElisa3::Request &req, panda::colorElisa3::Response &res);
@@ -66,4 +72,6 @@ private:
     // Subscriber to move messages
     std::vector<ros::Publisher> readout_pubs;
     std::vector<ros::Subscriber> move_subs;
+    
+    std::vector<ros::Subscriber> vision_subs;
 };

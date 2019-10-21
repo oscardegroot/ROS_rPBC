@@ -1,0 +1,15 @@
+sampling_rate: 100
+initial_delay: 0.0
+
+z_select: [1, 1]
+L: 0.04
+NF:
+  alpha: 5.0
+  gamma:
+    r_w: 1.0
+    eps: 0.10
+
+#    constraints:
+#      lower_bound:
+#        R_z: 0.1
+#        delta_z: 0.15

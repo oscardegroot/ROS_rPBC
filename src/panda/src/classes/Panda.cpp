@@ -111,10 +111,13 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	// Retrieve parameters
 	cmm->agent->retrieveParameter("velocity_norm_bound", velocity_norm_bound, 0.4);
 	cmm->agent->retrieveParameter("velocity_element_bound", velocity_element_bound, 0.3);
-	cmm->agent->retrieveParameter("z_lower_bound", z_lower_bound, 0.2);
+	cmm->agent->retrieveParameter("safety/lower_bound_z", z_lower_bound, 0.2);
 	cmm->agent->retrieveParameter("torque_bound", torque_bound, 2.0);
 	cmm->agent->retrieveParameter("alpha", alpha, 0.99);
 	cmm->agent->retrieveParameter("initial_pause", initial_pause, 0.0);
+    cmm->agent->retrieveParameter("safety/camera_bound/x", camera_bound_x, -30.0);
+	cmm->agent->retrieveParameter("safety/camera_bound/z", camera_bound_z, 20.0);
+
 
 	// Initialise the controller
     std::string output;
@@ -130,6 +133,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 
 	// Get an initial state reading
 	robot_state = cartesian_pose_handle_->getRobotState();
+//    logTmp(robot_state.current_errors);
 	retrieveState();
 
     // Perform handshake once the controller has been initialised
@@ -146,7 +150,7 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 void Panda::checkSafety(){
 
 	// Check if the panda is not below its lower bound
-	if(z_coordinate < z_lower_bound){
+	if(coordinates_3D(2) < z_lower_bound){
 		throw BoundException(
 			"Panda: Panda fell below lower bound!");
 	}
@@ -169,6 +173,13 @@ void Panda::checkSafety(){
 			")");
 		}
 	}
+    
+    /* Safety check for camera placement */
+    if(coordinates_3D(2) >= camera_bound_z && coordinates_3D(0) <= camera_bound_x){
+        throw BoundException( "Panda: Camera bound was passed! Robot was brought to a save stop.\n Robot coordinates: (x=" +
+            std::to_string(coordinates_3D(0)) + ", z=" + std::to_string(coordinates_3D(2)) + ")\n Camera bound: (x=" + 
+            std::to_string(camera_bound_x) + ", z=" + std::to_string(camera_bound_z) + ")");
+    }
 }
 
 
@@ -189,9 +200,11 @@ void Panda::retrieveState(){
 
     /* The angles dont work in this manner, so they are disabled */
 	std::array<double, 3> z{{robot_state.O_T_EE[12], robot_state.O_T_EE[13], robot_state.O_T_EE[14]}};//, alpha, beta, gamma}};
-    z_coordinate = z[2];
+    coordinates_3D = helpers::arrayToVector<3>(z);
 
 	this->state.z = this->selectZ(helpers::arrayToVector<3>(z));
+
+//    logTmp(robot_state.current_errors);
 
 	retrieveMatrices();
 

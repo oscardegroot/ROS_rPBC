@@ -109,6 +109,8 @@ namespace panda {
         ros::ServiceClient connect_client;
         ros::Publisher yolo_pub;
         
+        ros::Publisher error_recovery;
+        
         ros::Time start_time;
         
         // franka classes
@@ -124,7 +126,9 @@ namespace panda {
         
         // Bounds for safety
         double z_lower_bound, torque_bound;
+        double camera_bound_x, camera_bound_z;
         double velocity_element_bound, velocity_norm_bound;
+        
 
         double initial_pause;
         double has_run = false;
@@ -135,8 +139,8 @@ namespace panda {
 
         Eigen::VectorXd last_z;
         
-        // For safety when the geometric z is not selected
-        double z_coordinate;
+        // For safety when the geometric coordinates are not selected
+        Eigen::VectorXd coordinates_3D;
 
         // Torque rate limit
         static constexpr double kDeltaTauMax{1.0};

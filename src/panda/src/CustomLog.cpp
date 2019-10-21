@@ -9,6 +9,6 @@
 
 
 
-void logMsg(std::string from_class, std::string msg, int level){
+void logMsg(const std::string& from_class, const std::string& msg, int level){
 	logMsg<std::string>(from_class, msg, level);
 }

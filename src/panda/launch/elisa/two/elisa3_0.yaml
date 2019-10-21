@@ -1,0 +1,23 @@
+ID: 0
+address: 3658
+color: blue
+
+# initial_delay: 0.0
+# z_select: [1, 1]
+# L: 0.06
+# NF:
+#   alpha: 5.0
+#   gamma:
+#     r_w: 1.0
+#     eps: 0.10
+
+# controller:
+#   publish_rate: 10.0
+#   kq: 1.0
+#   kz: 1.0
+
+
+#    constraints:
+#      lower_bound:
+#        R_z: 0.1
+#        delta_z: 0.15
