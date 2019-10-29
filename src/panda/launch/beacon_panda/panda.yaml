@@ -16,36 +16,37 @@ safety:
   camera_bound:
     z: 0.85
     x: -0.2 
+  torque_bound_stop: 80.0
 velocity_element_bound: 2.0
 velocity_norm_bound: 0.3
-torque_bound: 12.0 #12.0
+torque_bound: 30.0 #12.0
 alpha: 0.95
 initial_pause: 0.0
 NF:
   alpha: 5
   gamma:
     r_w: 1.0
-    eps: 0.13
+    eps: 0.08
   beta:
     function:
       R: 0.1
-      delta: 0.05
+      delta: 0.12
     
     # obstacle_0:
-    #   type: z_bound
-    #   lower_bound: 0.2
+    #   type: lower_bound_z
+    #   value: 0.2
 
-      # obstacle_1:
+    # obstacle_0:
     #   type: obstacle
-    #   radius: 0.1
+    #   radius: 0.18
     #   location:
-    #     - -0.0
     #     - 0.0
-    #     - 1.0
+    #     - 0.0
+    #     - 0.38
 controller:
   publish_rate: 30
-  kq: 1.0
-  kz: 3.0
+  # kq: 1.0
+  # kz: 3.0
   gravity_compensation:
     enabled: false
   local_potential:
@@ -54,7 +55,9 @@ controller:
     goals: [0.0, 0.2, 0.0, 0.15, 0.0, 0.0, 0.0]
   joint_limit_avoidance:
     enabled: true 
-    gains: [0.5, 2.0, 0.5, 0.5, 0.5, 0.5, 0.5] #Scale by nullPsi norm?
+    gains: [0.5, 2.0, 0.5, 0.5, 0.5, 0.5, 0.5] #Scale by nullPsi norm? was 0.5, 2.0
+    #gains: [1.0, 5.0, 1.0, 1.0, 1.0, 1.0, 1.0] #Scale by nullPsi norm? was 0.5, 2.0
+
     limits_min: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
     limits_max: [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
     

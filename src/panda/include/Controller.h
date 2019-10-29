@@ -113,7 +113,7 @@ protected:
 //	realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray> tau_pub, z_pub, theta_pub;
     
     // Gains
-	Eigen::VectorXd Vs_gains, theta_star, limit_avoidance_gains, limits_avg;
+	Eigen::VectorXd Vs_gains, theta_star, limit_avoidance_gains, limits_avg, limits_min, limits_max;
 	bool local_enabled, limit_avoidance_enabled, gravity_enabled,integral_enabled;
 	double kq, kz, ki;
 };

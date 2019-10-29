@@ -1,8 +1,8 @@
 ID: 0
 sampling_rate: 1000
 controller:
-  kq: 1.0
-  kz: 6.0
+  # kq: 1.0
+  # kz: 6.0
   gravity_compensation:
     enabled: true
   local_potential:
@@ -53,29 +53,33 @@ z_select:
   - 0
   - 0
 vel_max: 0.05
-z_lower_bound: 0.2
+safety:
+  lower_bound_z: 0.2
+  camera_bound:
+    z: 1.3
+    x: -0.2 
 velocity_element_bound: 10.0
 velocity_norm_bound: 10.0
 torque_bound: 500.0
 alpha: 0.99
 NF:
-  alpha: 5
+  alpha: 35
   gamma:
     r_w: 1.0
-    eps: 0.13
+    eps: 0.15
   beta:
     function:
       R: 0.1
-      delta: 0.10
+      delta: 0.05
     
     # obstacle_0:
     #   type: z_bound
-    #   lower_bound: 0.2
+    #   lower_bound: 0.8
 
-    # obstacle_1:
-    #   type: obstacle
-    #   radius: 0.05
-    #   location:
-    #     - -0.2
-    #     - 0.2
-    #     - 1.7
+    obstacle_0:
+      type: obstacle
+      radius: 0.2
+      location:
+        - 0.0
+        - 0.0
+        - 0.4

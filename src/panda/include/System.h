@@ -42,6 +42,7 @@ public:
     // # Coordinates, # Actuation degree, # Maximal cooperative coordinates of EE
 	int n = 0;
 	int m = 0;
+    int s = 0;
 	int lmax = 0;
     
     // System coordinate state (q, qdot, z)
@@ -52,7 +53,6 @@ public:
     
 	/** @brief Systems may not always want to cooperate in all the DOF of their end-effectors. 
      * The selector matrices multiply with the z and psi matrices such that only the selected DOF remain */
-    void initSelectors();
     Eigen::MatrixXd selectPsi(const Eigen::MatrixXd& psi);
     Eigen::VectorXd selectZ(const Eigen::VectorXd& z);
     
@@ -125,14 +125,17 @@ public:
     bool enableSystem(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
     bool isEnabled() const { return is_enabled;};
 
+    /** @move back to protected and move functions from control to system */
+    // Aproximates derivatives of matrices using (x[k] - x[k-1]) / h
+    Eigen::MatrixXd approximateDerivative(const Eigen::MatrixXd& A_current, const Eigen::MatrixXd& A_previous) const;
+
+
 protected:
 
     // Selector for Psi and z
     //Eigen::MatrixXd S;
     std::unique_ptr<Selector> selector;
     
-    // Aproximates derivatives of matrices using (x[k] - x[k-1]) / h
-    Eigen::MatrixXd approximateDerivative(const Eigen::MatrixXd& A_current, const Eigen::MatrixXd& A_previous) const;
 
     // System matrices
     Eigen::MatrixXd m_m, psi, dm, dpsi, dminv;

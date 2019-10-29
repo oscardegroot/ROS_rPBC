@@ -5,10 +5,13 @@
   <arg name="local_path" default="$(arg global_path)/elisa/two"/>
   
   <!-- Artificial network -->
-  <arg name="network" default="true"/>
+  <arg name="network" default="false"/>
+
+  <arg name="collect_bags" default="false"/>
 
   <!-- Launch general nodes -->
   <include file="$(arg global_path)/general.launch">
+  	<arg name="collect_bags" value="$(arg collect_bags)"/>
     <arg name="global_path" value="$(arg global_path)"/>
     <arg name="local_path" value="$(arg local_path)"/>
     <arg name="network" value="$(arg network)"/>

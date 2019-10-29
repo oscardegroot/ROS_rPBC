@@ -92,22 +92,13 @@ namespace panda {
          * @param[in] tau_J_d current inputs from robot 
          * 
          * @returns safe torques */
-        std::array<double, 7> checkTorque(
-            const Eigen::VectorXd& torques,
-            const std::array<double, 7>& tau_J_d);
-
-        /** Lowpass filter the velocities
-         * @param[in] input_v new velocities
-         * 
-         * @return dq_filtered is set internally, void returned */
-        void filterVelocity(std::array<double, 7> input_v);
+        std::array<double, 7> checkTorque(Eigen::VectorXd& torques, const std::array<double, 7>& tau_J_d);
 
     protected:
 
         // ROS classes
         ros::NodeHandle nh;
         ros::ServiceClient connect_client;
-        ros::Publisher yolo_pub;
         
         ros::Publisher error_recovery;
         
@@ -125,22 +116,21 @@ namespace panda {
         std::vector<hardware_interface::JointHandle> joint_handles_;
         
         // Bounds for safety
-        double z_lower_bound, torque_bound;
+        double z_lower_bound, torque_bound, torque_bound_stop;
         double camera_bound_x, camera_bound_z;
         double velocity_element_bound, velocity_norm_bound;
         
 
         double initial_pause;
-        double has_run = false;
 
         // Filter coefficient (LPF)
         double alpha;
-        std::array<double, 7> dq_filtered;
+        Eigen::VectorXd dq_filtered;
 
         Eigen::VectorXd last_z;
         
         // For safety when the geometric coordinates are not selected
-        Eigen::VectorXd coordinates_3D;
+        Eigen::VectorXd new_z;
 
         // Torque rate limit
         static constexpr double kDeltaTauMax{1.0};
@@ -149,5 +139,7 @@ namespace panda {
         std::unique_ptr<Controller> controller;
         
         bool initial_matrices = false;
+        
+        Benchmarker benchmarker;
     };
 }

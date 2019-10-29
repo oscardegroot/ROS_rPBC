@@ -4,6 +4,7 @@
   <!-- Panda settings -->
   <arg name="robot_ip" default="172.16.0.2"/>
   <arg name="load_gripper" default="false" />
+  <arg name="controller_type" default="panda"/>
 
   <!-- Paths -->
   <arg name="global_path" default="$(find panda)/launch/"/>
@@ -33,6 +34,6 @@
     <param name="rate" value="30"/>
   </node>
 
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="panda"/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="$(arg controller_type)"/>
 
 </launch>

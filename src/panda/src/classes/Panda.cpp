@@ -54,7 +54,6 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	/* Retrieve names */
 	std::vector<std::string> joint_names;
 	std::string arm_id;
-	double publish_rate;
 
 	cmm->agent->retrieveArray("joint_names", joint_names, 7);
 	cmm->agent->retrieveParameter("arm_id", arm_id);
@@ -112,7 +111,8 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	cmm->agent->retrieveParameter("velocity_norm_bound", velocity_norm_bound, 0.4);
 	cmm->agent->retrieveParameter("velocity_element_bound", velocity_element_bound, 0.3);
 	cmm->agent->retrieveParameter("safety/lower_bound_z", z_lower_bound, 0.2);
-	cmm->agent->retrieveParameter("torque_bound", torque_bound, 2.0);
+    cmm->agent->retrieveParameter("safety/torque_bound_stop", torque_bound_stop, 80.0);
+	cmm->agent->retrieveParameter("torque_bound", torque_bound, 30.0);
 	cmm->agent->retrieveParameter("alpha", alpha, 0.99);
 	cmm->agent->retrieveParameter("initial_pause", initial_pause, 0.0);
     cmm->agent->retrieveParameter("safety/camera_bound/x", camera_bound_x, -30.0);
@@ -128,16 +128,20 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
     }else{
         controller = std::make_unique<rPBC>(*(cmm->agent));
     }
-	//torques_publisher_.init(nh, "torque_comparison", 1);
-	std::fill(dq_filtered.begin(), dq_filtered.end(), 0);
 
+    dq_filtered = Eigen::VectorXd::Zero(n);
+    
 	// Get an initial state reading
 	robot_state = cartesian_pose_handle_->getRobotState();
-//    logTmp(robot_state.current_errors);
-	retrieveState();
-
+    
     // Perform handshake once the controller has been initialised
     cmm->performHandshake();
+    
+    //    logTmp(robot_state.current_errors);
+	retrieveState();
+    retrieveMatrices();
+    
+    benchmarker = Benchmarker("Panda", "Panda Control Loop");
     
 	logMsg("Panda", "Initialisation Completed!", 2);
 
@@ -150,15 +154,16 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 void Panda::checkSafety(){
 
 	// Check if the panda is not below its lower bound
-	if(coordinates_3D(2) < z_lower_bound){
+	if(new_z(2) < z_lower_bound){
 		throw BoundException(
-			"Panda: Panda fell below lower bound!");
+			"Panda: Panda fell below lower bound! (z = " + std::to_string(new_z(2)) +
+            ", z_bound=" + std::to_string(z_lower_bound) + ")");
 	}
 
 		// Check if the velocity of the EE surpassed its bound
 	if((this->state.z - last_z).norm() > velocity_norm_bound){
 		throw EEVelocityBoundException(
-			"Panda: Panda EE velocity higher the velocity bound" + 
+			"Panda: Panda EE velocity higher the velocity bound! (" + 
 			std::to_string(velocity_norm_bound) + ")");
 	}
 
@@ -175,9 +180,9 @@ void Panda::checkSafety(){
 	}
     
     /* Safety check for camera placement */
-    if(coordinates_3D(2) >= camera_bound_z && coordinates_3D(0) <= camera_bound_x){
+    if(new_z(2) >= camera_bound_z && new_z(0) <= camera_bound_x){
         throw BoundException( "Panda: Camera bound was passed! Robot was brought to a save stop.\n Robot coordinates: (x=" +
-            std::to_string(coordinates_3D(0)) + ", z=" + std::to_string(coordinates_3D(2)) + ")\n Camera bound: (x=" + 
+            std::to_string(new_z(0)) + ", z=" + std::to_string(new_z(2)) + ")\n Camera bound: (x=" + 
             std::to_string(camera_bound_x) + ", z=" + std::to_string(camera_bound_z) + ")");
     }
 }
@@ -185,12 +190,16 @@ void Panda::checkSafety(){
 
 void Panda::retrieveState(){
 
-    resetUpdatedFlags();
     
-	this->state.q = helpers::arrayToVector<7>(robot_state.q);
+    // Retrieve q
+	Eigen::VectorXd new_q = helpers::arrayToVector<7>(robot_state.q);
+    
+    // Retrieve dq and filter it
+    Eigen::VectorXd new_dq = helpers::arrayToVector<7>(robot_state.dq);
 
-	filterVelocity(robot_state.dq);
-	this->state.dq = helpers::arrayToVector<7>(dq_filtered);
+    helpers::lowpassFilter(dq_filtered, new_dq, alpha);
+	//filterVelocity(robot_state.dq);
+	//this->state.dq = helpers::arrayToVector<7>(dq_filtered);
     
     // Calculate inverse rotations
     // See https://en.wikibooks.org/wiki/Robotics_Kinematics_and_Dynamics/Description_of_Position_and_Orientation (inverse mapping z,x,z)
@@ -200,13 +209,10 @@ void Panda::retrieveState(){
 
     /* The angles dont work in this manner, so they are disabled */
 	std::array<double, 3> z{{robot_state.O_T_EE[12], robot_state.O_T_EE[13], robot_state.O_T_EE[14]}};//, alpha, beta, gamma}};
-    coordinates_3D = helpers::arrayToVector<3>(z);
+    new_z = helpers::arrayToVector<3>(z);
 
-	this->state.z = this->selectZ(helpers::arrayToVector<3>(z));
-
-//    logTmp(robot_state.current_errors);
-
-	retrieveMatrices();
+    // Save the new coordinates and select the required cooperative coordinates
+    setState(new_q, dq_filtered, new_z);
 
 }
 
@@ -217,37 +223,45 @@ void Panda::starting(const ros::Time& /*time*/) {
 
 void Panda::update (const ros::Time& time, const ros::Duration& period){
 
+    benchmarker.start(); // ~100 us!
+
 	// Retrieve the robot state
 	robot_state = cartesian_pose_handle_->getRobotState();
 	cartesian_pose_handle_->setCommand(initial_pose_);
 
-	// Retrieve robot matrices
-	retrieveState();
+    // We have to compute all matrices again
+    resetUpdatedFlags();
 
+	// Retrieve robot state
+	retrieveState();
+    
+    // Retrieve robot matrices
+    retrieveMatrices();
+    
 	// Check for errors
 	checkSafety();
 
-	if(time - start_time > ros::Duration(initial_pause)){
-	
-		if(!has_run){
-			//cmm->resetIntegrators();
-			has_run = true;
-		} // Dit in de init functie.
+    Eigen::VectorXd tau = Eigen::VectorXd::Zero(m);
 
-		//Eigen::VectorXd tau_network = Eigen::VectorXd::Zero(controller->l); //
-		Eigen::VectorXd tau_network = cmm->sample(controller->getOutput(*this));
+	if(time - start_time > ros::Duration(initial_pause)){
+
+        // Sample the network
+        Eigen::VectorXd tau_network = cmm->sample(controller->getOutput(*this));
 
 		// Calculate the control input
-		Eigen::VectorXd tau = controller->computeControl((*this), tau_network);
+		tau = controller->computeControl((*this), tau_network);
 		
 		// Check if the torque bound wasn't passed and saturate the torque bound
 		checkTorque(tau, robot_state.tau_J_d);
 
-		// Send the input
-		sendInput(tau);
-
+        // Save the last state for velocity safety
 		last_z = state.z;
 	}
+    
+    // Send the input
+    sendInput(tau);
+    
+    benchmarker.end();
 
 } // mandatory
 
@@ -267,8 +281,7 @@ void Panda::retrieveMatrices(){
     }
     
 	// Get the Jacobian of the EE
-	std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(
-	 					franka::Frame::kEndEffector);
+	std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(franka::Frame::kEndEffector);
 
 	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
 	psi = selectPsi(jacobian.transpose());
@@ -287,11 +300,6 @@ void Panda::retrieveMatrices(){
         psi_previous = psi;
         initial_matrices = true;
     }
-
-// Not actually used    
-//    psi_updated = true;
-//    m_updated = true;
-//    dvdq_updated = true;
 }
 
 Eigen::MatrixXd& Panda::M(){
@@ -319,27 +327,36 @@ std::array<double, 7> Panda::saturateTorqueRate(const Eigen::VectorXd& torques, 
     return tau_d_saturated;
 }
 
-std::array<double, 7> Panda::checkTorque(const Eigen::VectorXd& torques, const std::array<double, 7>& tau_J_d){
+std::array<double, 7> Panda::checkTorque(Eigen::VectorXd& torques, const std::array<double, 7>& tau_J_d){
 	
 	// If one of the torques is out of bounds, throw an error
 	for(int i = 0; i < 7; i++){
 		if(std::abs(torques[i]) > torque_bound){
-			throw TorqueBoundException("Panda: Torque "
+            std::string message = "Panda: Torque "
 				 + std::to_string(i) + " out of bounds! (bound=" 
 				 + std::to_string(torque_bound) + ", value= " 
-				 + std::to_string(torques[i]) + ")");
-		}
+				 + std::to_string(torques[i]) + ")" + "\n" + 
+                 "All torques: (";
+            
+            for(int i = 0; i < 7; i ++){
+                message += std::to_string(torques[i]);
+                if(i < 6){
+                    message += ", ";
+                }
+                
+                
+            }
+            message += ")";
+			throw TorqueBoundException(message);
+        }
+//		}else if(std::abs(torques[i]) > torque_bound){
+//            
+//            torques[i] = helpers::sgn(torques[i])*torque_bound;
+//        }
 	}
 
 	// Otherwise saturate the torque rate and return
 	return saturateTorqueRate(torques, tau_J_d);
-}
-
-void Panda::filterVelocity(std::array<double, 7> input_v){
-
-  	for (size_t i = 0; i < 7; i++) {
-    	dq_filtered[i] = (1 - alpha) * dq_filtered[i] + alpha * input_v[i];
-  	}
 }
 
 Eigen::VectorXd& Panda::dVdq(){
@@ -353,8 +370,9 @@ Eigen::MatrixXd& Panda::dMinv(){
     
     if(!dminv_updated)
     {
-        Eigen::MatrixXd dminv_input = -M().inverse()*dM()*M().inverse();
-        helpers::lowpassFilter(dminv, dminv_input, 0.95);
+        // Use dMinv = -Minv*dM*Minv
+        Eigen::MatrixXd dminv_input = -(M().inverse())*dM()*(M().inverse());
+        helpers::lowpassFilter(dminv, dminv_input, alpha);
         dminv_updated = true;
     }
         //logTmp("dminv", dminv);
@@ -366,7 +384,7 @@ Eigen::MatrixXd& Panda::dM(){
 
     if(!dm_updated){
         Eigen::MatrixXd dm_input = this->approximateDerivative(M(), m_previous);
-        helpers::lowpassFilter(dm, dm_input, 0.95);
+        helpers::lowpassFilter(dm, dm_input, alpha);
         dm_updated = true;
     }
     //logTmp("dm", dm);
@@ -375,13 +393,13 @@ Eigen::MatrixXd& Panda::dM(){
 }
 
 Eigen::MatrixXd& Panda::dPsi(){
-    //RunCheck check("dPsi");
+
     if(!dpsi_updated){
         Eigen::MatrixXd dpsi_input = this->approximateDerivative(Psi(), psi_previous);
-        helpers::lowpassFilter(dpsi, dpsi_input, 0.95);
+        helpers::lowpassFilter(dpsi, dpsi_input, alpha);
         dpsi_updated = true;
     }
-    //logTmp("dpsi", dpsi);
+
     return dpsi;
 }
 

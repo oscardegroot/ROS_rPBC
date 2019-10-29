@@ -34,6 +34,10 @@ public:
 //	void lowpassFilter(Eigen::VectorXd& filtered_data,
 //					 Eigen::VectorXd new_data, double alpha);
 
+
+    void addObstacle(const std::shared_ptr<Obstacle>& obstacle) override;
+
+
 private:
 
     std::unique_ptr<AdvancedPotential> potential;

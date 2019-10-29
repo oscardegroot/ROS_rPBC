@@ -13,7 +13,8 @@ ConnectedPandasim::ConnectedPandasim()
     
 	this->setState(Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(3));
     state_previous = {Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(3)};
-    coordinates_3D(2) = 1.0;
+    new_z = Eigen::VectorXd(3);
+    new_z(2) = 1.0;
     
 	for(int i = 0; i < n; i++){
 		tau_pubs[i] = nh.advertise<std_msgs::Float64>("/robot1/panda_joint" +
@@ -129,7 +130,7 @@ Eigen::VectorXd ConnectedPandasim::Psi_z(){
 }
 
 double ConnectedPandasim::get_z(){
-    return coordinates_3D(2);
+    return new_z(2);
 }
 
 /* Not sure if it works, doesnt seem necessary for convergence */
@@ -210,16 +211,16 @@ void ConnectedPandasim::readStateCallback(const sensor_msgs::JointState::ConstPt
 
     // Calculate inverse rotations
     // See https://en.wikibooks.org/wiki/Robotics_Kinematics_and_Dynamics/Description_of_Position_and_Orientation (inverse mapping z,x,z)
-    double roll = std::atan2(robot_pose[6], robot_pose[10]);
-    double yaw = std::atan2(robot_pose[1], robot_pose[0]);
-    double pitch = std::atan2(-robot_pose[2], std::cos(yaw)*robot_pose[0] + std::sin(yaw)*robot_pose[1]);
+//    double roll = std::atan2(robot_pose[6], robot_pose[10]);
+//    double yaw = std::atan2(robot_pose[1], robot_pose[0]);
+//    double pitch = std::atan2(-robot_pose[2], std::cos(yaw)*robot_pose[0] + std::sin(yaw)*robot_pose[1]);
     // Keep only the translation
-	std::array<double, 6> z = {robot_pose[12], robot_pose[13], robot_pose[14], roll, pitch, yaw};
-	Eigen::Matrix<double, 6, 1> new_z = helpers::arrayToVector<6>(z);
+	std::array<double, 3> z = {robot_pose[12], robot_pose[13], robot_pose[14]};//, roll, pitch, yaw};
+	Eigen::Matrix<double, 3, 1> new_z = helpers::arrayToVector<3>(z);
     
     // Write to the state
-    coordinates_3D = Eigen::VectorXd::Zero(3);
-    coordinates_3D << new_z[0], new_z[1], new_z[2];
+    new_z = Eigen::VectorXd(3);
+    new_z << new_z[0], new_z[1], new_z[2];
     setState(new_q, new_qd, new_z);
     mtx.unlock();
 }

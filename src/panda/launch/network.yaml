@@ -3,8 +3,9 @@
 network:
   enabled: true # Enables artificial effects
   delay: 
-    constant: false # Enables delay
-    value: 0.1  # Initial delay
+    constant: true # Enables delay
+    value_plus: 0.1  # Initial delay
+    value_minus: 0.2
     change: 0.3 # (0 - 1) (* sampling period)
     max_delay: 0.15
     min_delay: 0.05

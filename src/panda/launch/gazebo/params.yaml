@@ -10,18 +10,19 @@ network_gain:
   - 3.0
 lambda: 1.0
 gamma: 1.0
+kappa: 1.0
 
-output: z
-leader:
-  id: 0
-  gain:
-    - 3.0
-    - 3.0
-    - 8.0
-  ref:
-    - 0.0
-    - 0.0
-    - 0.6
+output: r
+# leader:
+#   id: 0
+#   gain:
+#     - 3.0
+#     - 3.0
+#     - 8.0
+#   ref:
+#     - 0.0
+#     - 0.0
+#     - 0.6
 
 formation:
   type: consensus

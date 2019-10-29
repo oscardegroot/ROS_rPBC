@@ -25,8 +25,21 @@ class Potential{
 public:
     Potential(int l_set, const Eigen::VectorXd& r_star_set);
         
+    /**
+     * @brief Gradient multipliers of this potential function, for the iterative method
+     * @param r_i Agent output
+     * @param r_js Networked input (reference variable that is)
+     * @return RHS vector and LHS multiplier.
+     */
     virtual PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) = 0;
-    virtual Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) = 0;
+    
+    /**
+     * @brief Gradient of this potential function
+     * @param r_i Agent output
+     * @param r_js Networked input (reference variable that is)
+     * @return gradient of the potential, Note: NOT the negative gradient but the gradient itself!
+     */
+    virtual Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
     
 protected:
     int l;
@@ -39,7 +52,7 @@ public:
     QuadraticPotential(int l_set, const Eigen::VectorXd& r_star_set);
     
     PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
-    Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
+//    Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     
 };
 
@@ -48,8 +61,8 @@ class AdvancedPotential : public Potential{
 
 public:    
     AdvancedPotential(int l_set, const Eigen::VectorXd& r_star_set);
-    virtual void addGoalFcn(const std::shared_ptr<Goal>& goal_set);
-    virtual void addObstacleFcn(const std::shared_ptr<Obstacle>& obstacle);
+    virtual void addGoal(const std::shared_ptr<Goal>& goal_set);
+    virtual void addObstacle(const std::shared_ptr<Obstacle>& obstacle);
     
 protected:
     std::shared_ptr<Goal> goal;
@@ -66,7 +79,7 @@ public:
     NavigationFunction(Agent& agent, int l_set, const Eigen::VectorXd& r_star_set);
 
     PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
-    Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
+    //Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
 
 private:
     double alpha;

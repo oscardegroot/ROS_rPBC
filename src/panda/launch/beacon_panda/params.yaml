@@ -10,6 +10,7 @@ network_gain:
   - 3.0 #3.0
 lambda: 1.0
 gamma: 3.0
+kappa: 1.0
 
 output: r
 

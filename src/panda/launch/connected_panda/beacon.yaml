@@ -4,7 +4,7 @@ sampling_rate: 100
 default_goal:
   - 0.3
   - 0.3
-  - 0.7
+  - 0.0
 z_select:
   - 1
   - 1

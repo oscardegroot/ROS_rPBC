@@ -86,6 +86,39 @@ private:
   
 };
 
+/**
+ * @class Stopwatch
+ * @author Oscar
+ * @date 29/10/19
+ * @file Helpers.h
+ * @brief A timer class. The function click gives the duration and resets the timer
+ */
+class Stopwatch{
+    
+    public:
+    
+    void start(){
+        start_time = std::chrono::system_clock::now();
+    }
+    
+    
+    
+    double click(){
+        auto end_time = std::chrono::system_clock::now();
+        std::chrono::duration<double> current_duration = end_time - start_time;
+        
+        // lap
+        start_time = end_time;
+        
+        // Return the duration
+        return current_duration.count();
+    }
+
+    private:
+        std::chrono::system_clock::time_point start_time;
+
+};
+
 
 template <class T> 
 bool safelyRetrieve(ros::NodeHandle& nh, const std::string name, T& param){

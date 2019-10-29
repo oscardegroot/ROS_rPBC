@@ -1,9 +1,55 @@
 <?xml version="1.0"?>
 <!-- Launch script for a simulation of the panda while connected to the robot directly -->
 <launch>
- 	<arg name="robot_ip" default="172.16.0.2"/>
+
+	<arg name="robot_ip" default="172.16.0.2"/>
 	<arg name="load_gripper" default="false" />
+	<arg name="controller_type" default="connectedpandasim"/>
+
+	<arg name="global_path" default="$(find panda)/launch"/>
+	<arg name="local_path" default="$(arg global_path)/connected_panda"/>
+
+	<!-- Artificial network -->
+	<arg name="network" default="true"/>
+
 	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm_camera.urdf.xacro'" />
+	<include file="$(find panda_simulation)/launch/sim.launch"/>
+
+	<!-- Load parameters (see files) -->
+	<rosparam command="load" file="$(arg local_path)/params.yaml" />
+	<rosparam command="load" file="$(arg global_path)/goals.yaml" />
+
+
+	<!-- Launch general nodes -->
+	<include file="$(arg global_path)/general.launch">
+	<arg name="global_path" value="$(arg global_path)"/>
+	<arg name="local_path" value="$(arg local_path)"/>
+	<arg name="network" value="$(arg network)"/>
+	</include>
+
+	<!-- Launch the panda -->
+	<include file="$(arg global_path)/panda.launch">
+	<arg name="robot_ip" value="$(arg robot_ip)"/>
+	<arg name="load_gripper" value="$(arg load_gripper)"/>
+	<arg name="global_path" value="$(arg global_path)"/>
+	<arg name="local_path" value="$(arg local_path)"/>
+	<arg name="controller_type" value="$(arg controller_type)"/>
+	</include>
+
+	<!-- Create a beacon -->
+	<node name="beacon_1" pkg="panda" type="Beacon_node" respawn="false" output="screen">
+	<rosparam command="load" file="$(arg local_path)/beacon.yaml"/>
+	</node>
+
+	<!-- Plot cooperative coordinates -->
+	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] reference/data[0] reference/data[1]" />
+
+	<!-- <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot_w_marker.rviz"/> -->
+	<!-- <node name="interface" pkg="panda" type="TextInterface_Node" respawn="false" output="screen"/> -->
+
+ 	<!-- <arg name="robot_ip" default="172.16.0.2"/>
+	<arg name="load_gripper" default="false" />
+	<param name="robot_description" command="$(find xacro)/xacro inorder '$(find franka_description)/robots/panda_arm_camera.urdf.xacro'" />
 	<include file="$(find panda_simulation)/launch/sim.launch"/>
 	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="connectedpandasim"/>
 
@@ -39,13 +85,13 @@
 	</node>
 
 
-	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] reference/data[0] reference/data[1]"/>
+	<node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] reference/data[0] reference/data[1]"/> -->
 
-	<node pkg="rosbag" type="record" name="rosbag_agents"
+<!-- 	<node pkg="rosbag" type="record" name="rosbag_agents"
        args="record -o $(find panda)/bags/agents /agents/0/z /reference"/>
 
    <node pkg="rosbag" type="record" name="rosbag_waves"
-       args="record -o $(find panda)/bags/waves /s_01p_in /s_01p_out /s_01m_in /s_01m_out"/>
+       args="record -o $(find panda)/bags/waves /s_01p_in /s_01p_out /s_01m_in /s_01m_out"/> -->
 	<!-- <node name="plotjes2" pkg="rqt_plot" type="rqt_plot" args="/robot1/panda_joint1_controller/command/data /robot1/panda_joint2_controller/command/data /robot1/panda_joint3_controller/command/data" /> -->
  
 

@@ -34,7 +34,12 @@ Elisa3::Elisa3()
 
     cmm->agent->retrieveParameter("address", address); // Retrieve the hand distance
     cmm->agent->retrieveParameter("L", L); // Retrieve the hand distance
-    //cmm->agent->retrieveEigen("init_state", q0, 3);
+    cmm->agent->retrieveParameter("color/intensity", intensity); // Retrieve the hand distance
+    if(intensity > 1.0 || intensity < 0.0){
+        throw ParameterException("Color Intensity of Elisa3 larger than 1.0 (Value should be between 0.0 and 1.0)!");
+    }
+
+    color_set = false;
 
     test_pub.init(cmm->agent->getPrivateNh(), "q", 1);
 
@@ -63,7 +68,7 @@ Elisa3::Elisa3()
     }
 
     color_client = nh.serviceClient<panda::colorElisa3>("/colorElisa3");
-    cmm->agent->retrieveParameter("color", color_name);   
+    cmm->agent->retrieveParameter("color/type", color_name);   
     //setColor(color_name);
     /** @todo Fix! Elisastation hasn started communication when this is executed...*/
     
@@ -82,10 +87,14 @@ Elisa3::~Elisa3() {
 
 /// Convert the control input to the system inputs and actuate
 bool Elisa3::sendInput(const Eigen::VectorXd & tau){
-        //setColor(color_name);
-
-    //setColor(color_name);
-    //logTmp("Elisa3 running");
+    
+    // System needs to be enabled, otherwise the system gets stuck waiting on server calls to each other...
+    // Solution is probably asynchronic spinners.
+    if(is_enabled && !color_set){
+        setColor(color_name);
+        color_set = true;
+    }
+    
     data_received = false;
     
     // Apply feedback linearisation around the hand point (output = F, tau)
@@ -99,8 +108,14 @@ bool Elisa3::sendInput(const Eigen::VectorXd & tau){
     output = wheel_matrix*output;
 
     // Convert them to integer values
-    signed int wheel_right = std::ceil(output(0)*1000.0/5.0); // maybe just round up?
-    signed int wheel_left = std::ceil(output(1)*1000.0/5.0);
+    signed int wheel_right = std::floor(output(0)*1000.0/5.0); // maybe just round up?
+    signed int wheel_left = std::floor(output(1)*1000.0/5.0);
+
+    unsigned min_speed = 0;
+    if(std::abs(wheel_left) <= min_speed && std::abs(wheel_right) <= min_speed){
+        wheel_left = 0;
+        wheel_right = 0;
+    }
 
     // Saturate the speed to the max speed (and scale if necessary)
     saturateSpeed(wheel_right, wheel_left);
@@ -186,12 +201,12 @@ void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
 void Elisa3::checkSafety(){
 
     /// Check if robot is within the workspace
-    for(int i = 0; i < n; i++){ //todo: 0.8 from parameter file
-        if(std::abs(actual_q(i)) > 0.8){
-            throw BoundException("Elisa3 out of bounds (state=" + std::to_string(i) +
-            ", bound=" + std::to_string(0.8) + ")!");
-        }
-    }
+//    for(int i = 0; i < n; i++){ //todo: 0.8 from parameter file
+//        if(std::abs(actual_q(i)) > 0.8){
+//            throw BoundException("Elisa3 out of bounds (state=" + std::to_string(i) +
+//            ", bound=" + std::to_string(0.8) + ")!");
+//        }
+//    }
 
     return;
 }
@@ -301,10 +316,13 @@ void Elisa3::setColor(int color_type){
     srv_color.request.address = address;
     srv_color.request.color_type = color_type;
     srv_color.request.red = 0; srv_color.request.green = 0; srv_color.request.blue = 0;
+    srv_color.request.intensity = intensity;
 
-    if(!color_client.call(srv_color)){
-        logMsg("Elisa3", "Color Setting Failed!", 1);
-    }
+    //auto color_call = [&]{
+     color_client.call(srv_color);
+    //};
+    
+    //helpers::repeatedAttempts(color_call, 2.0, "Color Setting Failed!");
 }
 
 void Elisa3::setColor(int r, int g, int b){
@@ -312,15 +330,9 @@ void Elisa3::setColor(int r, int g, int b){
     srv_color.request.address = address;
     srv_color.request.color_type = 0;
     srv_color.request.red = r; srv_color.request.green = g; srv_color.request.blue = b;
-
-    auto color_call = [&]{
-        return color_client.call(srv_color);
-    };
+    srv_color.request.intensity = intensity;
     
-    helpers::repeatedAttempts(color_call, 2.0, "Color Setting Failed!");
-//    if(!color_client.call(srv_color)){
-//        logMsg("Elisa3", "Color Setting Failed!", 1);
-//    }
+    color_client.call(srv_color);
 }
 
 bool Elisa3::dataReady(){

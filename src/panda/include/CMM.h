@@ -27,6 +27,7 @@ Manages cooperative communication by managing a number of connections
 #include "std_srvs/Empty.h"
 #include "panda/getConnectionsOf.h"
 #include "panda/isAgentLeader.h"
+#include "panda/addObstacle.h"
 
 /* Possibly divide this up further in a system and a controller */
 
@@ -54,6 +55,7 @@ public:
     void performHandshake();
 
     bool initEdges(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+    bool addObstacle(panda::addObstacle::Request& req, panda::addObstacle::Response& res);
     
     bool retrieveConnections();
     void setupLeader();
@@ -82,7 +84,7 @@ private:
 	ros::NodeHandle nh;
 
 	ros::ServiceClient connect_client, leader_client;
-	ros::ServiceServer init_server;
+	ros::ServiceServer init_server, obstacle_server;
 	std::vector<std::unique_ptr<Edge>> edges;
     std::unique_ptr<Selector> coop_selector, leader_selector;
 

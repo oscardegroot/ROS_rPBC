@@ -2,17 +2,16 @@ is_simulation: true
 register_time: 2.0
 elisa_station: false
 
-bag_name: first_bag
-
 N_agents: 2
 l: 3
 sampling_rate: 100
 network_gain:
-  - 3.0
-  - 3.0
-  - 3.0
+  - 2.0
+  - 2.0
+  - 2.0
 lambda: 1.0
-gamma: 1.0
+gamma: 3.0
+kappa: 1.0
 
 # leader:
 #   id: 0
@@ -30,16 +29,16 @@ output: r
 connectedpandasim:
   type: panda/ConnectedPandasim
 
-formation:
-  type: consensus
-
 # formation:
-#   type: manual
-#   position_0:
-#     - 0.0
-#     - 0.0
-#     - 0.7
-#   position_1:
-#     - 0.0
-#     - 0.0
-#     - 0.0
+#   type: consensus
+
+formation:
+  type: manual
+  position_0:
+    - 0.0
+    - 0.0
+    - 0.7
+  position_1:
+    - 0.0
+    - 0.0
+    - 0.0

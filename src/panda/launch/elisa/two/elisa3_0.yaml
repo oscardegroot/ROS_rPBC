@@ -1,23 +1,36 @@
 ID: 0
 address: 3658
-color: blue
+marker_id: 10
+color: 
+  type: green
+  intensity: 0.3
+NF:
+  beta:
+      function:
+        R: 0.1
+        delta: 0.05
 
-# initial_delay: 0.0
-# z_select: [1, 1]
-# L: 0.06
-# NF:
-#   alpha: 5.0
-#   gamma:
-#     r_w: 1.0
-#     eps: 0.10
+      # robot base
+      obstacle_0:
+        type: obstacle
+        radius: 0.10
+        location:
+          - 0.0
+          - 0.0
 
-# controller:
-#   publish_rate: 10.0
-#   kq: 1.0
-#   kz: 1.0
+      # y axis bound on the workspace
+      obstacle_1:
+        type: lower_bound_x
+        value: -0.56 #-0.54
 
+      # y axis bound on the workspace
+      obstacle_2:
+        type: lower_bound_y
+        value: -0.5
 
-#    constraints:
-#      lower_bound:
-#        R_z: 0.1
-#        delta_z: 0.15
+      # obstacle_3:
+      #   type: obstacle
+      #   radius: 0.07
+      #   location:
+      #     - -0.288 # measurement is wrong somehow?
+      #     - -0.026

@@ -15,13 +15,29 @@
 #include "Agent.h"
 
 
-/* Obstacle Functions */
-// A purely virtual class for obstacle force functions (since they are often shared over obstacles with different parameters)
+/**
+ * @class ObstacleFunction
+ * @author Oscar
+ * @date 23/10/19
+ * @file Obstacle.h
+ * @brief  A purely virtual class for obstacle force functions (distance to value)
+ */
 class ObstacleFunction{
     
 public:
     
+    /**
+     * @brief Value of the obstacle function (scalar)
+     * @param d distance
+     * @return scalar value
+     */
     virtual double value(const double& d) = 0;
+    
+    /**
+     * @brief Gradient of the obstacle function
+     * @param d distance
+     * @return scalar gradient value
+     */
     virtual double gradient_value(const double& d) = 0;
 };
 
@@ -42,20 +58,35 @@ private:
     void initParameters();
 };
 
-/* Obstacles */
-// Virtual obstacle interface.
-// Obstacle gradients need to have separate r_i and r_js contributions, such that they can be integrated in the iterative procedure.
-// r_i contribution as vector since it can be constrained in a certain dimension only.
-// r_js contribution as double (multiplier) since it can only be applied in full.
+/**
+ * @class Obstacle
+ * @author Oscar
+ * @date 23/10/19
+ * @file Obstacle.h
+ * @brief Virtual obstacle interface.
+ * 
+ * Important: Obstacle gradients can have contributions for r_i, r_js, r_jsi* and constant vectors for static objects.
+ * This is captured by selector matrices and PotentialFactor structs.
+ */
 class Obstacle{
 
 public:
-    Obstacle(int l_set);
+    Obstacle(int l_set){
+        l = l_set;
+    }
 
     virtual double value(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
     virtual PotentialFactors gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
     
-    virtual double getDistance(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) = 0;
+    //virtual double getDistance(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
+    
+    /**
+     * @brief Direction of the gradient, i.e. from r_i to location for an object or from r_js to r_i for collision avoidance, etc.
+     * @param r_i Agent output
+     * @param r_js Reference variable
+     * @return Vector with gradient direction (not normalised!)
+     */
+    virtual PotentialFactors gradientVector(const Eigen::VectorXd& r_i) = 0;
     
 protected:
     int l;
@@ -64,20 +95,18 @@ protected:
 };
 
 // Bound obstacle in 1D
-class BoundObstacle : public Obstacle{
+class LowerBoundObstacle : public Obstacle{
     
 public:
-    BoundObstacle(Agent& agent, int count, int l_set, int dimension_set);
-
-    PotentialFactors gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
+    LowerBoundObstacle(Agent& agent, int count, int l_set, int dimension_set);
     
-    double getDistance(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
+    PotentialFactors gradientVector(const Eigen::VectorXd& r_i) override;
 
 private:
     void initParameters();
 
-    double lower_bound, upper_bound;
-    unsigned int dimension;
+    Eigen::VectorXd bound;
+    Eigen::MatrixXd selector;
     
 };
 
@@ -87,7 +116,11 @@ class ObjectObstacle : public Obstacle{
 public:
     ObjectObstacle(Agent& agent, int count, int l_set);
     
-    double getDistance(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
+    // For external instantiation
+    ObjectObstacle(Agent& agent, const Eigen::VectorXd& location_set, double radius, int l_set);
+    
+    //double getDistance(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
+    PotentialFactors gradientVector(const Eigen::VectorXd& r_i) override;
 
 private:
     void initParameters();

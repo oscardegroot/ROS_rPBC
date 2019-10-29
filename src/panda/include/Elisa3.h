@@ -89,10 +89,7 @@ private:
     Eigen::VectorXi last_speed_setpoint;
     
     int address;
-    
-    // Initial state
-    //Eigen::VectorXd q0;
-
+    bool color_set = false;
     bool data_received = false;
     std::string color_name;
 
@@ -104,14 +101,14 @@ private:
     realtime_tools::RealtimePublisher<std_msgs::Float64MultiArray> test_pub;
     
     // We need to make a distinction between feedback linearised and general
-    Eigen::VectorXd actual_dq;
-    Eigen::VectorXd actual_q;
+    Eigen::VectorXd actual_q, actual_dq;
     
     double L, Ts;
+    double intensity;
     
     /* Constants */
     // Filtering
-    double alpha = 0.99;
+    double alpha = 0.95;
 
     static constexpr double r{0.0045}; // Wheel radius (9mm/2)
     static constexpr double l{0.0408}; // Distance between wheels (40.8mm)

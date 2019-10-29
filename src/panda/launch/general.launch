@@ -3,6 +3,7 @@
   
   <!-- Artificial network -->
   <arg name="network" default="true"/>
+  <arg name="collect_bags" default="false" />
 
   <!-- Paths -->
   <arg name="global_path" default="$(find panda)/launch/"/>
@@ -13,18 +14,21 @@
 
   <!-- Artificial network -->
   <rosparam command="load" file="$(arg global_path)/network.yaml" if="$(arg network)"/>
-  <node pkg="panda" type="NetworkNode" name="networknode" output="screen" if="$(arg network)"/>
+  <node pkg="panda" type="NetworkNode" name="networknode" output="screen" if="$(arg network)">
+    <arg name="i_ID" value="0"/>
+    <arg name="j_ID" value="1"/>
+  </node>
 
   <!-- The server side node -->
   <node name="server" pkg="panda" type="Server" respawn="false" output="screen"/>
 
   <!-- Generation of rosbags - Plotted using Matlab -->
   <!-- Outputs (local and cooperative) -->
-  <node pkg="rosbag" type="record" name="rosbag_agents" output="screen"
+  <node pkg="rosbag" type="record" name="rosbag_agents" output="screen" if="$(arg collect_bags)"
        args="record -o $(find panda)/bags/agents /agents/0/z /agent/1/z /agents/0/theta_dot /agents/1/theta_dot /agents/0/z_dot /agents/1/z_dot"/>
 
   <!-- Network signals (waves) -->
-  <node pkg="rosbag" type="record" name="rosbag_waves" output="screen"
-       args="record -o $(find panda)/bags/waves /s_01p_in /s_01p_out /s_01m_in /s_01m_out"/>
+  <node pkg="rosbag" type="record" name="rosbag_waves" output="screen" if="$(arg collect_bags)"
+       args="record -o $(find panda)/bags/waves /p_s_01p_in /p_s_01p_out /p_s_01m_in /p_s_01m_out"/>
 
 </launch>

@@ -25,13 +25,22 @@ A Remote node class that hosts services and implements an interface
  * @author Oscar
  * @date 10/10/19
  * @file AgentStation.h
- * @brief Station that registers agents, constructs formations and transmits these to agents
+ * @brief Station that registers agents, constructs formations and transmits these to agents. Singleton design.
  */
 class AgentStation : public Station{
     
 public:
 	AgentStation();
-
+    
+//    AgentStation(AgentStation& s) = delete;
+    
+    // Can be used from anywhere!
+//    static AgentStation& getAgentStation()
+//    {
+//        static AgentStation instance; // Guaranteed to be destroyed, instantiated on first use
+//        return instance;
+//    }
+    
     void starting() override;
     void update() override;
     void enableStation() override;

@@ -40,6 +40,7 @@ CMM::CMM(std::string agent_type){//int set_id, int set_sampling_rate){
 	gain = Eigen::MatrixXd(gain_e.asDiagonal());
     
     init_server = nh.advertiseService("/agent" + std::to_string(agent->getID()) + "/initEdges", &CMM::initEdges, this);
+    obstacle_server = nh.advertiseService("/agent" + std::to_string(agent->getID()) + "/addObstacle", &CMM::addObstacle, this);
 
     // Check if parameters are correct
     if(agent->getSamplingRate() % network_rate != 0){
@@ -197,4 +198,36 @@ Eigen::VectorXd CMM::sample(const Eigen::VectorXd& r){
 bool CMM::hasInitialised() const
 {
     return initialised;
+}
+
+bool CMM::addObstacle(panda::addObstacle::Request& req, panda::addObstacle::Response& res)
+{
+    logMsg("CMM", "Received addObstacle request, creating obstacle now...", 2);
+
+    Eigen::VectorXd location(coopDim());
+    
+    if(coopDim() == 2){
+        location << req.x, req.y;
+    }else if(coopDim() == 3){
+        location << req.x, req.y, req.z;
+    }else{
+        logMsg("CMM", "Obstacle added with more than 3 dimensions, which is not supported! No obstacle was instantiated.", 1);
+        return true;
+    }
+    
+    // Convert to m
+    location = location / 1000.0;
+    
+    std::shared_ptr<Obstacle> obstacle = std::make_shared<ObjectObstacle>(*agent, location, req.radius, coopDim());
+    
+    for(size_t i = 0; i < edges.size(); i++){
+        if(!edges[i]->isLeader()){
+            edges[i]->addObstacle(obstacle);
+        }
+    }
+    
+    logMsg("CMM", "Done!", 2);
+    
+    return true;
+
 }

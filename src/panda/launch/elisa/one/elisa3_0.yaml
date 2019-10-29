@@ -1,0 +1,57 @@
+sampling_rate: 100
+ID: 0
+initial_delay: 0.0
+address: 3533
+marker_id: 6
+color: 
+  type: green
+  intensity: 0.0
+
+initial_delay: 0.0
+z_select: [1, 1]
+L: 0.04
+NF:
+  alpha: 12.0
+  gamma:
+    r_w: 1.0
+    eps: 0.17
+  beta:
+    function:
+      R: 0.1
+      delta: 0.15
+
+    # robot base
+    obstacle_0:
+      type: obstacle
+      radius: 0.10
+      location:
+        - 0.0
+        - 0.0
+
+    # y axis bound on the workspace
+    obstacle_1:
+      type: lower_bound_x
+      value: -0.54
+
+    # y axis bound on the workspace
+    obstacle_2:
+      type: lower_bound_y
+      value: -0.5
+
+    obstacle_3:
+      type: obstacle
+      radius: 0.1
+      location:
+        - -0.288 # measurement is wrong somehow?
+        - -0.026
+
+controller:
+  publish_rate: 10.0
+  kq: 1.0
+  kz: 1.0
+
+
+#    constraints:
+#      lower_bound:
+#        R_z: 0.1
+#        delta_z: 0.15

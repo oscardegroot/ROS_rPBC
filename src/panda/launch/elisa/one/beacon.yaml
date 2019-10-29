@@ -1,0 +1,15 @@
+ID: 1
+sampling_rate: 100
+default_goal:
+  - -0.400
+  - -0.380
+goal_type: -1
+z_select:
+  - 1
+  - 1
+
+NF:
+  alpha: 16.0
+  gamma:
+    r_w: 1.0
+    eps: 0.10

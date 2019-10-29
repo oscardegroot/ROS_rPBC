@@ -16,6 +16,7 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #include "CustomLog.h"
 #include "Helpers.h"
 #include "Agent.h"
+#include "Potential.h"
 
 class Edge{
 public:
@@ -48,6 +49,9 @@ public:
     // Waves for dealing with sampling frequencies
     void expandWaves(Eigen::VectorXd& waves);
     void compressWaves(const Eigen::VectorXd& waves);
+    
+    virtual
+    void addObstacle(const std::shared_ptr<Obstacle>& obstacle){};
     
     virtual
     bool isLeader() const { return false;};

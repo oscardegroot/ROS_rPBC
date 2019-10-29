@@ -8,7 +8,7 @@ default_goal:
 z_select:
   - 1
   - 1
-  - 0
+  - 1
 dynamic:
   radius: 0.2
   speed: 0.8

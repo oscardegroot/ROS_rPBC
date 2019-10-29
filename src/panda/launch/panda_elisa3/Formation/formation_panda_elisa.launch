@@ -1,0 +1,74 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="robot_ip" default="172.16.0.2"/>
+  <arg name="load_gripper" default="false" />
+  
+  <arg name="global_path" default="$(find panda)/launch/"/>
+  <arg name="local_path" default="$(arg global_path)/panda_elisa3/Formation"/>
+
+  <arg name="collect_bags" default="false"/>
+
+  <!-- Artificial network -->
+  <arg name="network" default="false"/>
+
+  <!-- Launch general nodes -->
+  <include file="$(arg global_path)/general.launch">
+    <arg name="collect_bags" value="$(arg collect_bags)"/>
+    <arg name="global_path" value="$(arg global_path)"/>
+    <arg name="local_path" value="$(arg local_path)"/>
+    <arg name="network" value="$(arg network)"/>
+  </include>
+
+  <!-- Launch the panda -->
+  <include file="$(arg global_path)/panda.launch">
+    <arg name="robot_ip" value="$(arg robot_ip)"/>
+    <arg name="load_gripper" value="$(arg load_gripper)"/>
+    <arg name="global_path" value="$(arg global_path)"/>
+    <arg name="local_path" value="$(arg local_path)"/>
+  </include>
+
+  <!-- All network nodes -->
+  <rosparam command="load" file="$(arg global_path)/network.yaml"/>
+  <node pkg="panda" type="NetworkNode" name="networknode01" output="screen" if="$(arg network)">
+    <arg name="i_ID" value="0"/>
+    <arg name="j_ID" value="1"/>
+  </node>
+  <rosparam command="load" file="$(arg global_path)/network.yaml"/>
+  <node pkg="panda" type="NetworkNode" name="networknode02" output="screen" if="$(arg network)">
+    <arg name="i_ID" value="0"/>
+    <arg name="j_ID" value="2"/>
+  </node>
+    <rosparam command="load" file="$(arg global_path)/network.yaml"/>
+  <node pkg="panda" type="NetworkNode" name="networknode12" output="screen" if="$(arg network)">
+    <arg name="i_ID" value="1"/>
+    <arg name="j_ID" value="2"/>
+  </node>
+
+  <!-- Launch the camera -->
+  <include file="$(find elisa_vision)/launch/elisa_vision.launch"/>
+
+  <!-- Launch Elisa robots -->
+  <node pkg="panda" type="Elisa3_Node" name="elisa3_0" output="screen">
+    <rosparam command="load" file="$(arg local_path)/elisa3_0.yaml" />
+    <rosparam command="load" file="$(arg global_path)/elisa/elisa3.yaml" />
+  </node>
+
+<!-- Launch Elisa robots -->
+  <node pkg="panda" type="Elisa3_Node" name="elisa3_1" output="screen">
+    <rosparam command="load" file="$(arg local_path)/elisa3_1.yaml" />
+    <rosparam command="load" file="$(arg global_path)/elisa/elisa3.yaml" />
+  </node>
+  <!-- Plot cooperative coordinates -->
+  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] agents/1/z/data[0] agents/1/z/data[1] agents/2/z/data[0] agents/2/z/data[1]"/>
+
+  <node pkg="rosbag" type="record" name="rosbag_agents" output="screen"
+       args="record -o $(find panda)/bags/agents /agents/0/z /agent/1/z /agent/2/z /agents/0/theta_dot /agents/0/z_dot /agents/1/z_dot /agents/2/z_dot"/>
+
+  <!-- Network signals (waves) -->
+  <node pkg="rosbag" type="record" name="rosbag_waves" output="screen"
+       args="record -o $(find panda)/bags/waves /p_s_01p_in /p_s_01p_out /p_s_01m_in /p_s_01m_out"/>
+
+  <!-- <node name="interface" pkg="panda" type="TextInterface_Node" respawn="false" output="screen"/> -->
+
+</launch>

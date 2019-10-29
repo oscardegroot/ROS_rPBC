@@ -1,0 +1,33 @@
+ID: 1
+address: 3658 #3658 = 10, 3533 = 6
+marker_id: 10
+color: 
+  type: orange
+  intensity: 0.0
+
+NF:
+  beta:
+    function:
+      R: 0.1
+      delta: 0.05
+
+    # robot base
+    obstacle_0:
+      type: obstacle
+      radius: 0.10
+      location:
+        - 0.0
+        - 0.0
+
+    # y axis bound on the workspace
+    obstacle_1:
+      type: lower_bound_x
+      value: -0.54
+
+    # y axis bound on the workspace
+    obstacle_2:
+      type: lower_bound_y
+      value: -0.5
+
+
+  # Opzet: Elisa 3 met kop richting de office, consensus in diezelfde richting

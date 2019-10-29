@@ -53,7 +53,7 @@ public:
      * @brief Function called after responses where received. Last initialisation before RUNNING.
      */
     virtual
-    void enableStation(){};
+    void enableStation(){ros::spinOnce();};
     
     /**
      * @brief Function called when the program is shutting down

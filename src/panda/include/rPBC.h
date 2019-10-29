@@ -32,7 +32,6 @@ public:
 
     Eigen::MatrixXd Kv(System& system) override;
 
-
     void publishAll(System& system) override;
 
 	//Eigen::MatrixXd rightPseudoInverse(Eigen::MatrixXd A);
@@ -44,11 +43,19 @@ private:
     
     Benchmarker benchmarker;
     
-    Eigen::MatrixXd null_psi, pinv_psi;
+    Eigen::MatrixXd null_psi, pinv_psi, dnull_psi, null_pinv_psi;
+    
+    Eigen::MatrixXd previous_null_psi;
     
     Eigen::MatrixXd& pinvPsi(System& system);
     Eigen::MatrixXd& nullPsi(System& system);
-    bool pinv_psi_updated, null_psi_updated;
+    Eigen::MatrixXd& dnullPsi(System& system);
+    Eigen::MatrixXd& nullPinvPsi(System& system);
+
+    
+    bool pinv_psi_updated, null_psi_updated, dnull_psi_updated, null_pinv_psi_updated;
+    bool initial_run = true;
+    bool has_local_freedom;
 
 };
 

@@ -133,24 +133,29 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
 	int k = 0;
 	double diff = 10.0;
     
+    //PotentialFactors gradient(Eigen::VectorXd::Zero(l), 0.0);
+    
 	/* Possibly efficiency by iterating 3 times always */
-	while (diff > 0.01 && k < 100){
+	while (diff > 0.00001 && k < 100){
 
         // Calculate the gradient of the potential function
         PotentialFactors gradient = potential->gradient_factors(r_i, r_js);
         
 		// Calculate r*[k] for all dimensions
 		for(int i = 0; i < l; i++){
+            double b = std::sqrt(gain(i,i));
 
-            // The RHS of the algebraic loop
-            double RHS = matrix_ST(i, i)*s_in(i) + matrix_ST(i, l+i)*gain(i, i) * gradient.i_matrix(i, i)*r_i(i) 
-                        + matrix_ST(i, l+i)*gain(i, i) * gradient.formation_multiplier*r_star(i);
-
-            // The factor for r_js
-            double factor_js = 1.0 - matrix_ST(i, l+i) * gain(i, i) * gradient.js_multiplier;
-
-            // The next iteration step is the RHS divided by the factor before r_js
-            r_js(i) = RHS / factor_js;
+            // Calculate RHS and LHS of the gradient iteration
+            /*double RHS = matrix_ST(i, i)*s_in(i) - matrix_ST(i, l+i) * gain(i, i) * gradient.RHS_vector(i);
+            double LHS = 1.0 + matrix_ST(i, l+i) * gain(i, i) * gradient.LHS_multiplier;*/
+            
+            // - for gradient, - from scattering = +
+            double RHS = agent_i*std::sqrt(2.0/b)*s_in(i) + 1.0/b * gain(i, i) * gradient.RHS_vector(i);
+            double LHS = 1.0 - 1.0/b * gain(i, i) * gradient.LHS_multiplier;
+            
+            
+            // Derive the next iteration of r_js
+            r_js(i) = RHS / LHS;
 		}
 
 		// Calculate the improvement
@@ -162,7 +167,11 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
 	}
 
 	if(k > 80){
+        // Safety first ....
+        r_js = r_i;
 		logMsg("EdgeFlex", "Warning: iteration count k > 80, the iteration may not converge!", WARNING);
+        PotentialFactors gradient = potential->gradient_factors(r_i, r_js);
+        gradient.print();
 	}
 
 }
@@ -185,7 +194,7 @@ Eigen::VectorXd EdgeFlex::elementSign(const Eigen::VectorXd& s_in){
 Eigen::VectorXd EdgeFlex::calculateControls(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){
 
     // Multiply the gradient with the gain
-    return gain*potential->gradient(r_i, r_js);
+    return -gain*potential->gradient(r_i, r_js);
 
 }
 
@@ -194,10 +203,14 @@ Eigen::VectorXd EdgeFlex::calculateWaves(const Eigen::VectorXd& tau, const Eigen
 
 	Eigen::VectorXd result = Eigen::VectorXd::Zero(l);
 
+    // This is not so efficient or smoart
 	for(int i = 0; i < l; i++){
 		double b = std::sqrt(gain(i,i));
 		result(i, 0) = agent_i/std::sqrt(2*b) * (tau(i, 0) -b*r_js(i, 0));
 	}
+//    result = matrix_ST.block(l, 0, l, l) * tau + matrix_ST.block(l, l, l, l)
+//    matrix_ST(l+i, i)
+//            double RHS = matrix_ST(i, i)*s_in(i) - matrix_ST(i, l+i) * gain(i, i) * gradient.RHS_vector(i);
 
 	return result;
 }
@@ -219,4 +232,9 @@ void EdgeFlex::setScatteringGain(const Eigen::MatrixXd& gain){
 	matrix_ST = Eigen::MatrixXd(2*l, 2*l);
 	matrix_ST << agent_i*std::sqrt(2)*Binv, -Binv*Binv,
 					-Eigen::MatrixXd::Identity(l, l), agent_i*std::sqrt(2)*Binv;
+}
+
+void EdgeFlex::addObstacle(const std::shared_ptr<Obstacle>& obstacle)
+{
+    potential->addObstacle(obstacle);
 }

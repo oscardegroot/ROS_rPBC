@@ -48,6 +48,7 @@ add_service_files(DIRECTORY srv
 	colorElisa3.srv
 	isAgentLeader.srv
 	registerAgent.srv
+	addObstacle.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
