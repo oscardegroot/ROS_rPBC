@@ -23,10 +23,10 @@ torque_bound: 16.0 #12.0
 alpha: 0.95
 initial_pause: 0.0
 NF:
-  alpha: 4
+  alpha: 35
   gamma:
     r_w: 1.5
-    eps: 0.13 #0.17
+    eps: 0.005 #0.17
   beta:
     function:
       R: 0.1

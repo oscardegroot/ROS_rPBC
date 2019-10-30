@@ -29,21 +29,19 @@
   </include>
 
   <!-- All network nodes -->
-  <rosparam command="load" file="$(arg global_path)/network.yaml"/>
+<!--   <rosparam command="load" file="$(arg global_path)/network.yaml"/>
   <node pkg="panda" type="NetworkNode" name="networknode01" output="screen" if="$(arg network)">
     <arg name="i_ID" value="0"/>
     <arg name="j_ID" value="1"/>
   </node>
-  <rosparam command="load" file="$(arg global_path)/network.yaml"/>
   <node pkg="panda" type="NetworkNode" name="networknode02" output="screen" if="$(arg network)">
     <arg name="i_ID" value="0"/>
     <arg name="j_ID" value="2"/>
   </node>
-    <rosparam command="load" file="$(arg global_path)/network.yaml"/>
   <node pkg="panda" type="NetworkNode" name="networknode12" output="screen" if="$(arg network)">
     <arg name="i_ID" value="1"/>
     <arg name="j_ID" value="2"/>
-  </node>
+  </node> -->
 
   <!-- Launch the camera -->
   <include file="$(find elisa_vision)/launch/elisa_vision.launch"/>

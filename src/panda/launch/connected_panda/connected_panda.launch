@@ -10,7 +10,7 @@
 	<arg name="local_path" default="$(arg global_path)/connected_panda"/>
 
 	<!-- Artificial network -->
-	<arg name="network" default="true"/>
+	<arg name="network" default="false"/>
 
 	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find franka_description)/robots/panda_arm_camera.urdf.xacro'" />
 	<include file="$(find panda_simulation)/launch/sim.launch"/>

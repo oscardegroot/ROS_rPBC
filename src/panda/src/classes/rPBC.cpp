@@ -85,9 +85,10 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
         //tau += system.dTdq();
         //tau += 0.5*system.dM()*system.state.dq;// -> should be actual dMdq...
 	}
-    
+    tau += system.C() - system.dM()*system.state.dq; // C includes the product with qdot
+
     /* We can simplify two terms with dMinv() * M. (There are three: in Kz, in Kv local and in Kv coop, only Kv local stays).*/
-    Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose();// + 
+    /*Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose();// + 
                         //system.Psi().transpose()*system.dMinv()*system.M(); // using inv(M)' = -M_dot * Minv * Mdot
 
     Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + 1.0*system.Psi().transpose()*system.state.dq;// + system.Psi().transpose()*Kv(system)*system.state.dq;
@@ -96,7 +97,8 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
 	tau += system.M()*(pinvPsi(system)*tau_hat - (system.dM() + 1.0*Eigen::MatrixXd::Identity(system.n, system.n))*system.state.dq);
 
     // Local objectives
-    tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);
+    tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);*/
+    /** @oldmethod */
     
     /**@todo add dTdq() */
     /* We can simplify two terms with dMinv() * M. (There are three: in Kz, in Kv local and in Kv coop, only Kv local stays).*/
@@ -104,25 +106,26 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
                         //system.Psi().transpose()*system.dMinv()*system.M(); // using inv(M)' = -M_dot * Minv * Mdot
 
     //Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + system.Psi().transpose()*Kv(system)*system.state.dq;// + system.Psi().transpose()*Kv(system)*system.state.dq;
-//    Eigen::VectorXd tau_hat = tau_c - ((lambda+gamma-kappa)*system.Psi().transpose() + system.dPsi().transpose())*system.state.dq;
-//    
-//    // Use the rPBC control law to control the agent // (system.M()*system.dM() should be just system.dM()... But this works better?
-//	tau += system.M()*pinvPsi(system)*tau_hat - (-system.dM() + system.M()*Kv(system))*system.state.dq;
-    // Local
+    Eigen::VectorXd tau_hat = tau_c - ((lambda+gamma-kappa)*system.Psi().transpose() + system.dPsi().transpose())*system.state.dq;
+    
+    // Use the rPBC control law to control the agent // (system.M()*system.dM() should be just system.dM()... But this works better?
+	tau += system.M()*pinvPsi(system)*tau_hat - (system.dM() + system.M()*Kv(system))*system.state.dq;
+
+
     /** @todo Without M behaviour significantly approves, but possible I just need to compensate for the gain of the input matrix.*/
-//    logTmp("Norm of pinv_null_psi", (helpers::pseudoInverse(nullPsi(system)) * helpers::pseudoInverse(nullPsi(system)).transpose()).norm());
-//    logTmp("Norm of old method", (nullPsi(system).transpose()*nullPsi(system)).norm());
+  //logTmp("Norm of pinv_null_psi", (helpers::pseudoInverse(nullPsi(system)) * helpers::pseudoInverse(nullPsi(system)).transpose()).norm());
+    //logTmp("Norm of old method", (nullPsi(system).transpose()*nullPsi(system)).norm());
     
 
-    // Local objectives
-//    if(has_local_freedom){
-//        //tau -= system.M()*(helpers::pseudoInverse(nullPsi(system)) * helpers::pseudoInverse(nullPsi(system)).transpose()) * dVsdq(system); // seems to work
-//
-//        tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);
-//        dnull_psi_updated = false;
-//        null_pinv_psi_updated = false;
-//        previous_null_psi = nullPsi(system);
-//    }
+    //local objectives
+    if(has_local_freedom){
+        //tau -= system.M()*(helpers::pseudoInverse(nullPsi(system)) * helpers::pseudoInverse(nullPsi(system)).transpose()) * dVsdq(system); // seems to work
+        // Try the norm thing again, also nullpsi may have different singularities than psi?
+        tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);
+        dnull_psi_updated = false;
+        null_pinv_psi_updated = false;
+        previous_null_psi = nullPsi(system);
+    }
     //logTmp("tau: ", tau);
     null_psi_updated = false;
     pinv_psi_updated = false;
@@ -224,7 +227,7 @@ Eigen::MatrixXd rPBC::Kv(System& system)
     //logTmp("first_term", first_term);
     // Don forget local freedom here as well
     Eigen::MatrixXd result = kappa*Eigen::MatrixXd::Identity(system.n, system.n);
-    if(false && has_local_freedom){
+    if(true && has_local_freedom){
         result += helpers::pseudoInverse(nullPsi(system)) * dnullPsi(system);
     }
     

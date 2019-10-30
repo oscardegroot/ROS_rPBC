@@ -7,7 +7,7 @@ NF:
   alpha: 35.0
   gamma:
     r_w: 1.5
-    eps: 0.13 #0.05 networkgain 1.5
+    eps: 0.13 #0.13 #0.05 networkgain 1.5
 
 controller:
   publish_rate: 100

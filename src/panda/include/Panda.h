@@ -59,7 +59,8 @@ namespace panda {
         Eigen::MatrixXd& dM() override;
         Eigen::MatrixXd& dPsi() override;
         Eigen::MatrixXd& dMinv() override;
-
+        Eigen::VectorXd& C() override;
+        //Eigen::VectorXd c_m;
         
         /** @brief functions called by ROS Control */
         bool init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh) override;  // mandatory

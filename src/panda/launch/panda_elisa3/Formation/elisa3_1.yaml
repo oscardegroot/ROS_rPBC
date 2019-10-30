@@ -14,7 +14,7 @@ NF:
     # robot base
     obstacle_0:
       type: obstacle
-      radius: 0.10
+      radius: 0.20
       location:
         - 0.0
         - 0.0

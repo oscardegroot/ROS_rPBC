@@ -85,6 +85,12 @@ public:
     /** @return reference to n x l derivative of the end-effector Jacobian */
     virtual
     Eigen::MatrixXd& dPsi() = 0;
+    
+    virtual
+    Eigen::VectorXd& C(){
+        c_m = Eigen::VectorXd::Zero(n);
+        return c_m;
+    }
 
     virtual
     Eigen::VectorXd Psi_z(){
@@ -139,7 +145,7 @@ protected:
 
     // System matrices
     Eigen::MatrixXd m_m, psi, dm, dpsi, dminv;
-    Eigen::VectorXd dvdq;
+    Eigen::VectorXd dvdq, c_m;
     Eigen::MatrixXd psi_previous, m_previous;
 
     bool is_enabled = false;

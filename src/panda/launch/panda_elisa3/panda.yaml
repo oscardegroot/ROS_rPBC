@@ -19,14 +19,14 @@ safety:
   torque_bound_stop: 200.0
 velocity_element_bound: 2.0
 velocity_norm_bound: 0.3
-torque_bound: 16.0 #12.0
+torque_bound: 50.0 #12.0
 alpha: 0.95
 initial_pause: 0.0
 NF:
   alpha: 35
   gamma:
-    r_w: 1.0
-    eps: 0.13 #0.17
+    r_w: 1.5
+    eps: 0.005 #0.17
   beta:
     function:
       R: 0.1

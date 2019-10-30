@@ -61,9 +61,9 @@ int main(int argc, char **argv){
 	ros::init(argc, argv, "Agent");
 
     ros::NodeHandle nh;
-
-    helpers::safelyRetrieve(nh, "i_ID", i_ID);
-    helpers::safelyRetrieve(nh, "j_ID", j_ID);
+    ros::NodeHandle nh_private("~");
+    helpers::safelyRetrieve(nh_private, "i_ID", i_ID);
+    helpers::safelyRetrieve(nh_private, "j_ID", j_ID);
 
     if(!helpers::ifParameter(nh, "/network/enabled")){
         logMsg("Network Node", "Artificial Network disabled, shutting down..", 2);

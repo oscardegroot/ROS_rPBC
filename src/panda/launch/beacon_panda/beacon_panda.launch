@@ -8,7 +8,7 @@
   <arg name="local_path" default="$(arg global_path)/beacon_panda"/>
   
   <!-- Artificial network -->
-  <arg name="network" default="true"/>
+  <arg name="network" default="false"/>
 
   <!-- Load parameters (see files) -->
   <rosparam command="load" file="$(arg local_path)/params.yaml" />

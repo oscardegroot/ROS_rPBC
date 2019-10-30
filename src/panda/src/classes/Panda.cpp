@@ -290,6 +290,8 @@ void Panda::retrieveMatrices(){
 	std::array<double, 49> mass_array = model_handle_->getMass();
 	m_m = Eigen::Map<const Eigen::Matrix<double, 7, 7> >(mass_array.data());
     
+    c_m = helpers::arrayToVector<7>(model_handle_->getCoriolis());
+    
     //Get the gravity vector
     dvdq = helpers::arrayToVector<7>(model_handle_->getGravity());
     
@@ -311,6 +313,10 @@ Eigen::MatrixXd& Panda::M(){
 Eigen::MatrixXd& Panda::Psi(){
     
 	return psi;
+}
+
+Eigen::VectorXd& Panda::C(){
+    return c_m;
 }
 
 /* From Franka Emika: Saturates the torque rate (not torque itself)*/

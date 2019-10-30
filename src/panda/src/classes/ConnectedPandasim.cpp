@@ -63,6 +63,12 @@ void ConnectedPandasim::retrieveMatrices()
         q_array[i] = state.q(i);
     }
     
+    /* Convert qdot to an array*/
+    std::array<double, 7> dq_array;
+    for(int i = 0; i < 7; i++){
+        dq_array[i] = state.dq(i);
+    }
+    
         /* Clean this up ofc */
     std::array<double, 16> identity_16 = {};
     identity_16[0] = 1.0;
@@ -87,6 +93,10 @@ void ConnectedPandasim::retrieveMatrices()
     std::array<double, 9> zeros = {};
 	std::array<double, 49> mass_array = model_handle_->getMass(q_array, zeros, 0.0, zeros_3);
 	m_m = Eigen::Map<const Eigen::Matrix<double, 7, 7> >(mass_array.data());
+    
+    // Get the coriolis vector
+	std::array<double, 7> coriolis_array = model_handle_->getCoriolis(q_array, dq_array, zeros, 0.0, zeros_3);
+	c_m = helpers::arrayToVector<7>(coriolis_array);
     //logTmp(m_m);
     
     // Set initial matrices for the first loop

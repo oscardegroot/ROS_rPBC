@@ -136,7 +136,7 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
     //PotentialFactors gradient(Eigen::VectorXd::Zero(l), 0.0);
     
 	/* Possibly efficiency by iterating 3 times always */
-	while (diff > 0.00001 && k < 100){
+	while (diff > 0.0001 && k < 100){
 
         // Calculate the gradient of the potential function
         PotentialFactors gradient = potential->gradient_factors(r_i, r_js);
@@ -166,10 +166,10 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
 		k++;
 	}
 
-	if(k > 80){
+	if(k > 90){
         // Safety first ....
         r_js = r_i;
-		logMsg("EdgeFlex", "Warning: iteration count k > 80, the iteration may not converge!", WARNING);
+		logMsg("EdgeFlex", "Warning: iteration count k > 90, the iteration may not converge!", WARNING);
         PotentialFactors gradient = potential->gradient_factors(r_i, r_js);
         gradient.print();
 	}

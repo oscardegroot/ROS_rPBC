@@ -6,17 +6,18 @@
   <arg name="collect_bags" default="false" />
 
   <!-- Paths -->
-  <arg name="global_path" default="$(find panda)/launch/"/>
+  <arg name="global_path" default="$(find panda)/launch"/>
   <arg name="local_path"/>
+
 
   <!-- Load parameters (see files) -->
   <rosparam command="load" file="$(arg local_path)/params.yaml" />
 
   <!-- Artificial network -->
   <rosparam command="load" file="$(arg global_path)/network.yaml" if="$(arg network)"/>
-  <node pkg="panda" type="NetworkNode" name="networknode" output="screen" if="$(arg network)">
-    <arg name="i_ID" value="0"/>
-    <arg name="j_ID" value="1"/>
+  <node pkg="panda" type="NetworkNode" name="networknode01" output="screen" if="$(arg network)">
+    <param name="i_ID" value="0"/>
+    <param name="j_ID" value="1"/>
   </node>
 
   <!-- The server side node -->
