@@ -3,11 +3,11 @@ initial_delay: 0.0
 
 z_select: [1, 1]
 L: 0.02
-NF:
-  alpha: 35.0
-  gamma:
-    r_w: 1.5
-    eps: 0.13 #0.13 #0.05 networkgain 1.5
+# NF:
+#   alpha: 35.0
+#   gamma:
+#     r_w: 5.0 #1.5
+#     eps: 0.03 #0.13 #0.13 #0.05 networkgain 1.5
 
 controller:
   publish_rate: 100

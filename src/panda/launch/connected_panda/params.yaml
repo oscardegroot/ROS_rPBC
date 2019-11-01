@@ -29,16 +29,16 @@ output: r
 connectedpandasim:
   type: panda/ConnectedPandasim
 
-# formation:
-#   type: consensus
-
 formation:
-  type: manual
-  position_0:
-    - 0.0
-    - 0.0
-    - 0.7
-  position_1:
-    - 0.0
-    - 0.0
-    - 0.0
+  type: consensus
+
+# formation:
+#   type: manual
+#   position_0:
+#     - 0.0
+#     - 0.0
+#     - 0.7
+#   position_1:
+#     - 0.0
+#     - 0.0
+#     - 0.0

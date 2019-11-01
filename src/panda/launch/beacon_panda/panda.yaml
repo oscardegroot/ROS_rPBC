@@ -15,7 +15,7 @@ safety:
   lower_bound_z: 0.2
   camera_bound:
     z: 0.85
-    x: -0.2 
+    x: -0.4 
   torque_bound_stop: 80.0
 velocity_element_bound: 2.0
 velocity_norm_bound: 0.3
@@ -25,8 +25,8 @@ initial_pause: 0.0
 NF:
   alpha: 5
   gamma:
-    r_w: 1.5
-    eps: 0.005 #0.08
+    r_w: 10.0
+    eps: 0.0001 #0.005
   beta:
     function:
       R: 0.1

@@ -50,18 +50,20 @@
   <node pkg="panda" type="Elisa3_Node" name="elisa3_0" output="screen">
     <rosparam command="load" file="$(arg local_path)/elisa3_0.yaml" />
     <rosparam command="load" file="$(arg global_path)/elisa/elisa3.yaml" />
+    <rosparam command="load" file="$(arg global_path)/environment.yaml"/>
   </node>
 
 <!-- Launch Elisa robots -->
   <node pkg="panda" type="Elisa3_Node" name="elisa3_1" output="screen">
     <rosparam command="load" file="$(arg local_path)/elisa3_1.yaml" />
     <rosparam command="load" file="$(arg global_path)/elisa/elisa3.yaml" />
+    <rosparam command="load" file="$(arg global_path)/environment.yaml"/>
   </node>
   <!-- Plot cooperative coordinates -->
   <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] agents/1/z/data[0] agents/1/z/data[1] agents/2/z/data[0] agents/2/z/data[1]"/>
 
   <node pkg="rosbag" type="record" name="rosbag_agents" output="screen"
-       args="record -o $(find panda)/bags/agents /agents/0/z /agent/1/z /agent/2/z /agents/0/theta_dot /agents/0/z_dot /agents/1/z_dot /agents/2/z_dot"/>
+       args="record -o $(find panda)/bags/agents /agents/0/z /agents/1/z /agents/2/z /agents/0/theta_dot /agents/0/z_dot /agents/1/z_dot /agents/2/z_dot"/>
 
   <!-- Network signals (waves) -->
   <node pkg="rosbag" type="record" name="rosbag_waves" output="screen"

@@ -23,6 +23,18 @@ Edge::Edge(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::Vect
 	gain = gain_set;
 	r_star = r_star_set;
     
+        // Multiply the formation distance by lambda if rPBC is used
+    std::string output;
+    helpers::safelyRetrieve(nh, "/output", output);
+    
+    if(output == "r"){
+        double lambda;
+        helpers::safelyRetrieve(nh, "/lambda", lambda);
+        
+        r_star *= lambda;
+    }
+    
+    
     rate_mp = rate_mp_set;    
 	initChannels();
 

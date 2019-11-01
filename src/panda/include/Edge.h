@@ -25,36 +25,27 @@ public:
 	~Edge();
 
 	// Receive and send waves
-	virtual 
-    void waveCallback(const panda::Waves::ConstPtr& msg);
+	virtual void waveCallback(const panda::Waves::ConstPtr& msg);
     
-	virtual 
-    void publishWave(const Eigen::VectorXd& r_i);
+	virtual void publishWave(const Eigen::VectorXd& r_i);
     
-    virtual 
-    void initChannels();
+    virtual void initChannels();
 
-	virtual
-    Eigen::VectorXd sample(const Eigen::VectorXd& r_i);
+	virtual Eigen::VectorXd sample(const Eigen::VectorXd& r_i);
 	
-	virtual
-    void applyReconstruction(Eigen::VectorXd & wave_reference, const Eigen::VectorXd& r_i);
+	virtual void applyReconstruction(Eigen::VectorXd & wave_reference, const Eigen::VectorXd& r_i);
     
-	virtual 
-    Eigen::VectorXd calculateControls(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i) = 0;
+	virtual Eigen::VectorXd calculateControls(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i) = 0;
     
-	virtual 
-    Eigen::VectorXd calculateWaves(const Eigen::VectorXd& s_in,	const Eigen::VectorXd& r_i) = 0;
+	virtual Eigen::VectorXd calculateWaves(const Eigen::VectorXd& s_in,	const Eigen::VectorXd& r_i) = 0;
 
     // Waves for dealing with sampling frequencies
     void expandWaves(Eigen::VectorXd& waves);
     void compressWaves(const Eigen::VectorXd& waves);
     
-    virtual
-    void addObstacle(const std::shared_ptr<Obstacle>& obstacle){};
+    virtual void addObstacle(const std::shared_ptr<Obstacle>& obstacle){};
     
-    virtual
-    bool isLeader() const { return false;};
+    virtual bool isLeader() const { return false;};
 
 
 protected:

@@ -46,9 +46,10 @@ private:
 
 	// Save of the iterated tau and tau in the last loop
 	double agent_i;
-
+    Eigen::VectorXd impedance;
 	// The wave impedance B and network gain Kd
 	Eigen::MatrixXd matrix_ST;
 
 	Eigen::VectorXd r_js_last;
+
 };

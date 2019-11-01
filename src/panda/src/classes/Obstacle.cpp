@@ -38,10 +38,18 @@ PotentialFactors Obstacle::gradient(const Eigen::VectorXd& r_i, const Eigen::Vec
 ObjectObstacle::ObjectObstacle(Agent& agent, int count, int l_set)
     : Obstacle(l_set)
 {
+    
+    Eigen::VectorXd location_temp;
     // Retrieve object parameters
     double radius;
-    agent.retrieveEigen("NF/beta/obstacle_" + std::to_string(count) + "/location", location, l_set);
+    agent.retrieveEigen("NF/beta/obstacle_" + std::to_string(count) + "/location", location_temp);
     agent.retrieveParameter("NF/beta/obstacle_" + std::to_string(count) + "/radius", radius);
+    
+    /** @note Does not take into account the coordinate order, hence does not work in general!!! */
+    location = Eigen::VectorXd::Zero(l);
+    for(size_t i = 0; i < l; i++){
+        location(i) = location_temp(i);
+    }
     
     // Create an obstacle function
     obstacle_function = std::make_unique<WangObstacleFunction>(agent, radius);
@@ -50,8 +58,14 @@ ObjectObstacle::ObjectObstacle(Agent& agent, int count, int l_set)
 }
 
 ObjectObstacle::ObjectObstacle(Agent& agent, const Eigen::VectorXd& location_set, double radius, int l_set)
-    : Obstacle(l_set), location(location_set)
+    : Obstacle(l_set)//, location(location_set)
 {
+    /** @note Does not take into account the coordinate order, hence does not work in general!!! */
+    location = Eigen::VectorXd::Zero(l);
+    for(size_t i = 0; i < l; i++){
+        location(i) = location_set(i);
+    }
+    
     obstacle_function = std::make_unique<WangObstacleFunction>(agent, radius);
     logMsg("Obstacle", "Obstacle created with radius " + std::to_string(radius) + "m, " + 
         " location = (" + std::to_string(location_set(0)) + ", " + std::to_string(location_set(1)) + ").", 2);

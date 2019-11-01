@@ -1,0 +1,29 @@
+
+NF:
+  alpha: 35
+  gamma:
+    r_w: 30 #1.5
+    eps: 0.001 #0.00001 #0.005 #0.17
+  beta:
+    function:
+      R: 0.1
+      delta: 0.15 # bigger means less steep -> less chance of divergence.
+
+    # robot base
+    obstacle_0:
+      type: obstacle
+      radius: 0.20
+      location:
+        - 0.0
+        - 0.0
+        - 0.45
+
+    # y axis bound on the workspace
+    obstacle_1:
+      type: lower_bound_x
+      value: -0.54
+
+    # y axis bound on the workspace
+    obstacle_2:
+      type: lower_bound_y
+      value: -0.54
