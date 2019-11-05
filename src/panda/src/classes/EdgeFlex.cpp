@@ -39,6 +39,14 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
     /* Modified for sampling mismatch */
     if(retrieval_counter->trigger()){
         
+        /* If the first data was not yet received, ensure 0 output of the network*/
+        /** @fix: If we dont publish when no data is received, we ofcourse land in a loop where noone receives any data...
+         * Fix should be in the system or control class, possibly via an extra output of this sample function. */
+//        if(!first_data_received){
+//            logTmp("zero network input " + std::to_string(i_ID) + ", " + std::to_string(j_ID));
+//            //return Eigen::VectorXd::Zero(l);
+//        }
+        
         /* Reconstruct */
         if(!data_received){
             
@@ -132,27 +140,35 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
         PotentialFactors gradient = potential->gradient_factors(r_i, r_js);
         
         // The iterative algorithm seems to fail when the obstacle function gets very small. Hence we need to detect that happening beforehand.
-        if(std::abs(gradient.LHS_multiplier) < 1e-2){
-            
-            // If we are already some iterations in, throw an error
-            if(k > 40){
-                throw OperationalException("[EdgeFlex] Left Hand Side Multiplier became 0! (value = " + std::to_string(gradient.LHS_multiplier));    
-            
-            // Otherwise resort to an initial r_js and iterate from there.
-            }else if(k == 0){
-                r_js = Eigen::VectorXd::Zero(l);
-                r_js << 1, 1, 1;
-                gradient = potential->gradient_factors(r_i, r_js); 
-            }else{
+//        if(std::abs(gradient.LHS_multiplier) < 1e-4){
 
-                logTmp("k", k);
-                logTmp("r_js", r_js);
-                logTmp("r_i", r_i);
-                logTmp("Distance d", helpers::normOf(r_js - r_i));
-
-                return;
+            double obstacle = std::abs(((NavigationFunction*)(&(*potential)))->obstacleValue(r_i, r_js));
+            if(obstacle < 0.2){
+                logTmp("Warning, low potential function value (value=" + std::to_string(obstacle) + ")");
+                
+                if(obstacle < 0.05){
+                    throw OperationalException("Agent is inside object");
+                }
+                
+                if(obstacle < 0.1){
+                    r_js = r_i*1.01;
+                    return;
+                }
             }
-        }
+            // If we are already some iterations in, throw an error
+//            if(k > 40){
+//                throw OperationalException("[EdgeFlex] Left Hand Side Multiplier became 0! (value = " + std::to_string(gradient.LHS_multiplier));    
+//            
+//            /** @solution Otherwise resort to an initial r_js and iterate from there.*/
+//            }else{
+//
+//                logTmp("k", k);
+//                logTmp("r_js", r_js);
+//                logTmp("r_i", r_i);
+//                logTmp("Distance d", helpers::normOf(r_js - r_i));
+//
+//                return;
+
             
 		// Calculate r*[k] for all dimensions
 		for(int i = 0; i < l; i++){

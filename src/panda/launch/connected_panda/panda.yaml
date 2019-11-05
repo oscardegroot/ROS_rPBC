@@ -45,10 +45,11 @@ joint_names:
 - panda_joint7
 arm_id: panda
 publish_rate: 100
+eta: 0.01
 z_select:
   - 1
   - 1
-  - 1
+  - 2
   - 0
   - 0
   - 0
@@ -70,16 +71,16 @@ NF:
   beta:
     function:
       R: 0.1
-      delta: 0.05
+      delta: 0.50
     
     # obstacle_0:
     #   type: z_bound
     #   lower_bound: 0.8
 
-    obstacle_0:
-      type: obstacle
-      radius: 0.2
-      location:
-        - 0.0
-        - 0.0
-        - 0.4
+    # obstacle_0:
+    #   type: obstacle
+    #   radius: 0.2
+    #   location:
+    #     - 0.0
+    #     - 0.0
+    #     - 0.4

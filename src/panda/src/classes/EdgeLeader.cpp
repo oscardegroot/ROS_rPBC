@@ -8,11 +8,15 @@
 
 EdgeLeader::EdgeLeader(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
     : Edge(agent, -1, gain_set, l_set, r_star_set, 1){
+        
+        //potential = std::make_unique<NavigationFunction>(agent, l, r_star);
 }
 
 /* Main public function that samples this edge */
 Eigen::VectorXd EdgeLeader::sample(const Eigen::VectorXd& r_i){
 
+    /**@todo Normalise! (modify potential) */
+    
     return gain*(r_star - r_i);
 }
 

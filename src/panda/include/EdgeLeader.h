@@ -45,6 +45,7 @@ private:
     Eigen::MatrixXd matrix_ST;
 
     Eigen::VectorXd r_js_last;
+    std::unique_ptr<AdvancedPotential> potential;
 };
 
 #endif //SRC_EDGELEADER_H

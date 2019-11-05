@@ -80,12 +80,13 @@ public:
 
     PotentialFactors gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     //Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
-
+    PotentialFactors obstacleGradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
+    double obstacleValue(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
+    
 private:
     double alpha;
     
-    PotentialFactors obstacleGradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
-    double obstacleValue(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
+
 
 };
 

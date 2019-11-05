@@ -26,6 +26,7 @@
 #include <std_msgs/Float64MultiArray.h>
 #include "CustomLog.h"
 #include <string>
+#include <cmath>
 
 #include "System.h"
 #include "Controller.h"

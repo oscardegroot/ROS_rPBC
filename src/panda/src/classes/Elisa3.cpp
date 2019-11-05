@@ -269,6 +269,14 @@ Eigen::VectorXd Elisa3::velocityToWheelSpeed(const Eigen::VectorXd& vel){
 /// Saturate the speed to the set limit
 void Elisa3::saturateSpeed(signed int & v_r, signed int & v_l) {
 
+    if(!std::isfinite(v_r)){
+            throw OperationalException("[Elisa3]: Right wheel speed (v_r) is not finite (NaN or inf)!");
+    }
+    
+    if(!std::isfinite(v_l)){
+        throw OperationalException("[Elisa3]: Left wheel speed (v_l) is not finite (NaN or inf)!");
+    }
+    
     // Find the maximum speed between the wheels
     int max_cur_speed = std::max(std::abs(v_r), std::abs(v_l));
 

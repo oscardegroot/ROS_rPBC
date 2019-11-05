@@ -9,14 +9,14 @@ NF:
       R: 0.1
       delta: 0.15 # bigger means less steep -> less chance of divergence.
 
-    # robot base
-    obstacle_0:
-      type: obstacle
-      radius: 0.20
-      location:
-        - 0.0
-        - 0.0
-        - 0.45
+    # robot base, make z ref higher!
+    # obstacle_0:
+    #   type: obstacle
+    #   radius: 0.10
+    #   location:
+    #     - 0.0
+    #     - 0.0
+    #     - 0.3
 
     # y axis bound on the workspace
     obstacle_1:

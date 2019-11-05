@@ -116,6 +116,7 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 
 	// Data was received
 	data_received = true;
+    first_data_received = true;
 }
 
 /// Reconstruct the signal if necessary

@@ -23,6 +23,9 @@ rPBC::rPBC(Agent& agent)
 	helpers::safelyRetrieve(nh, "/lambda", lambda);
 	helpers::safelyRetrieve(nh, "/gamma", gamma);
     helpers::safelyRetrieve(nh, "/kappa", kappa);
+    agent.retrieveParameter("eta", eta, 1.0);
+
+    gamma *= eta;
 
 	agent.retrieveParameter("controller/gravity_compensation/enabled", gravity_enabled, false);
 	agent.retrieveParameter("controller/local_potential/enabled", local_enabled, false);
@@ -66,7 +69,6 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
             dnull_psi = Eigen::MatrixXd::Zero(system.s, system.n);
             previous_null_psi = nullPsi(system);
         }
-        logTmp("matrices initialised");
         initial_run = false;
     }
     
@@ -81,50 +83,23 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
     
 	// Compensate gravity if necessary
 	if(gravity_enabled){
-		tau += system.dVdq(); // maybe dMdq here as well...
-        //tau += system.dTdq();
-        //tau += 0.5*system.dM()*system.state.dq;// -> should be actual dMdq...
+		tau += system.dVdq();
 	}
+    
     tau += system.C() - system.dM()*system.state.dq; // C includes the product with qdot
 
-    /* We can simplify two terms with dMinv() * M. (There are three: in Kz, in Kv local and in Kv coop, only Kv local stays).*/
-    /*Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose();// + 
-                        //system.Psi().transpose()*system.dMinv()*system.M(); // using inv(M)' = -M_dot * Minv * Mdot
-
-    Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + 1.0*system.Psi().transpose()*system.state.dq;// + system.Psi().transpose()*Kv(system)*system.state.dq;
     
-    // Use the rPBC control law to control the agent
-	tau += system.M()*(pinvPsi(system)*tau_hat - (system.dM() + 1.0*Eigen::MatrixXd::Identity(system.n, system.n))*system.state.dq);
-
-    // Local objectives
-    tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);*/
-    /** @oldmethod */
+    Eigen::MatrixXd Kz = system.Psi().transpose()*((lambda + gamma) * Eigen::MatrixXd::Identity(system.n, system.n) -
+                                                    system.M().inverse()*system.dM()) + system.dPsi().transpose();
     
-    /**@todo add dTdq() */
-    /* We can simplify two terms with dMinv() * M. (There are three: in Kz, in Kv local and in Kv coop, only Kv local stays).*/
-    //Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose();// + 
-                        //system.Psi().transpose()*system.dMinv()*system.M(); // using inv(M)' = -M_dot * Minv * Mdot
-
-    //Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + system.Psi().transpose()*Kv(system)*system.state.dq;// + system.Psi().transpose()*Kv(system)*system.state.dq;
-    Eigen::VectorXd tau_hat = tau_c - ((lambda+gamma-kappa)*system.Psi().transpose() + system.dPsi().transpose())*system.state.dq;
+    Eigen::VectorXd tau_hat = (1.0/eta) * tau_c - Kz*system.state.dq;
+    tau += system.M()*pinvPsi(system)*tau_hat;
     
-    // Use the rPBC control law to control the agent // (system.M()*system.dM() should be just system.dM()... But this works better?
-	tau += system.M()*pinvPsi(system)*tau_hat - (system.dM() + system.M()*Kv(system))*system.state.dq;
-
-
-    /** @todo Without M behaviour significantly approves, but possible I just need to compensate for the gain of the input matrix.*/
-  //logTmp("Norm of pinv_null_psi", (helpers::pseudoInverse(nullPsi(system)) * helpers::pseudoInverse(nullPsi(system)).transpose()).norm());
-    //logTmp("Norm of old method", (nullPsi(system).transpose()*nullPsi(system)).norm());
-    
-
-    //local objectives
     if(has_local_freedom){
-        //tau -= system.M()*(helpers::pseudoInverse(nullPsi(system)) * helpers::pseudoInverse(nullPsi(system)).transpose()) * dVsdq(system); // seems to work
-        // Try the norm thing again, also nullpsi may have different singularities than psi?
-        tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);
-        dnull_psi_updated = false;
-        null_pinv_psi_updated = false;
-        previous_null_psi = nullPsi(system);
+        Eigen::MatrixXd Kv_mat = nullPsi(system) * (-system.M().inverse()*system.dM() + kappa*Eigen::MatrixXd::Identity(system.n, system.n)) + 
+                                dnullPsi(system);
+        tau -= system.M()*helpers::pseudoInverse(nullPsi(system))*(Kv_mat*system.state.dq
+                                                            + helpers::pseudoInverse(nullPsi(system)).transpose()*dVsdq(system));
     }
     //logTmp("tau: ", tau);
     null_psi_updated = false;
@@ -274,3 +249,41 @@ Eigen::MatrixXd& rPBC::nullPinvPsi(System& system)
     logTmp("Warning not implemented function nullPinvPsi!");
     return null_psi;
 }
+
+
+    /* We can simplify two terms with dMinv() * M. (There are three: in Kz, in Kv local and in Kv coop, only Kv local stays).*/
+    /*Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose();// + 
+                        //system.Psi().transpose()*system.dMinv()*system.M(); // using inv(M)' = -M_dot * Minv * Mdot
+
+    Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + 1.0*system.Psi().transpose()*system.state.dq;// + system.Psi().transpose()*Kv(system)*system.state.dq;
+    
+    // Use the rPBC control law to control the agent
+	tau += system.M()*(pinvPsi(system)*tau_hat - (system.dM() + 1.0*Eigen::MatrixXd::Identity(system.n, system.n))*system.state.dq);
+
+    // Local objectives
+    tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);*/
+    /** @oldmethod */
+    
+    /**@todo add dTdq() */
+    /* We can simplify two terms with dMinv() * M. (There are three: in Kz, in Kv local and in Kv coop, only Kv local stays).*/
+    //Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose();// + 
+                        //system.Psi().transpose()*system.dMinv()*system.M(); // using inv(M)' = -M_dot * Minv * Mdot
+
+    /** @newermethod//Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + system.Psi().transpose()*Kv(system)*system.state.dq;// + system.Psi().transpose()*Kv(system)*system.state.dq;
+    Eigen::VectorXd tau_hat = tau_c - ((lambda+gamma-kappa)*system.Psi().transpose() + system.dPsi().transpose())*system.state.dq;
+    
+    // Use the rPBC control law to control the agent // (system.M()*system.dM() should be just system.dM()... But this works better?
+	tau += system.M()*pinvPsi(system)*tau_hat - (system.dM() + system.M()*Kv(system))*system.state.dq;
+
+    //local objectives
+    if(has_local_freedom){
+        //tau -= system.M()*(helpers::pseudoInverse(nullPsi(system)) * helpers::pseudoInverse(nullPsi(system)).transpose()) * dVsdq(system); // seems to work
+        // Try the norm thing again, also nullpsi may have different singularities than psi?
+        tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);
+        dnull_psi_updated = false;
+        null_pinv_psi_updated = false;
+        previous_null_psi = nullPsi(system);
+    }*/
+    
+    // Identity mass idea... Fix nicely if this works!
+    //double eta = 0.01;

@@ -39,7 +39,7 @@ public:
 
 private:
 
-	double lambda, gamma, kappa;
+	double lambda, gamma, kappa, eta;
     
     Benchmarker benchmarker;
     

@@ -335,8 +335,15 @@ std::array<double, 7> Panda::saturateTorqueRate(const Eigen::VectorXd& torques, 
 
 std::array<double, 7> Panda::checkTorque(Eigen::VectorXd& torques, const std::array<double, 7>& tau_J_d){
 	
+    
 	// If one of the torques is out of bounds, throw an error
 	for(int i = 0; i < 7; i++){
+        
+        if(!std::isfinite(torques[i])){
+            throw OperationalException("Torque " + std::to_string(i) + " is not finite (NaN or inf)!");
+        }
+
+        
 		if(std::abs(torques[i]) > torque_bound){
             std::string message = "Panda: Torque "
 				 + std::to_string(i) + " out of bounds! (bound=" 
@@ -355,11 +362,12 @@ std::array<double, 7> Panda::checkTorque(Eigen::VectorXd& torques, const std::ar
             message += ")";
 			throw TorqueBoundException(message);
         }
-//		}else if(std::abs(torques[i]) > torque_bound){
-//            
-//            torques[i] = helpers::sgn(torques[i])*torque_bound;
-//        }
-	}
+    }
+        /*else if(std::abs(torques[i]) > torque_bound){
+           
+            torques[i] = helpers::sgn(torques[i])*torque_bound;
+        }
+	}*/
 
 	// Otherwise saturate the torque rate and return
 	return saturateTorqueRate(torques, tau_J_d);

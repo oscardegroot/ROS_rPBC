@@ -1,5 +1,6 @@
 sampling_rate: 100
 initial_delay: 0.0
+eta: 0.1
 
 z_select: [1, 1]
 L: 0.02

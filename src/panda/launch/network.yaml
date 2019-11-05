@@ -3,12 +3,12 @@
 network:
   enabled: true # Enables artificial effects
   delay: 
-    constant: true # Enables delay
-    value_plus: 0.1  # Initial delay
-    value_minus: 0.2
-    change: 0.3 # (0 - 1) (* sampling period)
-    max_delay: 0.15
-    min_delay: 0.05
+    constant: false # Enables delay
+    value_plus: 0.15  # Initial delay
+    value_minus: 0.25
+    change: 2.0 # (0 - 1) (* sampling period)
+    max_delay: 0.6
+    min_delay: 0.2
   packet_loss:
     enabled: true # Enables packet loss
-    p: 0.02 # 5 percent!
+    p: 0.05 # 5 percent!

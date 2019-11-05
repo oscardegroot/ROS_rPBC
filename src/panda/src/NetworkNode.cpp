@@ -14,6 +14,7 @@
 
 #include "panda/Waves.h"
 #include "std_msgs/Float64MultiArray.h"
+#include "std_msgs/Float64.h"
 
 #include <memory>
 #include <vector>
@@ -37,6 +38,8 @@ ros::Subscriber wave_ij_in, wave_ji_in;
 ros::Publisher wave_ij_out, wave_ji_out;
 ros::Publisher p_wave_ij_in, p_wave_ij_out, p_wave_ji_in, p_wave_ji_out;
 
+ros::Publisher debugPub;
+
 std::vector<DelayedMsg> msg_vec;
 double delay_ij, delay_ji, max_delay, min_delay, max_step_delay;
 bool delay_is_constant;
@@ -44,9 +47,6 @@ double sampling_rate;
 double drop_chance = 0.0;
 
 int i_ID, j_ID;
-// Hardcoded :(
-//int i_ID = 0;
-//int j_ID = 1;
 
 // Callback
 void waveCallback_i(const panda::Waves::ConstPtr& msg);
@@ -83,16 +83,18 @@ int main(int argc, char **argv){
     p_wave_ji_in = nh.advertise<std_msgs::Float64MultiArray>("p_s_" + std::to_string(i_ID) + std::to_string(j_ID) + "m_in", 10);
     p_wave_ji_out = nh.advertise<std_msgs::Float64MultiArray>("p_s_" + std::to_string(i_ID) + std::to_string(j_ID) + "m_out", 10);
 
-
+    debugPub = nh.advertise<std_msgs::Float64>("delays_" + std::to_string(i_ID) + std::to_string(j_ID), 10);
 
     helpers::safelyRetrieve(nh, "/network/delay/constant", delay_is_constant);
     
     if(!delay_is_constant){
         srand(std::time(NULL));
         
-        // Initialise randomly
-        delay_ij = min_delay + (max_delay - min_delay)*((double)rand() / RAND_MAX);
-        delay_ji = min_delay + (max_delay - min_delay)*((double)rand() / RAND_MAX);
+        // Initialise randoml
+        delay_ij = min_delay;
+        delay_ji = min_delay;
+        //delay_ij = min_delay + (max_delay - min_delay)*((double)rand() / RAND_MAX);
+        //delay_ji = min_delay + (max_delay - min_delay)*((double)rand() / RAND_MAX);
 
         helpers::safelyRetrieve(nh, "/network/delay/min_delay", min_delay);
         helpers::safelyRetrieve(nh, "/network/delay/max_delay", max_delay);
@@ -211,4 +213,8 @@ void updateDelay(){
     
     // Check limits of the delay
     delay_ji = std::max(min_delay, std::min(delay_ji, max_delay));
+    
+    std_msgs::Float64 msg;
+    msg.data = delay_ij;
+    debugPub.publish(msg);
 }

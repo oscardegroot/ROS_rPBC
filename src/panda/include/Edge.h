@@ -60,7 +60,8 @@ protected:
 	// The last received timestamp
 	int timestamp = 0;
 	bool data_received = false;
-
+    bool first_data_received = false;
+    
 	// The Ros node handle
 	ros::NodeHandle nh;
 
