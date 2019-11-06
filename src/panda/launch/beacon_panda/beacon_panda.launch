@@ -14,6 +14,12 @@
   <rosparam command="load" file="$(arg local_path)/params.yaml" />
   <rosparam command="load" file="$(arg global_path)/goals.yaml" />
 
+  <!-- Create a beacon -->
+  <node name="beacon_1" pkg="panda" type="Beacon_node" respawn="false" output="screen">
+    <rosparam command="load" file="$(arg local_path)/beacon.yaml"/>
+    <rosparam command="load" file="$(arg global_path)/environment.yaml"/>
+  </node>
+
   <!-- Launch the panda -->
   <include file="$(arg global_path)/panda.launch">
     <arg name="robot_ip" value="$(arg robot_ip)"/>
@@ -29,17 +35,13 @@
     <arg name="network" value="$(arg network)"/>
   </include>
 
-  <!-- Create a beacon -->
-  <node name="beacon_1" pkg="panda" type="Beacon_node" respawn="false" output="screen">
-    <rosparam command="load" file="$(arg local_path)/beacon.yaml"/>
-  </node>
 
     <!-- Plot cooperative coordinates -->
   <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] reference/data[0] reference/data[1] reference/data[2]" />
     <!-- Plot cooperative coordinates -->
 <!--   <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="/s_01p/s/data[0] /s_01p/s/data[1] /s_01p/s/data[2] /s_01m/s/data[0] /s_01m/s/data[1] /s_01m/s/data[2]" /> -->
 
-  <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot_w_marker.rviz"/>
+  <!-- <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/robot_w_marker.rviz"/> -->
   <node name="interface" pkg="panda" type="TextInterface_Node" respawn="false" output="screen"/>
 
 </launch>

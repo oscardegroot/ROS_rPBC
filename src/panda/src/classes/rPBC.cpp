@@ -56,7 +56,7 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
 	
     // In the initial run, set initial matrices
     if(initial_run){
-        timer = helpers::SimpleTimer(3.0);
+        timer = helpers::SimpleTimer(2.0);
 
         has_local_freedom = system.s > 0;
         

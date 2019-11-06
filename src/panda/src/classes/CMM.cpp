@@ -61,7 +61,7 @@ CMM::~CMM(){};
 // Only initialise when all systems have registered
 void CMM::performHandshake(){
     
-	ros::Rate loop_rate(100);
+	ros::Rate loop_rate(100.0);
     while(ros::ok() && status != RUNNING){
         
         switch(status){
@@ -76,10 +76,11 @@ void CMM::performHandshake(){
                 retrieveConnections();
                 break;
         }
-
+        //logTmp("status", status);
         ros::spinOnce();
-        loop_rate.sleep();
+        //loop_rate.sleep();
     }
+    
 }
 
 /** @error Memory corruption here?*/

@@ -102,17 +102,28 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	
 	logMsg("Edge", "Wave received. Timestamp = " + std::to_string(msg->timestamp) + ".", 4);
 
-    /** @todo timestamp check, rejection for t > t_last */
+    /** @timestamp check, rejection for t > t_last */
+    if(msg->timestamp < received_timestamp){
+        /*logTmp("message rejected! " + 
+        std::to_string(msg->timestamp) + " < " + std::to_string(received_timestamp));*/
+        return;
+    }else{
+        received_timestamp = msg->timestamp;
+    }
 
-	std::vector<double> s = msg->s.data;
+   
+   /* Wave filter! */
+    helpers::lowpassFilter(s_received, helpers::messageToEigen(msg->s, l), 0.94);
+    
+    //std::vector<double> s = msg->s.data;
 
-	s_received = Eigen::VectorXd::Zero(l);
-	for(int i = 0; i < l; i++){
-		s_received(i) = s[i];
-        // EXPANDER! -> now seperate
-        //helpers::sgn(s[i])*std::sqrt(std::pow(s[i], 2)/double(rate_mp));// / double(rate_mp); // divide by sampling discrepancy! (this is the passive interpolator)
-        // NOT WORKING YET!! RECONSTRUCTION IS APPLIED ON THE WRONG SIDE...
-	}
+    //s_received = Eigen::VectorXd::Zero(l);
+//	for(int i = 0; i < l; i++){
+//		s_received(i) = s[i];
+//        // EXPANDER! -> now seperate
+//        //helpers::sgn(s[i])*std::sqrt(std::pow(s[i], 2)/double(rate_mp));// / double(rate_mp); // divide by sampling discrepancy! (this is the passive interpolator)
+//        // NOT WORKING YET!! RECONSTRUCTION IS APPLIED ON THE WRONG SIDE...
+//	}
 
 	// Data was received
 	data_received = true;

@@ -1,7 +1,7 @@
 
 # Network parameters
 network:
-  enabled: false # Enables artificial effects
+  enabled: true # Enables artificial effects
   delay: 
     constant: false # Enables delay
     value_plus: 0.15  # Initial delay

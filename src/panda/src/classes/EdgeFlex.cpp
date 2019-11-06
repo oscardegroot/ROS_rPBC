@@ -147,17 +147,15 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
 //        if(std::abs(gradient.LHS_multiplier) < 1e-4){
 
             double obstacle = std::abs(((NavigationFunction*)(&(*potential)))->obstacleValue(r_i, r_js));
-            if(obstacle < 0.2){
+            if(obstacle < 0.02){
+                //r_js = r_i*1.01;
+                //return;
                 logTmp("Warning, low potential function value (value=" + std::to_string(obstacle) + ")");
                 
-                if(obstacle < 0.05){
+                if(obstacle < 0.01){
                     throw OperationalException("Agent is inside object");
                 }
                 
-                if(obstacle < 0.1){
-                    r_js = r_i*1.01;
-                    return;
-                }
             }
             // If we are already some iterations in, throw an error
 //            if(k > 40){

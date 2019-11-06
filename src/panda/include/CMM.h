@@ -32,7 +32,7 @@ Manages cooperative communication by managing a number of connections
 /* Possibly divide this up further in a system and a controller */
 
 enum Status{
-    STARTED,
+    STARTED = 0,
     WAITING_FOR_OTHER,
     INIT_CMM,
     RUNNING

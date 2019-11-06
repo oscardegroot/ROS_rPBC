@@ -59,9 +59,10 @@ void AgentStation::fakeCallback(const std_msgs::Float64MultiArray::ConstPtr& msg
 
 void AgentStation::initiateNetwork(){
 
-
+    logMsg("Agent Station", "Initiating Agent Network...", 2);
     for(int i = 0; i < agents.size(); i++){
-        
+        logMsg("Agent Station", "Initiating Agent " + std::to_string(agents[i]->getID()), 2);
+
         ros::ServiceClient init_client = nh.serviceClient<std_srvs::Empty>("/agent" + std::to_string(agents[i]->getID()) +
                 "/initEdges");
 
@@ -73,7 +74,7 @@ void AgentStation::initiateNetwork(){
             };
         
         // Call the service until it works or until a second has passed
-        helpers::repeatedAttempts(server_call, 1.0, "Failed to start the network of agent " + agents[i]->getType() + "!");
+        helpers::repeatedAttempts(server_call, 2.0, "Failed to start the network of agent " + agents[i]->getType() + "!");
         
         logMsg("Remote", "Network of agent " + agents[i]->getType() + " started.", 2);
     }

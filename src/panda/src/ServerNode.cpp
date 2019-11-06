@@ -24,7 +24,7 @@ bool responsesReceived(const std::vector<std::unique_ptr<Station>>& stations);
 int main(int argc, char **argv){
 	
 	// Initialise ROS
-	ros::init(argc, argv, "Remote");
+	ros::init(argc, argv, "Server");
     ros::NodeHandle nh;
     
 //    /* The elisa station */
@@ -54,7 +54,7 @@ int main(int argc, char **argv){
                 if(finishedRegistering(stations)){
                     
                     overall_state = STARTING;
-                    logMsg("Remote", "Overall state advanced to: STARTING", 2);
+                    logMsg("Server", "Overall state advanced to: STARTING", 2);
                 }     
         
                 break; 
@@ -69,7 +69,7 @@ int main(int argc, char **argv){
                 
                 // Proceed with the state
                 overall_state = WAIT_FOR_RESPONSE;
-                logMsg("Remote", "Overall state advanced to: WAIT_FOR_RESPONSE", 2);
+                logMsg("Server", "Overall state advanced to: WAIT_FOR_RESPONSE", 2);
                 
                 break;
                 
@@ -81,7 +81,7 @@ int main(int argc, char **argv){
                     
                     // Proceed
                     overall_state = ENABLE_STATION;
-                    logMsg("Remote", "Overall state advanced to: ENABLE_STATION", 2);
+                    logMsg("Server", "Overall state advanced to: ENABLE_STATION", 2);
                 }
                 
                 break;  
@@ -96,7 +96,7 @@ int main(int argc, char **argv){
 
                 // Proceed to running
                 overall_state = RUNNING_STATION;
-                logMsg("Remote", "Overall state advanced to: RUNNING_STATION", 2);
+                logMsg("Server", "Overall state advanced to: RUNNING_STATION", 2);
                 
                 break;
                 

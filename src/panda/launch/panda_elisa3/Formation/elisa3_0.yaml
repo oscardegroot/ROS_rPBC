@@ -3,7 +3,7 @@ address: 3533 #3658 = 10, 3533 = 6
 marker_id: 6
 color: 
   type: orange
-  intensity: 0.0
+  intensity: 0.2
 
 # NF:
 #   beta:

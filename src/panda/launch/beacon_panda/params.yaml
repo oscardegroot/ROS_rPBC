@@ -1,5 +1,6 @@
 is_simulation: false
 register_time: 2.0
+use_sim_time: false
 
 sampling_rate: 100
 N_agents: 2
@@ -11,7 +12,6 @@ network_gain:
 lambda: 1.0
 gamma: 1.0
 kappa: 1.0
-eta: 0.01
 
 output: r
 

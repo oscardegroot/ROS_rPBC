@@ -98,8 +98,9 @@ int main(int argc, char **argv){
     logMsg("Beacon", ref_msg, 2);
     
     cmm->performHandshake();
+    
 	ros::Rate loop_rate(cmm->agent->getSamplingRate());
-
+    logTmp(cmm->agent->getSamplingRate());
 	while(ros::ok()){
 
 	    if(is_dynamic){
@@ -114,7 +115,6 @@ int main(int argc, char **argv){
 		Eigen::VectorXd tau_network = cmm->sample(ref*lambda);
         
 		//plotMarker(marker_pub, ref); // Gives issues with low dimensional goals < 3
-
 		publishReference(pub, ref);
 
 		ros::spinOnce();
