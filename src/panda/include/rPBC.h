@@ -17,7 +17,6 @@ A standard IDA-PBC controller, implements the controller interface defined in Co
 #include "Helpers.h"
 #include "IDAPBC.h"
 
-
 class rPBC : public Controller{
 
 public:
@@ -40,6 +39,7 @@ public:
 private:
 
 	double lambda, gamma, kappa, eta;
+    double eta_startup = 1.0;
     
     Benchmarker benchmarker;
     
@@ -51,6 +51,8 @@ private:
     Eigen::MatrixXd& nullPsi(System& system);
     Eigen::MatrixXd& dnullPsi(System& system);
     Eigen::MatrixXd& nullPinvPsi(System& system);
+    
+    helpers::SimpleTimer timer;
 
     
     bool pinv_psi_updated, null_psi_updated, dnull_psi_updated, null_pinv_psi_updated;

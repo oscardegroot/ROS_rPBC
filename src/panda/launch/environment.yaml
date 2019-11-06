@@ -3,20 +3,21 @@ NF:
   alpha: 35
   gamma:
     r_w: 30 #1.5
-    eps: 0.001 #0.00001 #0.005 #0.17
+    eps: 0.0007 #0.00001 #0.005 #0.17
   beta:
     function:
       R: 0.1
       delta: 0.15 # bigger means less steep -> less chance of divergence.
 
-    # robot base, make z ref higher!
+    # robot base, make z ref higher! -> Since coop of panda is also x,y it is now trying to evade the cylinder around its base... 
+    #The z coordinate does not matter!
     # obstacle_0:
     #   type: obstacle
-    #   radius: 0.10
+    #   radius: 0.15
     #   location:
     #     - 0.0
     #     - 0.0
-    #     - 0.3
+    #     - 0.0
 
     # y axis bound on the workspace
     obstacle_1:

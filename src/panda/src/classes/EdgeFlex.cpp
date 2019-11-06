@@ -42,13 +42,17 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
         /* If the first data was not yet received, ensure 0 output of the network*/
         /** @fix: If we dont publish when no data is received, we ofcourse land in a loop where noone receives any data...
          * Fix should be in the system or control class, possibly via an extra output of this sample function. */
-//        if(!first_data_received){
-//            logTmp("zero network input " + std::to_string(i_ID) + ", " + std::to_string(j_ID));
-//            //return Eigen::VectorXd::Zero(l);
-//        }
-        
+        if(!first_data_received){
+            //logTmp("zero network input " + std::to_string(i_ID) + ", " + std::to_string(j_ID));
+            tau = Eigen::VectorXd::Zero(l);
+            s_out = calculateWaves(tau, r_i);
+            publishWave(s_out);
+            
+            return tau;
+
+        }        
         /* Reconstruct */
-        if(!data_received){
+        else if(!data_received){
             
             /* This could be applyWvm();*/
             s_out = fullSTLoop(tau, r_js, r_i, s_wvm_buffer); // Gives tau, r_js, sij+
@@ -87,7 +91,7 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
 	// If HLS was not applied we still need to calculate tau, r_js and s_out
 	//if(!hls_applied){
         // Calculate all values
-		s_out = fullSTLoop(tau, r_js, r_i, s_sample);
+    s_out = fullSTLoop(tau, r_js, r_i, s_sample);
 	//}
 
 	// Save the correct values for the next sampling period
@@ -233,7 +237,9 @@ Eigen::VectorXd EdgeFlex::elementSign(const Eigen::VectorXd& s_in){
 	for(int i = 0; i < s_in.size(); i++){
 		if(s_in[i] > 0){
 			s_out[i] = 1;
-		}else{
+		}else if(s_in[i] == 0){
+            s_out[i] = 0;
+        }else{
 			s_out[i] = -1;
 		}
 	}

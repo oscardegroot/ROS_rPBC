@@ -188,7 +188,6 @@ Eigen::VectorXd CMM::sample(const Eigen::VectorXd& r){
         }else{
             tau += coop_selector->deselect(edges[i]->sample(coop_selector->select(r)));
         }
-        
     }
     
 	// Return the combined input

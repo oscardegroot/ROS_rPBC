@@ -49,7 +49,6 @@ rPBC::rPBC(Agent& agent)
 
     /* Misses almost all parameters... classic */
     benchmarker = Benchmarker("rPBC", "rPBC Control");
-
 	logMsg("rPBC", "Done!", 2);
 }
 
@@ -57,6 +56,8 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
 	
     // In the initial run, set initial matrices
     if(initial_run){
+        timer = helpers::SimpleTimer(3.0);
+
         has_local_freedom = system.s > 0;
         
         // = (pinv(psi^T)) = n x l
@@ -74,6 +75,16 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
     
     benchmarker.start();// ~ 20 us!
 
+    double cur_eta = eta;
+
+    // Quick fix: set eta to high value while t < T
+    if(!timer.finished()){
+//        logTmp("dq: ", system.state.dq);
+//        logTmp("tau_c: ", tau_c);
+        cur_eta = eta_startup;
+    }
+    
+
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
     
@@ -86,13 +97,14 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
 		tau += system.dVdq();
 	}
     
+    
     tau += system.C() - system.dM()*system.state.dq; // C includes the product with qdot
 
     
     Eigen::MatrixXd Kz = system.Psi().transpose()*((lambda + gamma) * Eigen::MatrixXd::Identity(system.n, system.n) -
                                                     system.M().inverse()*system.dM()) + system.dPsi().transpose();
     
-    Eigen::VectorXd tau_hat = (1.0/eta) * tau_c - Kz*system.state.dq;
+    Eigen::VectorXd tau_hat = (1.0/cur_eta) * tau_c - Kz*system.state.dq;
     tau += system.M()*pinvPsi(system)*tau_hat;
     
     if(has_local_freedom){
