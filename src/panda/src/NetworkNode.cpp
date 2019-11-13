@@ -38,7 +38,7 @@ ros::Subscriber wave_ij_in, wave_ji_in;
 ros::Publisher wave_ij_out, wave_ji_out;
 ros::Publisher p_wave_ij_in, p_wave_ij_out, p_wave_ji_in, p_wave_ji_out;
 
-ros::Publisher debugPub;
+ros::Publisher delay_pub_ij, delay_pub_ji;
 
 std::vector<DelayedMsg> msg_vec;
 double delay_ij, delay_ji, max_delay, min_delay, max_step_delay;
@@ -83,22 +83,22 @@ int main(int argc, char **argv){
     p_wave_ji_in = nh.advertise<std_msgs::Float64MultiArray>("p_s_" + std::to_string(i_ID) + std::to_string(j_ID) + "m_in", 10);
     p_wave_ji_out = nh.advertise<std_msgs::Float64MultiArray>("p_s_" + std::to_string(i_ID) + std::to_string(j_ID) + "m_out", 10);
 
-    debugPub = nh.advertise<std_msgs::Float64>("delays_" + std::to_string(i_ID) + std::to_string(j_ID), 10);
+    delay_pub_ij = nh.advertise<std_msgs::Float64>("delays_" + std::to_string(i_ID) + std::to_string(j_ID), 10);
+    delay_pub_ji = nh.advertise<std_msgs::Float64>("delays_" + std::to_string(j_ID) + std::to_string(i_ID), 10);
 
     helpers::safelyRetrieve(nh, "/network/delay/constant", delay_is_constant);
     
     if(!delay_is_constant){
         srand(std::time(NULL));
         
-        // Initialise randoml
-        delay_ij = min_delay;
-        delay_ji = min_delay;
-        //delay_ij = min_delay + (max_delay - min_delay)*((double)rand() / RAND_MAX);
-        //delay_ji = min_delay + (max_delay - min_delay)*((double)rand() / RAND_MAX);
-
         helpers::safelyRetrieve(nh, "/network/delay/min_delay", min_delay);
         helpers::safelyRetrieve(nh, "/network/delay/max_delay", max_delay);
         helpers::safelyRetrieve(nh, "/network/delay/change", max_step_delay);
+        
+        // Initialise randoml
+        delay_ij = min_delay + (max_delay - min_delay)*((double)rand() / RAND_MAX);
+        delay_ji = min_delay + (max_delay - min_delay)*((double)rand() / RAND_MAX);
+
     }else{
         helpers::safelyRetrieve(nh, "/network/delay/value_plus", delay_ij); // Initial when variable
         helpers::safelyRetrieve(nh, "/network/delay/value_minus", delay_ji); // Initial when variable
@@ -216,5 +216,8 @@ void updateDelay(){
     
     std_msgs::Float64 msg;
     msg.data = delay_ij;
-    debugPub.publish(msg);
+    delay_pub_ij.publish(msg);
+    
+    msg.data = delay_ji;
+    delay_pub_ji.publish(msg);
 }

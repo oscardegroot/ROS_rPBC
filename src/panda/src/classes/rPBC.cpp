@@ -23,9 +23,14 @@ rPBC::rPBC(Agent& agent)
 	helpers::safelyRetrieve(nh, "/lambda", lambda);
 	helpers::safelyRetrieve(nh, "/gamma", gamma);
     helpers::safelyRetrieve(nh, "/kappa", kappa);
+
     agent.retrieveParameter("eta", eta, 1.0);
 
     gamma *= eta;
+    eta_startup = 100.0;
+
+    helpers::safelyRetrieve(nh, "/network/delay/max_delay", max_delay);
+
 
 	agent.retrieveParameter("controller/gravity_compensation/enabled", gravity_enabled, false);
 	agent.retrieveParameter("controller/local_potential/enabled", local_enabled, false);
@@ -56,7 +61,7 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
 	
     // In the initial run, set initial matrices
     if(initial_run){
-        timer = helpers::SimpleTimer(2.0);
+        timer = helpers::SimpleTimer(3.0*max_delay);
 
         has_local_freedom = system.s > 0;
         
@@ -75,18 +80,18 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
     
     benchmarker.start();// ~ 20 us!
 
+	// Initialise the control input
+	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
+
     double cur_eta = eta;
 
     // Quick fix: set eta to high value while t < T
     if(!timer.finished()){
-//        logTmp("dq: ", system.state.dq);
-//        logTmp("tau_c: ", tau_c);
-        cur_eta = eta_startup;
-    }
-    
 
-	// Initialise the control input
-	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
+        cur_eta = eta_startup;
+        return tau;
+    }
+
     
     if(!system.isEnabled()){
         return tau;
@@ -204,15 +209,6 @@ Eigen::VectorXd rPBC::dVsdq(System& system){
 Eigen::MatrixXd rPBC::Kv(System& system)
 {
     /** @note Minv_dot * m cancels! */
-    //return kq*Eigen::MatrixXd::Identity(system.n, system.n) + system.dMinv()*system.M();// + system.dPsi()*helpers::pseudoInverse(system.Psi());
-    //logTmp("null_psi", null_psi);
-   // logTmp("dnull_psi", helpers::pseudoInverse(nullPsi(system)) * dnullPsi(system));
-//    logTmp("null_psi_pinv", helpers::pseudoInverse(null_psi));
-//    logTmp("Kv", helpers::pseudoInverse(null_psi) * dnullPsi(system) + kappa*Eigen::MatrixXd::Identity(system.n, system.n));
-    //Eigen::MatrixXd first_term = Eigen::MatrixXd::Zero(system.n, system.n);
-    //first_term = helpers::pseudoInverse(nullPsi(system)) * dnullPsi(system);
-    //logTmp("first_term", first_term);
-    // Don forget local freedom here as well
     Eigen::MatrixXd result = kappa*Eigen::MatrixXd::Identity(system.n, system.n);
     if(true && has_local_freedom){
         result += helpers::pseudoInverse(nullPsi(system)) * dnullPsi(system);

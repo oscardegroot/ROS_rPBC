@@ -12,6 +12,7 @@ Define a connection with another agent that uses the ST and WVM to passify commu
 #include "Potential.h"
 #include "Obstacle.h"
 #include "Goal.h"
+#include "std_msgs/Float64.h"
 
 class EdgeFlex : public Edge{
 public:
@@ -36,6 +37,8 @@ public:
 
 
     void addObstacle(const std::shared_ptr<Obstacle>& obstacle) override;
+    
+
 
 
 private:
@@ -43,6 +46,10 @@ private:
     std::unique_ptr<AdvancedPotential> potential;
 
     std::unique_ptr<helpers::Counter> retrieval_counter;
+    
+    // For debug purposes
+    void publishEnergy(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
+    ros::Publisher energy_pub;
 
 	// Save of the iterated tau and tau in the last loop
 	double agent_i;

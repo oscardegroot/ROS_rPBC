@@ -1,5 +1,5 @@
 ID: 0
-eta: 0.011
+eta: 0.02
 sampling_rate: 1000
 joint_names:
 - panda_joint1

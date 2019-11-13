@@ -123,9 +123,9 @@ void CMM::setupLeader(){
             temp_gain = leader_selector->select(temp_gain); // Deze select de verkeerde?
             Eigen::MatrixXd leader_gain = Eigen::MatrixXd(temp_gain.asDiagonal());
 
-            // Create an edge
             edges.push_back(std::make_unique<EdgeLeader>(*agent, -1, leader_gain,
                             leader_selector->dim(), leader_selector->select(temp_ref)));
+                          
             
             logMsg("CMM", "Leader edge created.", 2);
 
@@ -152,9 +152,18 @@ void CMM::setupEdges(){
                     // Retrieve the formation data
                     Eigen::VectorXd r_star = helpers::vectorToEigen(srv.response.r_star.data);
 
+                    // Create an edge
+                    std::string output;
+                    helpers::safelyRetrieve(nh, "/output", output);
+
 					// Create a communication edge (select actually connected coordinates)
-					edges.push_back(std::make_unique<EdgeFlex>(*agent, j, gain, coop_selector->dim(),
-                            coop_selector->select(r_star), rate_mp));
+                    if(output == "r"){
+                        edges.push_back(std::make_unique<EdgeFlex>(*agent, j, gain, coop_selector->dim(),
+                                coop_selector->select(r_star), rate_mp));
+                    }else{
+                        edges.push_back(std::make_unique<EdgeDirect>(*agent, j, gain, coop_selector->dim(),
+                                coop_selector->select(r_star), rate_mp));
+                    }
                     //edges.push_back(std::make_unique<EdgeFlex>(*agent, j, gain, l, r_star, rate_mp));
 
                     logMsg("CMM", "Edge created.", 2);

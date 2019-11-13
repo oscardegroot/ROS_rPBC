@@ -15,101 +15,40 @@ l_set: dimension of the channel
 EdgeDirect::EdgeDirect(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
 	: Edge(agent, j, gain_set, l_set, r_star_set, rate_mp_set){
 
-	// Set the scattering gain
-	setScatteringGain(gain);
+    potential = std::make_unique<NavigationFunction>(agent, l, r_star);
+    
+    // Counter that handles sampling rate converting (trigger initially)
+    retrieval_counter = std::make_unique<helpers::Counter>(rate_mp, false);
 }
 
 
 /* Reconstruct data if necessary */
-void EdgeDirect::applyReconstruction(Eigen::VectorXd& wave_reference, const Eigen::VectorXd& r_i){
+void EdgeDirect::applyReconstruction(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i){
 
-	/*We need to apply WVM*/
+    if(!retrieval_counter->trigger())
+        return;
+    
 	if(!data_received)
 	{
-		// Calculate the wave when we apply HLS
-		Eigen::VectorXd s_HLS = calculateWaves(s_wvm_buffer, r_i);
-
-		// If that's allowed, use it, otherwise reconstruct by amplitude
-		if(s_HLS.transpose()*s_HLS > s_wvm_buffer.transpose()*s_wvm_buffer)
-		{
-		 	logMsg("Edge", "WVM applied HLS", 5);
-			wave_reference = s_wvm_buffer;
-
-		}else{
-			logMsg("Edge", "WVM applied reconstruction", 5);
-			wave_reference = elementSign(s_wvm_buffer).cwiseProduct(s_HLS.cwiseAbs());
-		}
-		
-		
+		r_js = r_i;	// Ensures zero output	
 	}else{
-		logMsg("Edge", "Used received data", 5);
 		data_received = false;
-		s_wvm_buffer = s_received;
 	}
 	
 }
 
-// Apply the element wise sign operator
-Eigen::VectorXd EdgeDirect::elementSign(const Eigen::VectorXd& s_in){
-
-	Eigen::VectorXd s_out = Eigen::VectorXd::Zero(s_in.size());
-	for(int i = 0; i < s_in.size(); i++){
-		if(s_in[i] > 0){
-			s_out[i] = 1;
-		}else{
-			s_out[i] = -1;
-		}
-	}
-	return s_out;
-}
-
 // Retrieve tau from the scattering transforma)tion
-Eigen::VectorXd EdgeDirect::calculateControls(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i){
+Eigen::VectorXd EdgeDirect::calculateControls(const Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i){
 
-	return gain_tau.block(0, 0, l, l) * s_in + gain_tau.block(0, l, l, l)*r_i;
+	return -gain*(r_i-r_js);
 }
 
-// Retrieve the new wave from the scattering transformation
-Eigen::VectorXd EdgeDirect::calculateWaves(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i){
+// No waves, simply the output;
+Eigen::VectorXd EdgeDirect::calculateWaves(const Eigen::VectorXd& s_in,	const Eigen::VectorXd& r_i){
 
-	return gain_wave.block(0, 0, l, l) * s_in + gain_wave.block(0, l, l, l)*r_i;
+    return r_i;
 }
 
-
-// 
-void EdgeDirect::setScatteringGain(const Eigen::MatrixXd& gain){
-	// Define the gains on this edge and the impedance
-	Eigen::MatrixXd Kd(l, l);
-	Eigen::MatrixXd B(l, l);
-	Kd = gain;
- 	B = gain.cwiseSqrt();
-
-	// Take into account the different ST depending on which agent this is
-	int agent_i = 1;
-	if(i_ID < j_ID){
-		agent_i = -1;
-	}
-
-	// Apply the gain
-	Eigen::MatrixXd Binv = B.inverse();
-
-
-	// Define the ST matrix
-	Eigen::MatrixXd matrix_ST(2*l, 2*l);
-	matrix_ST << agent_i*std::sqrt(2)*Binv, -Binv*Binv,
-					-Eigen::MatrixXd::Identity(l, l), agent_i*std::sqrt(2)*Binv;
-
-	// Calculate the transfer function of the controls internally
-	Eigen::MatrixXd H = Eigen::MatrixXd::Identity(l, l) - Kd*matrix_ST.block(0,l,l,l);
-	H = H.inverse()*Kd;
-
-	gain_tau = Eigen::MatrixXd::Zero(l, 2*l);	
-	gain_wave = Eigen::MatrixXd::Zero(l, 2*l);
-
-	gain_tau << H*matrix_ST.block(0,0,l,l), -H;
-	gain_wave << matrix_ST.block(l,0,l,l)+matrix_ST.block(l,l,l,l)*H*matrix_ST.block(0,0,l, l), -matrix_ST.block(l, l, l, l)*H;
-
-	//LOG(gain_wave);
-	//std::cout << "[Edge]	Scattering Initialised\n";
-}
-
+//Eigen::VectorXd EdgeDirect::sample(const Eigen::VectorXd& r_i)
+//{
+//}

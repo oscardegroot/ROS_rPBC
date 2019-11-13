@@ -41,6 +41,8 @@ public:
      */
     virtual Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
     
+    virtual double value(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){ return 0.0;};
+    
 protected:
     int l;
     Eigen::VectorXd r_star;
@@ -82,6 +84,8 @@ public:
     //Eigen::VectorXd gradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     PotentialFactors obstacleGradient(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
     double obstacleValue(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js);
+    
+    double value(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     
 private:
     double alpha;

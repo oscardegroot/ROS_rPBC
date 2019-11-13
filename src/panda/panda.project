@@ -52,6 +52,7 @@
       <File Name="src/classes/AgentStation.cpp"/>
       <File Name="src/classes/Selector.cpp"/>
       <File Name="src/classes/EdgeLPF.cpp"/>
+      <File Name="src/classes/LinearCouplings.cpp"/>
     </VirtualDirectory>
     <File Name="src/TextInterface.cpp"/>
     <File Name="src/Helpers.cpp"/>
@@ -149,5 +150,6 @@
     <File Name="include/AgentStation.h"/>
     <File Name="include/Selector.h"/>
     <File Name="include/EdgeLPF.h"/>
+    <File Name="include/LinearCouplings.h"/>
   </VirtualDirectory>
 </CodeLite_Project>

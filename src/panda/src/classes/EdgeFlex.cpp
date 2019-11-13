@@ -27,7 +27,9 @@ EdgeFlex::EdgeFlex(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eig
 
 	// Initialise r_js at some non-zero point
 	r_js_last = Eigen::VectorXd::Zero(l);
-	r_js_last << 1, 1, 1;
+	r_js_last << 0.1, 0.1, 0.1;
+    
+    energy_pub = nh.advertise<std_msgs::Float64>("/control_energy_" + std::to_string(i_ID) + std::to_string(j_ID), 100);
 }
 
 /* Main public function that samples this edge */
@@ -35,24 +37,26 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
 
 	Eigen::VectorXd tau(l), r_js(l), s_out(l);
 	bool hls_applied = false;
-
+    bool retrieval_triggered = false;
     /* Modified for sampling mismatch */
     if(retrieval_counter->trigger()){
+        retrieval_triggered = true;
         
         /* If the first data was not yet received, ensure 0 output of the network*/
         /** @fix: If we dont publish when no data is received, we ofcourse land in a loop where noone receives any data...
          * Fix should be in the system or control class, possibly via an extra output of this sample function. */
-        if(!first_data_received){
-            //logTmp("zero network input " + std::to_string(i_ID) + ", " + std::to_string(j_ID));
-            tau = Eigen::VectorXd::Zero(l);
-            s_out = calculateWaves(tau, r_i);
-            publishWave(s_out);
-            
-            return tau;
-
-        }        
-        /* Reconstruct */
-        else if(!data_received){
+//        if(!first_data_received){
+//            //logTmp("zero network input " + std::to_string(i_ID) + ", " + std::to_string(j_ID));
+//            tau = Eigen::VectorXd::Zero(l);
+//            s_out = calculateWaves(tau, r_i);
+//            publishWave(s_out);
+//            
+//            return tau;
+//
+//        }        
+//        /* Reconstruct */
+//        else 
+            if(!data_received){
             
             /* This could be applyWvm();*/
             s_out = fullSTLoop(tau, r_js, r_i, s_wvm_buffer); // Gives tau, r_js, sij+
@@ -88,11 +92,11 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
         //logTmp("after", s_sample);
     }
 
-	// If HLS was not applied we still need to calculate tau, r_js and s_out
-	//if(!hls_applied){
-        // Calculate all values
     s_out = fullSTLoop(tau, r_js, r_i, s_sample);
-	//}
+    
+//    if(retrieval_triggered){
+//        publishEnergy(r_i, r_js);
+//    }
 
 	// Save the correct values for the next sampling period
 	r_js_last = r_js;
@@ -100,10 +104,18 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
 	// Lastly publish the waves and return the output
 	publishWave(s_out);
     
+    
 	return tau;
 }
 
 
+void EdgeFlex::publishEnergy(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){
+    
+    std_msgs::Float64 msg;
+    msg.data = potential->value(r_i, r_js);
+    energy_pub.publish(msg);
+    
+}
 
 
 // Calculates all variables in the ST loop with input s_in. Returns s_out

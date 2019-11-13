@@ -35,6 +35,9 @@ public:
 private:
 
     Benchmarker benchmark;
+    double eta, eta_startup, max_delay;
+    bool initial_run = false;
+    helpers::SimpleTimer timer;
     //Eigen::MatrixXd rightPseudoInverse(const Eigen::MatrixXd& A) const;
     //Eigen::MatrixXd pinv_psi;
 

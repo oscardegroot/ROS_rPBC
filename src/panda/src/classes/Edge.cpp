@@ -102,7 +102,8 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	
 	logMsg("Edge", "Wave received. Timestamp = " + std::to_string(msg->timestamp) + ".", 4);
 
-    /** @timestamp check, rejection for t > t_last */
+    /** @Disabled for IDAPBC!!!*/
+//    /** @timestamp check, rejection for t > t_last */
     if(msg->timestamp < received_timestamp){
         /*logTmp("message rejected! " + 
         std::to_string(msg->timestamp) + " < " + std::to_string(received_timestamp));*/
@@ -112,8 +113,8 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
     }
 
    
-   /* Wave filter! */
-    helpers::lowpassFilter(s_received, helpers::messageToEigen(msg->s, l), 0.94);
+    /* Wave filter! */
+    helpers::lowpassFilter(s_received, helpers::messageToEigen(msg->s, l), 0.99); // WAS 0.9!
     
     //std::vector<double> s = msg->s.data;
 

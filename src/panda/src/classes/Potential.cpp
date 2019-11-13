@@ -74,6 +74,17 @@ void AdvancedPotential::addObstacle(const std::shared_ptr<Obstacle>& obstacle) {
     obstacles.push_back(obstacle);
 }
 
+double NavigationFunction::value(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){
+    
+    // Compute values
+    double d = helpers::normOf(r_js - r_i - r_star);
+    double gamma = goal->value(d);
+    double beta = obstacleValue(r_i, r_js);
+    
+    // Compute potential value
+    return (gamma) / (std::pow(std::pow(gamma, alpha) + beta, 1.0/alpha));
+}
+
 // Get the multipliers of r_i and r_js for the current gradient based on the selected potential function
 PotentialFactors NavigationFunction::gradient_factors(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) {
 

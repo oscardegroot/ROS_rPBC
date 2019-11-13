@@ -60,14 +60,16 @@
     <rosparam command="load" file="$(arg global_path)/environment.yaml"/>
   </node>
   <!-- Plot cooperative coordinates -->
-  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] agents/1/z/data[0] agents/1/z/data[1] agents/2/z/data[0] agents/2/z/data[1]"/>
+  <!-- <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] agents/1/z/data[0] agents/1/z/data[1] agents/2/z/data[0] agents/2/z/data[1]"/> -->
+  <node name="delay_plotjes" pkg="rqt_plot" type="rqt_plot" args="/control_energy_01 /control_energy_10"/>
 
+  <!-- args="delays_01 delays_10 delays_12 delays_21 delays_02 delays_20" -->
   <node pkg="rosbag" type="record" name="rosbag_agents" output="screen"
        args="record -o $(find panda)/bags/agents /agents/0/z /agents/1/z /agents/2/z /agents/0/theta_dot /agents/0/z_dot /agents/1/z_dot /agents/2/z_dot"/>
 
   <!-- Network signals (waves) -->
   <node pkg="rosbag" type="record" name="rosbag_waves" output="screen"
-       args="record -o $(find panda)/bags/waves /p_s_01p_in /p_s_01p_out /p_s_01m_in /p_s_01m_out"/>
+       args="record -o $(find panda)/bags/waves /p_s_01p_in /p_s_01p_out /p_s_01m_in /p_s_01m_out /delays_01 /delays_10 /control_energy_10 /control_energy_01 /control_energy_02 /control_energy_20 /control_energy_21 /control_energy_12"/>
 
   <!-- <node name="interface" pkg="panda" type="TextInterface_Node" respawn="false" output="screen"/> -->
 

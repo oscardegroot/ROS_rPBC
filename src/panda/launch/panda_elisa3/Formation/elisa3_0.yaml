@@ -1,9 +1,9 @@
 ID: 2
 address: 3533 #3658 = 10, 3533 = 6
-marker_id: 6
+marker_id: 14
 color: 
   type: orange
-  intensity: 0.2
+  intensity: 0.0
 
 # NF:
 #   beta:

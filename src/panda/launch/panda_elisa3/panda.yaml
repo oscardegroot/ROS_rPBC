@@ -1,4 +1,5 @@
 ID: 0
+eta: 0.025
 sampling_rate: 1000
 joint_names:
 - panda_joint1
@@ -22,27 +23,8 @@ velocity_norm_bound: 0.3
 torque_bound: 50.0 #12.0
 alpha: 0.95
 initial_pause: 0.0
-NF:
-  alpha: 35
-  gamma:
-    r_w: 1.5
-    eps: 0.005 #0.17
-  beta:
-    function:
-      R: 0.1
-      delta: 0.05
-
-      obstacle_0:
-        type: obstacle
-        radius: 0.1
-        location:
-          - 0.0
-          - 0.0
-          - 0.45
 controller:
   publish_rate: 100
-  # kq: 1.0
-  # kz: 3.0
   gravity_compensation:
     enabled: false
   local_potential:
@@ -50,14 +32,10 @@ controller:
     gains: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     goals: [0.0, 0.2, 0.0, 0.15, 0.0, 0.0, 0.0]
   joint_limit_avoidance:
-    enabled: true 
-    gains: [0.5, 2.5, 0.5, 0.5, 0.5, 0.5, 0.5] #Scale by nullPsi norm?
+    enabled: true
+    gains: [0.2, 30.0, 1.0, 8.0, 3.0, 1.0, 1.0] #Scale by nullPsi norm?
     limits_min: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
     limits_max: [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
-    
-        # I should implement a torque bound... Close contact with obstacles creates high torques
-        # It is also likely that the iteration strategy in divergent at these points 
-
 
 # Specify here the obstacles, format:
 # z_bound_N with N = 1, 2, .... each bound increasing count

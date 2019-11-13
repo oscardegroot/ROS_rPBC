@@ -3,7 +3,7 @@ NF:
   alpha: 35
   gamma:
     r_w: 30 #1.5
-    eps: 0.0007 #0.00001 #0.005 #0.17
+    eps: 0.0004 #0.00001 #0.005 #0.17
   beta:
     function:
       R: 0.1
@@ -22,9 +22,9 @@ NF:
     # y axis bound on the workspace
     obstacle_0:
       type: lower_bound_x
-      value: -0.56
+      value: -0.66 #-0.56
 
     # y axis bound on the workspace
     obstacle_1:
       type: lower_bound_y
-      value: -0.54
+      value: -0.66 #-0.56

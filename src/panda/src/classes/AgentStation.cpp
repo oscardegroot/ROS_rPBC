@@ -26,6 +26,8 @@ AgentStation::AgentStation(){
     for(int i = 0; i < N; i++){
         ros::Subscriber topic_create = nh.subscribe("/agents/" + std::to_string(i) + "/z", 1, &AgentStation::fakeCallback, this);
     }
+    ros::Subscriber topic_2 = nh.subscribe("/control_energy_01", 1, &AgentStation::fakeCallback, this);
+    ros::Subscriber topic_3  = nh.subscribe("/control_energy_10", 1, &AgentStation::fakeCallback, this);
 
     pauseGazebo();
     

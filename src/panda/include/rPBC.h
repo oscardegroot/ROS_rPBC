@@ -39,7 +39,7 @@ public:
 private:
 
 	double lambda, gamma, kappa, eta;
-    double eta_startup = 1.0;
+    double eta_startup = 100.0;
     
     Benchmarker benchmarker;
     
@@ -53,6 +53,8 @@ private:
     Eigen::MatrixXd& nullPinvPsi(System& system);
     
     helpers::SimpleTimer timer;
+    
+    double max_delay;
 
     
     bool pinv_psi_updated, null_psi_updated, dnull_psi_updated, null_pinv_psi_updated;

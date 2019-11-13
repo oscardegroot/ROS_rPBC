@@ -20,10 +20,21 @@ int main(int argc, char **argv){
     // Initialise ROS
     ros::init(argc, argv, "elisa_3");
     
+    ros::NodeHandle nh;
+    std::string output;
+    helpers::safelyRetrieve(nh, "/output", output);
+
+    
     // Create a system and a controller
     std::unique_ptr<System> system = std::make_unique<Elisa3>();
-    std::unique_ptr<Controller> controller = std::make_unique<rPBC>(*(system->cmm->agent));
-
+    std::unique_ptr<Controller> controller;
+    
+    if(output == "z"){
+         controller = std::make_unique<IDAPBC>(*(system->cmm->agent));
+    }else{
+         controller = std::make_unique<rPBC>(*(system->cmm->agent));
+    }
+    
     // Define loop rate
     ros::Rate loop_rate(system->cmm->agent->getSamplingRate());
 
