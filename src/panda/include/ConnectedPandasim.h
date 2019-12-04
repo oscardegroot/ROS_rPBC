@@ -1,6 +1,10 @@
 /** @class ConnectedPandasim
  * System class and franka controller extended from the panda controller
- * @intention Run a controller in simulation using the matrices from the robot itself*/
+ * @brief Run a controller in simulation using the matrices from the robot itself
+ * 
+ * @note The implementation of the Jacobian with coordinates in franka model is wrong. I fixed it by calling the right function.
+ * 
+ * */
 
 #pragma once
 #include "Panda.h"
@@ -20,19 +24,14 @@ namespace panda{
         /** @brief We retrieve the matrices from the robot directly but with simulation coordinates */
         void retrieveMatrices() override;
         void retrieveState() override;
-        double get_z() override;
-        Eigen::VectorXd Psi_z() override;
-        Eigen::VectorXd& dTdq() override; // partial from kinetic to coordinates
         
         /** @brief We want to receive simulation states */
         void readStateCallback(const sensor_msgs::JointState::ConstPtr& msg);
 
-    Eigen::VectorXd& dVdq();
+        Eigen::VectorXd& dVdq();
 
     private:
     
-        // Test
-        Eigen::VectorXd dtdq;
         State state_previous;
         
         // Communication with the simulation

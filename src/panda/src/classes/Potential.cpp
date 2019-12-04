@@ -92,10 +92,7 @@ PotentialFactors NavigationFunction::gradient_factors(const Eigen::VectorXd& r_i
     PotentialFactors beta_gradient = obstacleGradient(r_i, r_js);
     double beta = obstacleValue(r_i, r_js);
     
-//    if(beta < 0.99){
-//        logTmp("obstacle value: ", beta);
-//    }
-    // Find goal gradient and value (IFFY)
+    // Find goal gradient and value
     double d = helpers::normOf(r_js - r_i - r_star);
     double gamma_gradient = goal->gradient(d);
     double gamma = goal->value(d);

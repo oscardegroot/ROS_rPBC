@@ -63,10 +63,11 @@ Eigen::VectorXd EdgeDelayFree::calculateBeaconWaves(const Eigen::VectorXd& s_in,
 
 // 
 void EdgeDelayFree::setScatteringGain(const Eigen::MatrixXd& gain){
-	// Define the gains on this edge and the impedance
+	
+    // Define the gains on this edge and the impedance
 	Eigen::MatrixXd Kd(l, l);
 	Eigen::MatrixXd B(l, l);
-	Kd = gain;//gain*Eigen::MatrixXd::Identity(l, l);
+	Kd = gain;
  	B = gain.cwiseSqrt();
 
 	// Take into account the different ST depending on which agent this is

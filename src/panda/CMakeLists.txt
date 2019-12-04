@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(panda)
 
 add_compile_options(-std=c++14)
-#set(CMAKE_BUILD_TYPE Release) -> apply later!
+set(CMAKE_BUILD_TYPE Release)# -> apply later!
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -27,7 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Franka 0.4.0 REQUIRED)
 find_package(Eigen3 REQUIRED)
-#find_package(OpenCV REQUIRED)
+
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
@@ -121,15 +121,9 @@ add_library(${PROJECT_NAME}
 	src/Helpers.cpp
 )
 
-
-# copy pasta
-#link_directories(src/pc-side-elisa3-library/linux)
+# Elisa Node
 add_executable(Elisa3_Node src/Elisa3_Node.cpp)
 target_link_libraries(Elisa3_Node ${catkin_LIBRARIES} ${PROJECT_NAME} elisa3 pthread usb-1.0)
-
-# add_executable(Elisa3_Station src/Elisa3_Station.cpp)
-# target_link_libraries(Elisa3_Station ${catkin_LIBRARIES} ${PROJECT_NAME} elisa3 pthread usb-1.0)
-
 
 # The agent Node
 add_executable(Agent_node src/Agent_Node.cpp)
@@ -168,7 +162,6 @@ target_link_libraries(panda PUBLIC
 target_include_directories(panda PUBLIC
   include
 )
-#add_dependencies(panda ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # The text interface
 add_executable(TextInterface_Node src/TextInterface.cpp)

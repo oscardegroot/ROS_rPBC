@@ -18,9 +18,7 @@ EdgeFlexDelayFree::EdgeFlexDelayFree(Agent& agent, int j, Eigen::MatrixXd gain_s
 	: Edge(agent, j, gain_set, l_set, r_star_set, rate_mp_set)
 {
 
-	//std::vector<double> goal_v;
 	helpers::safelyRetrieveEigen(nh, "/beacon/goal", goal, 3);
-	//goal = helpers::vectorToEigen(goal_v);
 }
 
 
@@ -37,56 +35,10 @@ void EdgeFlexDelayFree::applyReconstruction(Eigen::VectorXd & wave_reference, co
 	wave_reference = goal;
 }
 
-// // Sample the edge, retrieving a data point for the cooperative control and returning a wave in the process
-// Eigen::VectorXd FlexibleEdge::sample(Eigen::VectorXd r_i) {
-
-// 	// Reconstruct the wave if nothing was received
-// 	//applyWVM(r_i);
-// 	Eigen::VectorXd tau_jsi = Eigen::VectorXd::Zero(l);
-// 	Eigen::VectorXd r_js(l);
-
-// 	//Look at this!
-// 	for(int i = 0; i < 20; i++){
-// 		r_js = getRjs(s_received, tau_jsi);
-// 		tau_jsi = applyControls(r_i, r_js);
-// 	}
-
-// 	logTmp(tau_jsi);
-// 	//logTmp(r_js);
-	
-// 	Eigen::VectorXd s_out = getWave(r_js, tau_jsi);
-
-// 	// Publish the returning wave
-// 	publishWave(s_out);
-
-// 	last_tau = tau_jsi;
-// 	// Return the input for this edge
-// 	return tau_jsi;
-// }
-
 void EdgeFlexDelayFree::publishWave(const Eigen::VectorXd& s_out) {
 		
-	// Save the outgoing message to calculate the waves in the next 
-	// time step
-	//s_wvm_buffer = s_out;	
 	return;
 }
-
-// /* Reconstruct data if necessary */
-// void applyReconstruction(Eigen::VectorXd & wave_reference,
-// 									 Eigen::VectorXd r_i){
-
-// 	/*We need to apply WVM*/
-// 	if(!data_received)
-// 	{
-// 		s_received = Eigen::VectorXd::Zero(l);
-// 	}else{
-// 		logMsg("FlexibleEdge", "Used received data", 5);
-// 		data_received = false;
-// 		s_wvm_buffer = s_received;
-// 	}
-	
-// }
 
 // Retrieve tau from the scattering transforma)tion
 Eigen::VectorXd EdgeFlexDelayFree::calculateWaves(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i){
@@ -97,10 +49,7 @@ Eigen::VectorXd EdgeFlexDelayFree::calculateWaves(const Eigen::VectorXd& s_in, c
 
 Eigen::VectorXd EdgeFlexDelayFree::calculateControls(const Eigen::VectorXd& s_in, const Eigen::VectorXd& r_i){
 
-	// For now simple and linear
-	//
 	return gamma_wang(r_i, s_in)*gain*(s_in - r_i);
-
 }
 
 double EdgeFlexDelayFree::gamma_wang(Eigen::VectorXd r_i, Eigen::VectorXd r_js){

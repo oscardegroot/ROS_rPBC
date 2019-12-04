@@ -23,7 +23,7 @@ Edge::Edge(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::Vect
 	gain = gain_set;
 	r_star = r_star_set;
     
-        // Multiply the formation distance by lambda if rPBC is used
+    // Multiply the formation distance by lambda if rPBC is used
     std::string output;
     helpers::safelyRetrieve(nh, "/output", output);
     
@@ -103,7 +103,7 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
 	logMsg("Edge", "Wave received. Timestamp = " + std::to_string(msg->timestamp) + ".", 4);
 
     /** @Disabled for IDAPBC!!!*/
-//    /** @timestamp check, rejection for t > t_last */
+    /** @timestamp check, rejection for t > t_last */
     if(msg->timestamp < received_timestamp){
         /*logTmp("message rejected! " + 
         std::to_string(msg->timestamp) + " < " + std::to_string(received_timestamp));*/
@@ -111,21 +111,10 @@ void Edge::waveCallback(const panda::Waves::ConstPtr& msg){
     }else{
         received_timestamp = msg->timestamp;
     }
-
    
     /* Wave filter! */
     helpers::lowpassFilter(s_received, helpers::messageToEigen(msg->s, l), 0.99); // WAS 0.9!
     
-    //std::vector<double> s = msg->s.data;
-
-    //s_received = Eigen::VectorXd::Zero(l);
-//	for(int i = 0; i < l; i++){
-//		s_received(i) = s[i];
-//        // EXPANDER! -> now seperate
-//        //helpers::sgn(s[i])*std::sqrt(std::pow(s[i], 2)/double(rate_mp));// / double(rate_mp); // divide by sampling discrepancy! (this is the passive interpolator)
-//        // NOT WORKING YET!! RECONSTRUCTION IS APPLIED ON THE WRONG SIDE...
-//	}
-
 	// Data was received
 	data_received = true;
     first_data_received = true;
@@ -143,7 +132,7 @@ void Edge::publishWave(const Eigen::VectorXd& s_out){
     
     /* If the publish counter is triggered, we send our compressed data sample */
     if(publish_counter->trigger()){
-        //logTmp("before", s_out);
+
         // The message to send
         panda::Waves msg;
 
@@ -153,10 +142,10 @@ void Edge::publishWave(const Eigen::VectorXd& s_out){
         // Put the wave in the messagge
         msg_vec.data.resize(l);
         for(int i = 0; i < l; i++){
+            
             // This is where the compression equation gets applied
             msg_vec.data[i] = s_out(i, 0);
             //msg_vec.data[i] = helpers::sgn(s_out_compressed(i)) * std::sqrt(s_out_squared(i));  
-            //logTmp("s_after(" + std::to_string(i) + ")", msg_vec.data[i]);
         }
         
         // Set the message

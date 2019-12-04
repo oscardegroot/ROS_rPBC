@@ -25,6 +25,8 @@
 Elisa3::Elisa3()
         :System(2, 2, 2, "elisa_3")
 {
+    PROFILE_SCOPE("Elisa3 init");
+
     logMsg("Elisa3", "Initialising...", 2);
 
     // Retrieve parameters
@@ -69,7 +71,7 @@ Elisa3::Elisa3()
 
     color_client = nh.serviceClient<panda::colorElisa3>("/colorElisa3");
     cmm->agent->retrieveParameter("color/type", color_name);   
-    //setColor(color_name);
+
     /** @todo Fix! Elisastation hasn started communication when this is executed...*/
     
     move_pub = nh.advertise<panda::Move>("elisa3_" + std::to_string(address) + "_move", 20);
@@ -88,6 +90,8 @@ Elisa3::~Elisa3() {
 /// Convert the control input to the system inputs and actuate
 bool Elisa3::sendInput(const Eigen::VectorXd & tau){
     
+    PROFILE_FUNCTION();
+
     // System needs to be enabled, otherwise the system gets stuck waiting on server calls to each other...
     // Solution is probably asynchronic spinners.
     if(is_enabled && !color_set){
@@ -125,15 +129,11 @@ bool Elisa3::sendInput(const Eigen::VectorXd & tau){
     move_msg.wheel_right = wheel_right;
     move_msg.wheel_left = wheel_left;
     move_pub.publish(move_msg);
+    
     return true;
-    //int tau_color = std::min(100, int(helpers::normOf(tau) / 0.003));
-    //setColor(tau_color*(address%3 == 0), tau_color*(address%3 == 1), tau_color*(address%3 == 2));
 }
 
-// This readout message can be a standard 3D message probably.
-// Message should be send directly from the camera node. 
-// Possibly addition of odometry in between measurements? -> can one update the current odometry state externally when camera data arrives?
-/// Read Sensors from the Elisa3 (determines q, h and dh)
+
 void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
 
     /** @x towards window
@@ -145,33 +145,7 @@ void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
 //    a(1,0) = getAccX(address);// / 64.0 * 9.81;
 //    a *= (9.81/64.0);
 
-    /// Retrieve the state from odometry (ACTUAL STATE)
-    /*Eigen::VectorXd q(3); // X and Y are swapped compared to my convention
-    double x = msg->x;
-    double y = msg->y;
-    q(0, 0) = q0(0) + std::cos(q0(2, 0))*x + std::sin(q0(2, 0))*y;
-    q(1, 0) = q0(1) - std::sin(q0(2, 0))*x + std::cos(q0(2, 0))*y;
-    q(2, 0) = q0(2) + msg->theta;
-    
-    if(q(2) > 2*M_PI){
-        q(2) -= 2*M_PI;
-    }else if(q(2) < 0){
-        q(2) += 2*M_PI;
-    }
-
-    // Save values
-    actual_q = q;
-    
-    if(test_pub.trylock()) {
-        test_pub.msg_.data.resize(q.size());
-
-        for (int i = 0; i < q.size(); i++) {
-            test_pub.msg_.data[i] = actual_q(i);
-        }
-
-        test_pub.unlockAndPublish();
-    }
-*/
+    PROFILE_FUNCTION();
 
     Eigen::VectorXd q(3);
     q(0) = msg->x; // Inverted in the convention
@@ -199,14 +173,6 @@ void Elisa3::readSensors(const panda::Readout::ConstPtr & msg){
 
 /// Check if program can proceed
 void Elisa3::checkSafety(){
-
-    /// Check if robot is within the workspace
-//    for(int i = 0; i < n; i++){ //todo: 0.8 from parameter file
-//        if(std::abs(actual_q(i)) > 0.8){
-//            throw BoundException("Elisa3 out of bounds (state=" + std::to_string(i) +
-//            ", bound=" + std::to_string(0.8) + ")!");
-//        }
-//    }
 
     return;
 }
@@ -245,8 +211,10 @@ Eigen::MatrixXd& Elisa3::dMinv()
     return dminv;
 }
 
-/// Apply feedback linearisation
+// Apply feedback linearisation
 Eigen::VectorXd Elisa3::feedbackLinearisation(const Eigen::VectorXd& tau){
+    PROFILE_FUNCTION();
+
     // Define the transformation (todo Optimise)
     Eigen::MatrixXd A(n, n);
     Eigen::VectorXd dA(n);
@@ -262,6 +230,8 @@ Eigen::VectorXd Elisa3::feedbackLinearisation(const Eigen::VectorXd& tau){
 
 /// Convert the vector [u, w] into [v_r, v_l]
 Eigen::VectorXd Elisa3::velocityToWheelSpeed(const Eigen::VectorXd& vel){
+    PROFILE_FUNCTION();
+
     // Gives [Vr, Vl]'
     return wheel_matrix*vel;
 }
@@ -292,6 +262,7 @@ void Elisa3::saturateSpeed(signed int & v_r, signed int & v_l) {
 
 /// Initialise matrices
 void Elisa3::initMatrices(){
+    
     // The wheel transformation matrix
     wheel_matrix = Eigen::MatrixXd::Zero(n, n);
     wheel_matrix << 0.5, 0.5, 1.0/l, -1.0/l;
@@ -326,14 +297,12 @@ void Elisa3::setColor(int color_type){
     srv_color.request.red = 0; srv_color.request.green = 0; srv_color.request.blue = 0;
     srv_color.request.intensity = intensity;
 
-    //auto color_call = [&]{
-     color_client.call(srv_color);
-    //};
+    color_client.call(srv_color);
     
-    //helpers::repeatedAttempts(color_call, 2.0, "Color Setting Failed!");
 }
 
 void Elisa3::setColor(int r, int g, int b){
+    
     panda::colorElisa3 srv_color;
     srv_color.request.address = address;
     srv_color.request.color_type = 0;
@@ -346,37 +315,3 @@ void Elisa3::setColor(int r, int g, int b){
 bool Elisa3::dataReady(){
     return data_received;
 }
-
-
-
-    //for(int i = 0; i < 2; i++) {
-
-        // Saturate the rate if necessary
-//        signed int del_speed = speed(i) - last_speed_setpoint(i);
-//        if(abs(del_speed) > max_speed_rate){
-//
-//            logMsg("Elisa3", "Speed rate saturated! (value=" +
-//            std::to_string(del_speed)+ ")", 1);
-//
-//            // Apparently c++ has no sign function
-//            signed int signed_del_speed = (del_speed > 0) - (del_speed < 0);
-//            speed(i) = last_speed_setpoint(i) + signed_del_speed*max_speed_rate;
-//        }
-
-
-    //}
-
-    //return speed;
-
-
-/// Calculate the velocities (ACTUAL DSTATE)
-// Difference based
-//    Eigen::VectorXd dq(2);
-//    double dx = q(0)-actual_q(0); // dx
-//    double dy = q(1)-actual_q(1); // dy
-//    dq(0) = std::sqrt(dx*dx + dy*dy) / Ts; // This is always positive
-//    dq(1) = (q(2)-actual_q(2)) / Ts;
-
-
-// Filter
-//lowpassFilter(actual_dq, dq, alpha);

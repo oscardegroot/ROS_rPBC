@@ -7,7 +7,7 @@ Manages cooperative communication by managing a number of connections
 #include "CMM.h"
 
 
-CMM::CMM(std::string agent_type){//int set_id, int set_sampling_rate){
+CMM::CMM(std::string agent_type){
 
 	logMsg("CMM", "Initiating..", 2);
     
@@ -65,6 +65,7 @@ void CMM::performHandshake(){
     while(ros::ok() && status != RUNNING){
         
         switch(status){
+            
             // If registration is not complete, wait for the message from the server
             case(WAITING_FOR_OTHER):
                 ros::spinOnce();
@@ -76,14 +77,13 @@ void CMM::performHandshake(){
                 retrieveConnections();
                 break;
         }
-        //logTmp("status", status);
+        
         ros::spinOnce();
         //loop_rate.sleep();
     }
     
 }
 
-/** @error Memory corruption here?*/
 bool CMM::retrieveConnections(){
     
     // Retrieve leader info from the server and create edges if necessary
@@ -120,9 +120,11 @@ void CMM::setupLeader(){
             Eigen::VectorXd temp_gain = helpers::messageToEigen(srv.response.gain, l);
             Eigen::VectorXd temp_ref = helpers::messageToEigen(srv.response.ref, l);
 
-            temp_gain = leader_selector->select(temp_gain); // Deze select de verkeerde?
+            // Select the gains
+            temp_gain = leader_selector->select(temp_gain);
             Eigen::MatrixXd leader_gain = Eigen::MatrixXd(temp_gain.asDiagonal());
 
+            // Create a leader edge
             edges.push_back(std::make_unique<EdgeLeader>(*agent, -1, leader_gain,
                             leader_selector->dim(), leader_selector->select(temp_ref)));
                           
@@ -164,7 +166,6 @@ void CMM::setupEdges(){
                         edges.push_back(std::make_unique<EdgeDirect>(*agent, j, gain, coop_selector->dim(),
                                 coop_selector->select(r_star), rate_mp));
                     }
-                    //edges.push_back(std::make_unique<EdgeFlex>(*agent, j, gain, l, r_star, rate_mp));
 
                     logMsg("CMM", "Edge created.", 2);
 					
@@ -186,6 +187,8 @@ bool CMM::initEdges(std_srvs::Empty::Request &req, std_srvs::Empty::Response &re
 
 Eigen::VectorXd CMM::sample(const Eigen::VectorXd& r){
 
+    PROFILE_FUNCTION();
+    
 	// Initialise the combined input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(l);
 

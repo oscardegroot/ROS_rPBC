@@ -5,11 +5,6 @@
 #include <string>
 #include <franka/exception.h>
 
-// Base exception
-// struct Exception : public std::runtime_error {
-//   using std::runtime_error::runtime_error;
-// };
-
 /* Exceptions used for added safety */
 struct SafetyException : public franka::Exception{
 	using franka::Exception::Exception;

@@ -1,9 +1,3 @@
-/*
-File: FlexibleEdge.h
-
-Define a connection with another agent that uses the ST and WVM to passify communication
-*/
-
 #pragma once
 
 #include "Edge.h"

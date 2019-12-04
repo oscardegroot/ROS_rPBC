@@ -88,13 +88,12 @@ public:
     double value(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js) override;
     
 private:
-    double alpha;
-    
 
+    double alpha;
 
 };
 
-// Some paths for parameter settingg
+// Some paths for parameter setting
 #define NF_PATH NF
 #define BETA_PATH beta
 #define GAMMA_PATH gamma

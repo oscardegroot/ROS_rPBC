@@ -24,7 +24,6 @@ int main(int argc, char **argv){
     std::string output;
     helpers::safelyRetrieve(nh, "/output", output);
 
-    
     // Create a system and a controller
     std::unique_ptr<System> system = std::make_unique<Elisa3>();
     std::unique_ptr<Controller> controller;
@@ -40,6 +39,7 @@ int main(int argc, char **argv){
 
     while(ros::ok()){
         if(system->dataReady()) {
+            
             /// Retrieve the cooperative input
             Eigen::VectorXd tau_network = system->cmm->sample(controller->getOutput(*system));
 
@@ -48,8 +48,6 @@ int main(int argc, char **argv){
 
             /// Send the input to the system
             system->sendInput(tau);
-        }else{
-            //logTmp(ros::Time::now());
         }
 
         // Check callbacks and sleep

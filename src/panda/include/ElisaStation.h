@@ -15,7 +15,12 @@
 #include "panda/colorElisa3.h"
 #include "panda/addObstacle.h"
 
-    
+/**
+ * @class ElisaEntry
+ * @author Oscar
+ * @file ElisaStation.h
+ * @brief Structure for keeping track of individual Elisa motion and for applying rudementary sensor fusion.
+ */
 struct ElisaEntry{
     
     // Needs to be saved to set the calibration
@@ -45,6 +50,7 @@ struct ElisaEntry{
         ros::NodeHandle nh;
         
         init_vision_received = false;
+        
         // Initialise measurements
         odometry = Eigen::Vector3d::Zero();
         vision = Eigen::Vector3d::Zero();
@@ -108,7 +114,6 @@ struct ElisaEntry{
             }
         }
         
-        //logTmp("Vision!", counter);
     }
     
     void updateOdometry(){
@@ -116,9 +121,7 @@ struct ElisaEntry{
         odometry(0) = -getOdomYpos(address) / 1000.0;  // mm to m
         odometry(1) = getOdomXpos(address) / 1000.0;  // mm to m
         
-        // Possibly this angle calculation is not correct with vision??
         odometry(2) = getOdomTheta(address) / 180.0 * M_PI + M_PI_2;
-        //logTmp(odometry(2));
     }
     
     void publishCurrentCoordinates(){

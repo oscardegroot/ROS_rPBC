@@ -29,8 +29,7 @@ Manages cooperative communication by managing a number of connections
 #include "panda/isAgentLeader.h"
 #include "panda/addObstacle.h"
 
-/* Possibly divide this up further in a system and a controller */
-
+// FSM Status enumerate
 enum Status{
     STARTED = 0,
     WAITING_FOR_OTHER,
@@ -38,12 +37,19 @@ enum Status{
     RUNNING
 };
 
+/**
+ * @class CMM
+ * @author Oscar
+ * @file CMM.h
+ * @brief Class that centrally combines edges to other agents such that cooperative inputs may be centrally sampled.
+ */
 class CMM{
 
 public:
 	CMM(std::string agent_type);
 	~CMM();
     
+    // Internal FSM status
     Status status;
     
     //The contained agent
@@ -54,10 +60,16 @@ public:
     /** @brief Wait for the server message to retrieve the network */
     void performHandshake();
 
+    /** @brief Service call that initiates the creation of edges */
     bool initEdges(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+    
+    // Function for adding an obstacle to all edges
     bool addObstacle(panda::addObstacle::Request& req, panda::addObstacle::Response& res);
     
+    // Retrieve connections from the server
     bool retrieveConnections();
+    
+    // Setup edges
     void setupLeader();
     void setupEdges();
 
@@ -73,10 +85,10 @@ public:
 
 private:
 
-	//unsigned char agent_id;
 	int l, N;
 	Eigen::MatrixXd gain;
     
+    // Sampling rate ratio to the network
     int rate_mp;
     
     bool initialised = false;

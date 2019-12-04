@@ -5,7 +5,6 @@
 Agent::Agent(std::string type_name_set)
     : type_name(type_name_set)
 {
-    //logTmp("node name", ros::this_node::getName()); //= /agent_0
     nh_private = std::make_unique<ros::NodeHandle>(ros::this_node::getName()); // Declare a private nodehandle
 
     retrieveParameter("ID", ID);
@@ -23,10 +22,10 @@ Agent::Agent(int ID_set, int sampling_rate_set, std::string type_name_set)
 }
 
 Agent::~Agent(){
+    
     if(nh_private){
         logMsg("Agent", getType() + " shutting down.", 2);
     }
-    //logAssert(nh_private == nullptr, "Agent is owned by the Remote!");
 }
 
 // Register this agent to the server

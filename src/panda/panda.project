@@ -39,7 +39,6 @@
       <File Name="src/classes/EdgeDirect.cpp"/>
       <File Name="src/classes/EdgeFlex.cpp"/>
       <File Name="src/classes/EdgeFlexDelayFree.cpp"/>
-      <File Name="src/classes/EdgeIntegral.cpp"/>
       <File Name="src/classes/EdgeLeader.cpp"/>
       <File Name="src/classes/Goal.cpp"/>
       <File Name="src/classes/Obstacle.cpp"/>
@@ -47,12 +46,9 @@
       <File Name="src/classes/Agent.cpp"/>
       <File Name="src/classes/ConnectedPandasim.cpp"/>
       <File Name="src/classes/Formation.cpp"/>
-      <File Name="src/classes/Station.cpp"/>
       <File Name="src/classes/ElisaStation.cpp"/>
       <File Name="src/classes/AgentStation.cpp"/>
       <File Name="src/classes/Selector.cpp"/>
-      <File Name="src/classes/EdgeLPF.cpp"/>
-      <File Name="src/classes/LinearCouplings.cpp"/>
     </VirtualDirectory>
     <File Name="src/TextInterface.cpp"/>
     <File Name="src/Helpers.cpp"/>
@@ -62,7 +58,6 @@
     <File Name="src/CustomLog.cpp"/>
     <File Name="src/ServerNode.cpp"/>
     <File Name="src/NetworkNode.cpp"/>
-    <File Name="src/CameraNode.cpp"/>
   </VirtualDirectory>
   <Description/>
   <Dependencies/>
@@ -130,7 +125,6 @@
     <File Name="include/Panda.h"/>
     <File Name="include/CMM.h"/>
     <File Name="include/Exceptions.h"/>
-    <File Name="include/EdgeIntegral.h"/>
     <File Name="include/Helpers.h"/>
     <File Name="include/Potential.h"/>
     <File Name="include/System.h"/>
@@ -149,7 +143,5 @@
     <File Name="include/ElisaStation.h"/>
     <File Name="include/AgentStation.h"/>
     <File Name="include/Selector.h"/>
-    <File Name="include/EdgeLPF.h"/>
-    <File Name="include/LinearCouplings.h"/>
   </VirtualDirectory>
 </CodeLite_Project>

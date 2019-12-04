@@ -14,7 +14,6 @@ namespace panda {
 Panda::Panda()
 	:System(7, 7, 6, "panda")
 {
-	//yolo_pub = nh.advertise<std_msgs::Float64MultiArray>("s_" + std::to_string(i_ID) + std::to_string(j_ID) + "p" + integral_add, 100);
 
 }
 
@@ -23,6 +22,7 @@ Panda::~Panda(){};
 
 bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	
+    PROFILE_FUNCTION();
 	logMsg("Panda", "Panda Controller Started!", 2);
 
 	//Set collision behaviour
@@ -137,12 +137,9 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
     // Perform handshake once the controller has been initialised
     cmm->performHandshake();
     
-    //    logTmp(robot_state.current_errors);
 	retrieveState();
     retrieveMatrices();
-    
-    benchmarker = Benchmarker("Panda", "Panda Control Loop");
-    
+        
 	logMsg("Panda", "Initialisation Completed!", 2);
 
 	return true;
@@ -152,6 +149,8 @@ bool Panda::init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh){
 	Throws an error if they are!
 */
 void Panda::checkSafety(){
+
+    PROFILE_FUNCTION();
 
 	// Check if the panda is not below its lower bound
 	if(new_z(2) < z_lower_bound){
@@ -190,7 +189,8 @@ void Panda::checkSafety(){
 
 void Panda::retrieveState(){
 
-    
+    PROFILE_FUNCTION();
+
     // Retrieve q
 	Eigen::VectorXd new_q = helpers::arrayToVector<7>(robot_state.q);
     
@@ -198,9 +198,7 @@ void Panda::retrieveState(){
     Eigen::VectorXd new_dq = helpers::arrayToVector<7>(robot_state.dq);
 
     helpers::lowpassFilter(dq_filtered, new_dq, alpha);
-	//filterVelocity(robot_state.dq);
-	//this->state.dq = helpers::arrayToVector<7>(dq_filtered);
-    
+
     // Calculate inverse rotations
     // See https://en.wikibooks.org/wiki/Robotics_Kinematics_and_Dynamics/Description_of_Position_and_Orientation (inverse mapping z,x,z)
     //double alpha = std::atan2(robot_state.O_T_EE[8], -robot_state.O_T_EE[9]);
@@ -223,7 +221,8 @@ void Panda::starting(const ros::Time& /*time*/) {
 
 void Panda::update (const ros::Time& time, const ros::Duration& period){
 
-    benchmarker.start(); // ~100 us!
+    //benchmarker.start(); // ~100 us!
+    PROFILE_FUNCTION();
 
 	// Retrieve the robot state
 	robot_state = cartesian_pose_handle_->getRobotState();
@@ -260,19 +259,20 @@ void Panda::update (const ros::Time& time, const ros::Duration& period){
     
     // Send the input
     sendInput(tau);
-    
-    benchmarker.end();
 
 } // mandatory
 
 bool Panda::sendInput(const Eigen::VectorXd& tau){
-	for (size_t i = 0; i < 7; ++i) {
+    PROFILE_FUNCTION();
+
+    for (size_t i = 0; i < 7; ++i) {
 		joint_handles_[i].setCommand(tau[i]);
 	}
 }
 
 void Panda::retrieveMatrices(){
-	
+    PROFILE_FUNCTION();
+
     // If this is not the initial run, save the previous run 
     if(initial_matrices){
         
@@ -363,11 +363,6 @@ std::array<double, 7> Panda::checkTorque(Eigen::VectorXd& torques, const std::ar
 			throw TorqueBoundException(message);
         }
     }
-        /*else if(std::abs(torques[i]) > torque_bound){
-           
-            torques[i] = helpers::sgn(torques[i])*torque_bound;
-        }
-	}*/
 
 	// Otherwise saturate the torque rate and return
 	return saturateTorqueRate(torques, tau_J_d);
@@ -382,6 +377,8 @@ Eigen::VectorXd& Panda::dVdq(){
 /** @brief Approximate matrix derivatives by finite distance approximation */
 Eigen::MatrixXd& Panda::dMinv(){
     
+    PROFILE_FUNCTION();
+
     if(!dminv_updated)
     {
         // Use dMinv = -Minv*dM*Minv
@@ -389,24 +386,26 @@ Eigen::MatrixXd& Panda::dMinv(){
         helpers::lowpassFilter(dminv, dminv_input, alpha);
         dminv_updated = true;
     }
-        //logTmp("dminv", dminv);
 
     return dminv;
 }
 
 Eigen::MatrixXd& Panda::dM(){
-
+    
+    PROFILE_FUNCTION();
+    
     if(!dm_updated){
         Eigen::MatrixXd dm_input = this->approximateDerivative(M(), m_previous);
         helpers::lowpassFilter(dm, dm_input, alpha);
         dm_updated = true;
     }
-    //logTmp("dm", dm);
 
     return dm;
 }
 
 Eigen::MatrixXd& Panda::dPsi(){
+    
+    PROFILE_FUNCTION();
 
     if(!dpsi_updated){
         Eigen::MatrixXd dpsi_input = this->approximateDerivative(Psi(), psi_previous);

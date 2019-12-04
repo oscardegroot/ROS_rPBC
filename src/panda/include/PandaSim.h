@@ -22,7 +22,6 @@ class PandaSim : public System{
 
 public:
 
-
 	PandaSim();
 
 	// See definitions in system.h

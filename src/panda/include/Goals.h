@@ -20,17 +20,19 @@ Contains a number of functions describing formations and other cooperative goals
 
 #include "Helpers.h"
 
-//struct connection {
-//	int id;
-//	Eigen::VectorXd r_star;
-//};
-
+// Holds leader data
 struct leader {
     int id;
     Eigen::VectorXd ref;
     Eigen::VectorXd gain;
 };
 
+/**
+ * @class Goals
+ * @author Oscar
+ * @file Goals.h
+ * @brief Class that creates and holds formations and leaders
+ */
 class Goals{
 
 public:
@@ -38,9 +40,11 @@ public:
 	// The construct takes the number of agents
 	Goals();
     
+    // The formation
     std::unique_ptr<Formation> formation;
     Formation getFormation(const std::string& formation_type);
-
+    
+    // Leader initialisation and service
 	void initLeaders(ros::NodeHandle & nh);
     bool isAgentLeader(u_int id, Eigen::VectorXd & ref, Eigen::VectorXd & gain);
 
@@ -50,10 +54,7 @@ private:
 	// Agent count and cooperative dimension
 	int N, l;
     
-//	std::vector<std::vector<bool>> graph;
 	std::vector<leader> leaders;
-
-
 };
 
 

@@ -15,7 +15,6 @@ l_set: dimension of the channel
 EdgeFlex::EdgeFlex(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set, int rate_mp_set)
 	: Edge(agent, j, gain_set, l_set, r_star_set, rate_mp_set){
 
-
     // Retrieval is fully internal, Formations nog included atm
     potential = std::make_unique<NavigationFunction>(agent, l, r_star);
     
@@ -28,8 +27,6 @@ EdgeFlex::EdgeFlex(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eig
 	// Initialise r_js at some non-zero point
 	r_js_last = Eigen::VectorXd::Zero(l);
 	r_js_last << 0.1, 0.1, 0.1;
-    
-    energy_pub = nh.advertise<std_msgs::Float64>("/control_energy_" + std::to_string(i_ID) + std::to_string(j_ID), 100);
 }
 
 /* Main public function that samples this edge */
@@ -38,6 +35,7 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
 	Eigen::VectorXd tau(l), r_js(l), s_out(l);
 	bool hls_applied = false;
     bool retrieval_triggered = false;
+    
     /* Modified for sampling mismatch */
     if(retrieval_counter->trigger()){
         retrieval_triggered = true;
@@ -84,19 +82,9 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
             data_received = false;
             
         }
-        
-        /* Expand the incoming wave */
-        //logTmp(s_sample);
-        // Account for sampling rates
-        //expandWaves(s_sample);
-        //logTmp("after", s_sample);
     }
 
     s_out = fullSTLoop(tau, r_js, r_i, s_sample);
-    
-//    if(retrieval_triggered){
-//        publishEnergy(r_i, r_js);
-//    }
 
 	// Save the correct values for the next sampling period
 	r_js_last = r_js;
@@ -107,16 +95,6 @@ Eigen::VectorXd EdgeFlex::sample(const Eigen::VectorXd& r_i){
     
 	return tau;
 }
-
-
-void EdgeFlex::publishEnergy(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){
-    
-    std_msgs::Float64 msg;
-    msg.data = potential->value(r_i, r_js);
-    energy_pub.publish(msg);
-    
-}
-
 
 // Calculates all variables in the ST loop with input s_in. Returns s_out
 Eigen::VectorXd EdgeFlex::fullSTLoop(Eigen::VectorXd& tau, Eigen::VectorXd& r_js,
@@ -146,22 +124,16 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
     // Keep track of iteration count
 	int k = 0;
 	double diff = 10.0;
-    
-    //PotentialFactors gradient(Eigen::VectorXd::Zero(l), 0.0);
-    
+        
 	/* Possibly efficiency by iterating 3 times always */
 	while (diff > 0.001 && k < 100){
 
         // Calculate the gradient of the potential function
         PotentialFactors gradient = potential->gradient_factors(r_i, r_js);
-        
-        // The iterative algorithm seems to fail when the obstacle function gets very small. Hence we need to detect that happening beforehand.
-//        if(std::abs(gradient.LHS_multiplier) < 1e-4){
 
             double obstacle = std::abs(((NavigationFunction*)(&(*potential)))->obstacleValue(r_i, r_js));
             if(obstacle < 0.02){
-                //r_js = r_i*1.01;
-                //return;
+                
                 logTmp("Warning, low potential function value (value=" + std::to_string(obstacle) + ")");
                 
                 if(obstacle < 0.01){
@@ -169,28 +141,10 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
                 }
                 
             }
-            // If we are already some iterations in, throw an error
-//            if(k > 40){
-//                throw OperationalException("[EdgeFlex] Left Hand Side Multiplier became 0! (value = " + std::to_string(gradient.LHS_multiplier));    
-//            
-//            /** @solution Otherwise resort to an initial r_js and iterate from there.*/
-//            }else{
-//
-//                logTmp("k", k);
-//                logTmp("r_js", r_js);
-//                logTmp("r_i", r_i);
-//                logTmp("Distance d", helpers::normOf(r_js - r_i));
-//
-//                return;
-
             
 		// Calculate r*[k] for all dimensions
 		for(int i = 0; i < l; i++){
-            double b = impedance(i);//std::sqrt(gain(i,i));
-
-            // Calculate RHS and LHS of the gradient iteration
-            /*double RHS = matrix_ST(i, i)*s_in(i) - matrix_ST(i, l+i) * gain(i, i) * gradient.RHS_vector(i);
-            double LHS = 1.0 + matrix_ST(i, l+i) * gain(i, i) * gradient.LHS_multiplier;*/
+            double b = impedance(i);
             
             // - for gradient, - from scattering = +
             double RHS = agent_i*std::sqrt(2.0/b)*s_in(i) + 1.0/b * gain(i, i) * gradient.RHS_vector(i);
@@ -206,24 +160,6 @@ void EdgeFlex::STIterations(Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i, c
 
 		// Calculate the improvement
 		diff = helpers::normOf(r_js - r_js_prev);
-
-//        // Debug
-//        if(diff <= 0.0001){
-//            
-//            //gTmp("Reflection factor would be ", std::sqrt(gain(i,i)) + gain(i,i)*gradient.LHS_multiplier);
-//            //logTmp("Proposed impedance: b = ", -gain(i,i)*gradient.LHS_multiplier);
-//            
-//          for(int i = 0; i < l; i++){                
-//                helpers::lowpassFilter(impedance(i), -gain(i,i)*gradient.LHS_multiplier, 0.5);
-//                //logTmp("Impedance(" + std::to_string(i) + ") = ", impedance(i));
-//                if(impedance(i) > 5.0){
-//                    //logTmp("Impedance capped at ", 5.0);
-//                    impedance(i) = 5.0;
-//                }else{
-//                    //logTmp("Impedance not capped!");
-//                }
-//            }
-//        }
 
 		// Remember the last value of r_js
 		r_js_prev = r_js;
@@ -256,7 +192,6 @@ Eigen::VectorXd EdgeFlex::elementSign(const Eigen::VectorXd& s_in){
 	return s_out;
 }
 
-// Make const ref
 Eigen::VectorXd EdgeFlex::calculateControls(const Eigen::VectorXd& r_i, const Eigen::VectorXd& r_js){
 
     // Multiply the gradient with the gain
@@ -271,17 +206,15 @@ Eigen::VectorXd EdgeFlex::calculateWaves(const Eigen::VectorXd& tau, const Eigen
 
     // This is not so efficient or smoart
 	for(int i = 0; i < l; i++){
-		double b = impedance(i);//std::sqrt(gain(i,i));
+		double b = impedance(i);
 		result(i, 0) = agent_i/std::sqrt(2*b) * (tau(i, 0) -b*r_js(i, 0));
-	}
-//    result = matrix_ST.block(l, 0, l, l) * tau + matrix_ST.block(l, l, l, l)
-//    matrix_ST(l+i, i)
-//            double RHS = matrix_ST(i, i)*s_in(i) - matrix_ST(i, l+i) * gain(i, i) * gradient.RHS_vector(i);
-
+    }
+        
 	return result;
 }
 
 void EdgeFlex::setScatteringGain(const Eigen::MatrixXd& gain){
+    
 	// Define the gains on this edge and the impedance
 	Eigen::MatrixXd B = Eigen::MatrixXd::Zero(l, l);
     impedance = Eigen::VectorXd::Zero(l);

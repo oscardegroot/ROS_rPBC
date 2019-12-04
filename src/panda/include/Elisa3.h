@@ -121,9 +121,6 @@ private:
 
 
     Eigen::MatrixXd wheel_matrix, F;
-
-
-
 };
 
 

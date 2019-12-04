@@ -33,7 +33,6 @@ std::unique_ptr<CMM> cmm;
 bool is_dynamic = false;
 double phase = 0;
 
-//ros::NodeHandle nh;
 void initSelectors();
 void goalCallback(const std_msgs::Int16::ConstPtr & msg);
 void publishReference(ros::Publisher& pub, const Eigen::VectorXd& ref);
@@ -44,8 +43,6 @@ int main(int argc, char **argv){
 	
 	// Initialise ROS
 	ros::init(argc, argv, "Agent");
-
-	// = ros::NodeHandle("~");
     ros::NodeHandle nh;
 
     helpers::safelyRetrieve(nh, "/l", l);
@@ -83,7 +80,7 @@ int main(int argc, char **argv){
     }
 
 	// For centerpoint initially
-    ref = Eigen::VectorXd::Zero(cmm->allDim());//valued_goal;
+    ref = Eigen::VectorXd::Zero(cmm->allDim());
 	setGoalType(goal_type);
     
     std::string ref_msg = "Reference set to (";
@@ -142,11 +139,11 @@ void publishReference(ros::Publisher& pub, const Eigen::VectorXd& ref){
 	}
 
 	// Publish the message
-	// Publish the message
 	pub.publish(msg);
 
 }
 
+// Plots point in rviz
 void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref){
 
 	visualization_msgs::Marker points;
@@ -173,13 +170,6 @@ void plotMarker(ros::Publisher& pub, Eigen::VectorXd ref){
 	p.y = ref(1, 0);
 	p.z = ref(2, 0);
     points.points.push_back(p);
-
-    
-//	geometry_msgs::Point TEST_OBJECT;
-//	TEST_OBJECT.x = 0;
-//	TEST_OBJECT.y = 0;
-//	TEST_OBJECT.z = 1.0;
-//    points.points.push_back(TEST_OBJECT);
 
     pub.publish(points);
 

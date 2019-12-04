@@ -1,13 +1,8 @@
-/*
-File: Remote.cpp
-
-A Remote node class that hosts services and implements an interface
-*/
-
-
 #include "AgentStation.h"
 
 AgentStation::AgentStation(){
+
+    PROFILE_SCOPE("AgentStation init");
 
 	helpers::safelyRetrieve(nh, "/l", l);
 	helpers::safelyRetrieve(nh, "/N_agents", N);
@@ -61,6 +56,7 @@ void AgentStation::fakeCallback(const std_msgs::Float64MultiArray::ConstPtr& msg
 
 void AgentStation::initiateNetwork(){
 
+    PROFILE_FUNCTION();
     logMsg("Agent Station", "Initiating Agent Network...", 2);
     for(int i = 0; i < agents.size(); i++){
         logMsg("Agent Station", "Initiating Agent " + std::to_string(agents[i]->getID()), 2);
@@ -109,6 +105,8 @@ bool AgentStation::getConnectionsOf(panda::getConnectionsOf::Request &req, panda
 
 bool AgentStation::isAgentLeader(panda::isAgentLeader::Request &req, panda::isAgentLeader::Response &res){
 
+    PROFILE_FUNCTION();
+
     Eigen::VectorXd reference;
     Eigen::VectorXd gain;
 
@@ -127,7 +125,9 @@ bool AgentStation::isAgentLeader(panda::isAgentLeader::Request &req, panda::isAg
 
 // Register an agent to this remote
 bool AgentStation::registerAgent(panda::registerAgent::Request &req, panda::registerAgent::Response &res){
-
+    
+    PROFILE_FUNCTION();
+    
     // Check if the agent doesn't already exist
     for(int i = 0; i < agents.size(); i++){
         if(agents[i]->getID() == req.id){
@@ -157,12 +157,12 @@ bool AgentStation::acknowledgeCMMReady(std_srvs::Empty::Request &req, std_srvs::
 }
 
 void AgentStation::pauseGazebo(){
-    
+    PROFILE_FUNCTION();
+
     if(!is_simulation){
         return;
     }
     
-    //ScopeTimer timer("Pausing Gazebo");
     auto pause_client = nh.serviceClient<std_srvs::Empty>("/gazebo/pause_physics");
     std_srvs::Empty srv;
         
@@ -176,7 +176,8 @@ void AgentStation::pauseGazebo(){
 }
 
 void AgentStation::unpauseGazebo(){
-    
+    PROFILE_FUNCTION();
+
     if(!is_simulation){
         return;
     }

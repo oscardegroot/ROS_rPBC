@@ -11,9 +11,9 @@ WangGoal::WangGoal(Agent& agent)
     agent.retrieveParameter("NF/gamma/eps", eps, 0.15);
     agent.retrieveParameter("NF/gamma/r_w", r_w, 1.0);
     
-    /* this needs to be nicer...*/
     ros::NodeHandle nh;
     
+    // Check for IDA-PBC or rPBC control
     std::string output;
     helpers::safelyRetrieve(nh, "/output", output);
 

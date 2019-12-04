@@ -1,29 +1,12 @@
 
 #include "PandaSim.h"
 
-/** Defined here because maybe temporary */
-//#include <controller_interface/multi_interface_controller.h>
-//#include <hardware_interface/joint_command_interface.h>
-//#include <hardware_interface/robot_hw.h>
-//#include <realtime_tools/realtime_publisher.h>
-//#include <ros/node_handle.h>
-//#include <ros/time.h>
-//
-//#include <franka_example_controllers/JointTorqueComparison.h>
-//#include <franka_control/services.h>
-//#include <franka_hw/franka_cartesian_command_interface.h>
-//#include <franka_hw/franka_model_interface.h>
-//#include <franka_hw/trigger_rate.h>
-//#include <franka_hw/franka_hw.h>
-//#include <array>
-//See: https://github.com/frankaemika/franka_ros/blob/kinetic-devel/franka_example_controllers/include/franka_example_controllers/joint_impedance_example_controller.h
-//using std;
-
 PandaSim::PandaSim()
 	:System(7, 7, 3, "pandasim")
 {
 	logMsg("PandaSim", "Initialising...", 2);
-    
+    PROFILE_SCOPE("Pandasim Init");
+
 	this->setState(Eigen::VectorXd::Zero(n), Eigen::VectorXd::Zero(n), getZ(Eigen::VectorXd::Zero(n)));
     
 	for(int i = 0; i < n; i++){
@@ -104,38 +87,9 @@ PandaSim::PandaSim()
     M_constants(40, 39) = 0.3;
     M_constants(40, 41) = 0.3;
     M_constants(41, 40) = 0.3;
-    
-    /* Getting around the mass matrix issue... */
-    /*ros::NodeHandle nh("panda");
-    ros::NodeHandle nh_panda("robot1");
-
-    vector<string> joint_names_v;
-	string arm_id;
-    helpers::safelyRetrieveArray(nh, "joint_names", joint_names_v, 7);
-    //std::string* joint_names = &joint_names_v[0];
-    array<string, 7> joint_names;
-    copy_n(joint_names_v.begin(), 7, joint_names.begin());
-
-	helpers::safelyRetrieve(nh, "arm_id", arm_id);
-    unique_ptr<hardware_interface::RobotHW> hw = make_unique<franka_hw::FrankaHW>(joint_names, arm_id, nh_panda);
-    
-    // Initialise the model interface 
-	franka_hw::FrankaModelInterface* model_interface = hw->get<franka_hw::FrankaModelInterface>();
-
-	if (model_interface == nullptr) {
-		throw OperationalException("Error getting model interface from hardware");
-	}*/ /** @result gives nullptr for the model interface, probably because we dont extend the correct interfaces... */
-
-
-//    psi = Eigen::MatrixXd::Zero(n, 3);
-//    dpsi = Eigen::MatrixXd::Zero(n, 3);
-//
-//    m_m = Eigen::MatrixXd::Zero(n, n);
-//    dm = Eigen::MatrixXd::Zero(n, n);
-//    dvdq = Eigen::VectorXd::Zero(n);
 
     m_previous = M();
-    psi_previous = Psi(); // This?
+    psi_previous = Psi();
 
     logMsg("PandaSim", "Done!", 2);
 
@@ -143,7 +97,8 @@ PandaSim::PandaSim()
 
 // Callback for reading the states
 void PandaSim::readStateCallback(const sensor_msgs::JointState::ConstPtr& msg){
-	
+    PROFILE_FUNCTION();
+
 	Eigen::Matrix<double, 7, 1> new_q, new_qd;
 
 	for( int i = 0; i < 7; i++ ) {
@@ -158,7 +113,7 @@ void PandaSim::readStateCallback(const sensor_msgs::JointState::ConstPtr& msg){
 
 
 bool PandaSim::sendInput(const Eigen::VectorXd & tau){
-	
+    PROFILE_FUNCTION();
 	std_msgs::Float64 msg;
 
 	for(int i = 0; i < n; i++){
@@ -171,8 +126,9 @@ bool PandaSim::sendInput(const Eigen::VectorXd & tau){
 
 
 Eigen::VectorXd& PandaSim::dVdq(){
-
-        Eigen::VectorXd& q = state.q;
+    
+    PROFILE_FUNCTION();
+    Eigen::VectorXd& q = state.q;
     
     if(!dvdq_updated){
         dvdq[0] = 0;
@@ -182,13 +138,7 @@ Eigen::VectorXd& PandaSim::dVdq(){
         dvdq[4] = 0.02195*cos(q(1))*sin(q(3))*sin(q(4)) - 1.22861*cos(q(1))*cos(q(4))*sin(q(3)) - 0.02195*cos(q(4))*sin(q(1))*sin(q(2)) - 1.22861*sin(q(1))*sin(q(2))*sin(q(4)) + 1.22861*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(1)) - 0.02195*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(4)) + 1.12787*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(2)) - 1.12787*cos(q(1))*cos(q(5))*sin(q(3))*sin(q(4)) - 0.0997992*cos(q(4))*sin(q(1))*sin(q(2))*sin(q(5)) + 0.0997992*cos(q(1))*sin(q(3))*sin(q(4))*sin(q(5)) + 1.12787*cos(q(2))*cos(q(3))*cos(q(5))*sin(q(1))*sin(q(4)) - 0.0997992*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(4))*sin(q(5));
         dvdq[5] = 1.12787*cos(q(1))*cos(q(3))*cos(q(5)) - 0.0997992*cos(q(1))*cos(q(3))*sin(q(5)) - 0.0997992*cos(q(1))*cos(q(4))*cos(q(5))*sin(q(3)) + 1.12787*cos(q(2))*cos(q(5))*sin(q(1))*sin(q(3)) - 1.12787*cos(q(1))*cos(q(4))*sin(q(3))*sin(q(5)) - 0.0997992*cos(q(2))*sin(q(1))*sin(q(3))*sin(q(5)) - 0.0997992*cos(q(5))*sin(q(1))*sin(q(2))*sin(q(4)) - 1.12787*sin(q(1))*sin(q(2))*sin(q(4))*sin(q(5)) + 0.0997992*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1)) + 1.12787*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(5));
         dvdq[6] = 0;
-//        dvdq[0] = 0;
-//        dvdq[1] = 0.00012753*cos(q(1)) - 13.4638*sin(q(1)) - 2.86303*cos(q(1))*cos(q(2)) + 0.00207972*cos(q(1))*sin(q(2)) - 6.84302*cos(q(3))*sin(q(1)) + 1.99683*sin(q(1))*sin(q(3)) + 0.316304*sin(q(1))*sin(q(3))*sin(q(4)) + 1.99683*cos(q(1))*cos(q(2))*cos(q(3)) + 6.84302*cos(q(1))*cos(q(2))*sin(q(3)) + 0.316304*cos(q(1))*cos(q(4))*sin(q(2)) - 0.0680127*cos(q(3))*cos(q(5))*sin(q(1)) - 0.0062784*cos(q(1))*sin(q(2))*sin(q(4)) + 0.0062784*cos(q(4))*sin(q(1))*sin(q(3)) - 0.50033*cos(q(3))*sin(q(1))*sin(q(5)) + 0.0062784*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4)) + 0.316304*cos(q(1))*cos(q(2))*cos(q(3))*sin(q(4)) + 0.0680127*cos(q(1))*cos(q(2))*cos(q(5))*sin(q(3)) + 0.50033*cos(q(1))*cos(q(2))*sin(q(3))*sin(q(5)) + 0.50033*cos(q(1))*cos(q(5))*sin(q(2))*sin(q(4)) - 0.50033*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.0680127*cos(q(1))*sin(q(2))*sin(q(4))*sin(q(5)) + 0.0680127*cos(q(4))*sin(q(1))*sin(q(3))*sin(q(5)) - 0.50033*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5)) + 0.0680127*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(5));
-//        dvdq[2] = 0.00207972*cos(q(2))*sin(q(1)) + 2.86303*sin(q(1))*sin(q(2)) - 6.84302*sin(q(1))*sin(q(2))*sin(q(3)) + 0.316304*cos(q(2))*cos(q(4))*sin(q(1)) - 1.99683*cos(q(3))*sin(q(1))*sin(q(2)) - 0.0062784*cos(q(2))*sin(q(1))*sin(q(4)) - 0.0062784*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(2)) + 0.50033*cos(q(2))*cos(q(5))*sin(q(1))*sin(q(4)) - 0.316304*cos(q(3))*sin(q(1))*sin(q(2))*sin(q(4)) - 0.0680127*cos(q(5))*sin(q(1))*sin(q(2))*sin(q(3)) - 0.0680127*cos(q(2))*sin(q(1))*sin(q(4))*sin(q(5)) - 0.50033*sin(q(1))*sin(q(2))*sin(q(3))*sin(q(5)) + 0.50033*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(2)) - 0.0680127*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(2))*sin(q(5));
-//        dvdq[3] = 6.84302*cos(q(2))*cos(q(3))*sin(q(1)) - 6.84302*cos(q(1))*sin(q(3)) - 0.0062784*cos(q(1))*cos(q(3))*cos(q(4)) - 1.99683*cos(q(1))*cos(q(3)) - 0.316304*cos(q(1))*cos(q(3))*sin(q(4)) - 0.0680127*cos(q(1))*cos(q(5))*sin(q(3)) - 1.99683*cos(q(2))*sin(q(1))*sin(q(3)) - 0.50033*cos(q(1))*sin(q(3))*sin(q(5)) + 0.50033*cos(q(1))*cos(q(3))*cos(q(4))*cos(q(5)) + 0.0680127*cos(q(2))*cos(q(3))*cos(q(5))*sin(q(1)) - 0.0680127*cos(q(1))*cos(q(3))*cos(q(4))*sin(q(5)) - 0.0062784*cos(q(2))*cos(q(4))*sin(q(1))*sin(q(3)) + 0.50033*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(5)) - 0.316304*cos(q(2))*sin(q(1))*sin(q(3))*sin(q(4)) + 0.50033*cos(q(2))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.0680127*cos(q(2))*cos(q(4))*sin(q(1))*sin(q(3))*sin(q(5));
-//        dvdq[4] = 0.0062784*cos(q(1))*sin(q(3))*sin(q(4)) - 0.316304*cos(q(1))*cos(q(4))*sin(q(3)) - 0.0062784*cos(q(4))*sin(q(1))*sin(q(2)) - 0.316304*sin(q(1))*sin(q(2))*sin(q(4)) + 0.316304*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(1)) - 0.0062784*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(4)) + 0.50033*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(2)) - 0.50033*cos(q(1))*cos(q(5))*sin(q(3))*sin(q(4)) - 0.0680127*cos(q(4))*sin(q(1))*sin(q(2))*sin(q(5)) + 0.0680127*cos(q(1))*sin(q(3))*sin(q(4))*sin(q(5)) + 0.50033*cos(q(2))*cos(q(3))*cos(q(5))*sin(q(1))*sin(q(4)) - 0.0680127*cos(q(2))*cos(q(3))*sin(q(1))*sin(q(4))*sin(q(5));
-//        dvdq[5] = 0.50033*cos(q(1))*cos(q(3))*cos(q(5)) - 0.0680127*cos(q(1))*cos(q(3))*sin(q(5)) - 0.0680127*cos(q(1))*cos(q(4))*cos(q(5))*sin(q(3)) + 0.50033*cos(q(2))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.50033*cos(q(1))*cos(q(4))*sin(q(3))*sin(q(5)) - 0.0680127*cos(q(2))*sin(q(1))*sin(q(3))*sin(q(5)) - 0.0680127*cos(q(5))*sin(q(1))*sin(q(2))*sin(q(4)) - 0.50033*sin(q(1))*sin(q(2))*sin(q(4))*sin(q(5)) + 0.0680127*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(1)) + 0.50033*cos(q(2))*cos(q(3))*cos(q(4))*sin(q(1))*sin(q(5));
-//        
+        
         dvdq_updated = true;
     }
     
@@ -197,7 +147,9 @@ Eigen::VectorXd& PandaSim::dVdq(){
 
 Eigen::VectorXd PandaSim::getZ(const Eigen::VectorXd& q)
 {
-	Eigen::VectorXd z = Eigen::VectorXd::Zero(3);
+    PROFILE_FUNCTION();
+    
+    Eigen::VectorXd z = Eigen::VectorXd::Zero(3);
 
 	// z as calculated in Matlab
 	z[0] = 0.316*cos(q(0))*sin(q(1)) - 0.0825*sin(q(0))*sin(q(2)) + 0.384*sin(q(0))*sin(q(2))*sin(q(3)) + 0.0825*cos(q(0))*cos(q(1))*cos(q(2)) + 0.384*cos(q(0))*cos(q(3))*sin(q(1)) - 0.0825*cos(q(0))*sin(q(1))*sin(q(3)) + 0.0825*cos(q(3))*sin(q(0))*sin(q(2)) - 0.0825*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3)) - 0.384*cos(q(0))*cos(q(1))*cos(q(2))*sin(q(3)) + 0.088*cos(q(0))*cos(q(3))*sin(q(1))*sin(q(5)) - 0.088*cos(q(2))*cos(q(5))*sin(q(0))*sin(q(4)) + 0.088*sin(q(0))*sin(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(2))*sin(q(3))*sin(q(5)) - 0.088*cos(q(0))*cos(q(1))*cos(q(5))*sin(q(2))*sin(q(4)) + 0.088*cos(q(0))*cos(q(4))*cos(q(5))*sin(q(1))*sin(q(3)) - 0.088*cos(q(3))*cos(q(4))*cos(q(5))*sin(q(0))*sin(q(2)) + 0.088*cos(q(0))*cos(q(1))*cos(q(2))*cos(q(3))*cos(q(4))*cos(q(5));
@@ -209,10 +161,9 @@ Eigen::VectorXd PandaSim::getZ(const Eigen::VectorXd& q)
 // Define dzdq
 Eigen::MatrixXd& PandaSim::Psi(){
     
-    //RunCheck check("Psi");
 
     if(!psi_updated){
- 
+        PROFILE_FUNCTION();
         Eigen::VectorXd& q = state.q;
     
         // Save the old variable for finite difference approximation
@@ -244,8 +195,11 @@ Eigen::MatrixXd& PandaSim::Psi(){
 }
 
 Eigen::MatrixXd& PandaSim::dMinv(){
+    
     if(!dminv_updated)
     {
+        PROFILE_FUNCTION();
+
         Eigen::MatrixXd dm_temp = -M().inverse()*dM()*M().inverse();
         helpers::lowpassFilter(dminv, dm_temp, 1.0);
         dminv_updated = true;
@@ -255,8 +209,8 @@ Eigen::MatrixXd& PandaSim::dMinv(){
 }
 
 Eigen::MatrixXd& PandaSim::dM(){
-
     if(!dm_updated){
+        PROFILE_FUNCTION();
         helpers::lowpassFilter(dm, this->approximateDerivative(M(), m_previous), 1.0);
         dm_updated = true;
     }
@@ -265,8 +219,9 @@ Eigen::MatrixXd& PandaSim::dM(){
 }
 
 Eigen::MatrixXd& PandaSim::dPsi(){
-    //RunCheck check("dPsi");
+    
     if(!dpsi_updated){
+        PROFILE_FUNCTION();
         helpers::lowpassFilter(dpsi, this->approximateDerivative(Psi(), psi_previous), 1.0);
         dpsi_updated = true;
     }
@@ -278,13 +233,11 @@ Eigen::MatrixXd& PandaSim::dPsi(){
 /** @idea Make this use the actual panda library (connect to the robot!)*/
 Eigen::MatrixXd& PandaSim::M(){
     
-    //RunCheck check("M");
     if(!m_updated){
-
+        PROFILE_FUNCTION();
         Eigen::VectorXd& q = state.q;
         m_previous = m_m;
         
-        //ScopeTimer timer("Constructing M");
         Eigen::MatrixXd dwdq = Eigen::MatrixXd::Zero(6*n, n);
         
         dwdq(0, 0) = 0.03127*cos(q(0));

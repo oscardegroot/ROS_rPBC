@@ -10,6 +10,11 @@ Defines an interface for systems controlled by IDAPBC or rPBC
 System::System(int n_set, int m_set, int lmax_set, const std::string& name)
 	: n(n_set), m(m_set), lmax(lmax_set)
 {
+    // Visual Benchmarking
+    Instrumentor::Get().BeginSession("system", name);
+
+    PROFILE_SCOPE("System Init");
+   
     // Initialise the communication management module
     cmm = std::make_unique<CMM>(name);
 
@@ -37,6 +42,7 @@ System::System(int n_set, int m_set, int lmax_set, const std::string& name)
 		
 
 System::~System(){
+    Instrumentor::Get().EndSession();
 }
 
 void System::setState(Eigen::VectorXd new_q, Eigen::VectorXd new_dq, Eigen::VectorXd new_z){
@@ -47,13 +53,11 @@ void System::setState(Eigen::VectorXd new_q, Eigen::VectorXd new_dq, Eigen::Vect
 
 /// Keep only currently cooperative controlled parts
 Eigen::MatrixXd System::selectPsi(const Eigen::MatrixXd& psi){
-    return selector->select(psi.transpose()).transpose(); /* This part matters!*/
-    //return psi * S.transpose();
+    return selector->select(psi.transpose()).transpose();
 }
 
 Eigen::VectorXd System::selectZ(const Eigen::VectorXd& z){
     return selector->select(z);
-    //return S*z;
 }
 
 /** @brief Currently backwards finite difference approximation of the derivative */
@@ -70,11 +74,6 @@ void System::resetUpdatedFlags()
     dminv_updated = false;
     dm_updated = false;
     dpsi_updated = false;
-}
-
-
-Eigen::VectorXd& System::dTdq(){
-    return dvdq;/* Note: don use! */
 }
 
 bool System::enableSystem(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)

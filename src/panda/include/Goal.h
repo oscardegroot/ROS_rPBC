@@ -12,20 +12,25 @@
 #include "PotentialFactors.h"
 #include "Agent.h"
 
-// Pure virtual goal interface
-// Gradient is always multiplied by r_js - r_i (extensions are not feasible)
+/**
+ * @class Goal
+ * @author Oscar
+ * @file Goal.h
+ * @brief Purely virtual goal interface for potential implementation.
+ */
 class Goal{
 
 public:
     Goal();
-    //virtual ~Goal();
 
+    // Value function of this goal
     virtual double value(const double& d) = 0;
+    
+    // Gradient of this goal
     virtual double gradient(const double& d) = 0;
 
 protected:
 };
-
 
 // Implementation of a Goal function from Wang et al.
 class WangGoal : public Goal{

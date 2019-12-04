@@ -18,6 +18,7 @@
 #include "Helpers.h"
 #include "Agent.h"
 #include "CMM.h"
+#include "CustomLog.h"
 
 #include <vector>
 #include <string>
@@ -91,20 +92,6 @@ public:
         c_m = Eigen::VectorXd::Zero(n);
         return c_m;
     }
-
-    virtual
-    Eigen::VectorXd Psi_z(){
-        return Eigen::VectorXd::Zero(lmax);
-    }
-    
-    virtual double get_z(){
-        return 0.0;
-    }
-
-    // Test!
-    virtual
-    Eigen::VectorXd& dTdq();
-
         
     /** Set the internal state of the system
      * @param[in] new_q coordinates.
@@ -139,7 +126,6 @@ public:
 protected:
 
     // Selector for Psi and z
-    //Eigen::MatrixXd S;
     std::unique_ptr<Selector> selector;
     
 

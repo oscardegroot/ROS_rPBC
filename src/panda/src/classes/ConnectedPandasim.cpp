@@ -2,12 +2,9 @@
 #include <controller_interface/controller_base.h>
 #include <pluginlib/class_list_macros.h>
 
-/** @todo I probably need to do the exporting etc. here too. */
 namespace panda{
 
-
 ConnectedPandasim::ConnectedPandasim()
- //   	:System(7, 7, 3, "connected_pandasim")
 {
 	logMsg("Connected Pandasim", "Initialising...", 2);
     
@@ -21,16 +18,11 @@ ConnectedPandasim::ConnectedPandasim()
                     to_string(i+1) + "_controller/command", 100);
 	}
 	
-    sensor_sub = nh.subscribe("/robot1/joint_states", 100, &ConnectedPandasim::readStateCallback, this);
-    dtdq = Eigen::VectorXd::Zero(n);
-    
+    sensor_sub = nh.subscribe("/robot1/joint_states", 100, &ConnectedPandasim::readStateCallback, this);    
 }
 
 bool ConnectedPandasim::sendInput(const Eigen::VectorXd& tau)
-{
-    
-    //logTmp("Tau", tau);
-    
+{    
     /* Set 0 input */
 	for (size_t i = 0; i < 7; ++i) {
 		joint_handles_[i].setCommand(0.0);
@@ -47,10 +39,11 @@ bool ConnectedPandasim::sendInput(const Eigen::VectorXd& tau)
 
 void ConnectedPandasim::retrieveMatrices()
 {
+    // Compute matrices with the retrieved states only, otherwise keep them as zero
     if(!received_first_state){
-        logTmp("No state yet!");
         return;
     }
+    
     if(initial_matrices)
     {
         m_previous = m_m;
@@ -78,16 +71,11 @@ void ConnectedPandasim::retrieveMatrices()
     
     
     std::array<double, 3> zeros_3 = {0.0, 0.0, 0.0};
-    /*This really doesnt make sense!*/
-//    zeros_3[0] = 1.0;
-//    zeros_3[4] = 1.0;
-//    zeros_3[8] = 1.0;
-    // Get the Jacobian of the EE
+
     // Het lijkt erop dat deze niet klopt in de franka library, ze roepen gewoon *(robot_state) aan ipv mijn argumentjes.
 	std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(franka::Frame::kEndEffector, q_array, identity_16, identity_16);
 	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
 	psi = selectPsi(jacobian.transpose());
-    //logTmp(psi);
     
 	// Get the mass matrix
     std::array<double, 9> zeros = {};
@@ -97,7 +85,6 @@ void ConnectedPandasim::retrieveMatrices()
     // Get the coriolis vector
 	std::array<double, 7> coriolis_array = model_handle_->getCoriolis(q_array, dq_array, zeros, 0.0, zeros_3);
 	c_m = helpers::arrayToVector<7>(coriolis_array);
-    //logTmp(m_m);
     
     // Set initial matrices for the first loop
     if(!initial_matrices){
@@ -106,9 +93,7 @@ void ConnectedPandasim::retrieveMatrices()
         initial_matrices = true;
         state_previous = state; // So that the first point is 0.0
 
-    }
-    //logTmp("Mass: ", m);
-    
+    }    
     //Get the gravity vector
     //dvdq = helpers::arrayToVector<7>(model_handle_->getGravity(q_array, 0.0, zeros_3)); Should be right
     
@@ -119,52 +104,6 @@ void ConnectedPandasim::retrieveMatrices()
     psi_updated = true;
     m_updated = true;
     dvdq_updated = true;
-}
-
-Eigen::VectorXd ConnectedPandasim::Psi_z(){
-    /* Convert q to an array*/
-    std::array<double, 7> q_array;
-    for(int i = 0; i < 7; i++){
-        q_array[i] = state.q(i);
-    }
-        /* Clean this up ofc */
-    std::array<double, 16> identity_16 = {};
-    identity_16[0] = 1.0;
-    identity_16[5] = 1.0;
-    identity_16[10] = 1.0;
-    identity_16[15] = 1.0;
-    std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(franka::Frame::kEndEffector, q_array, identity_16, identity_16);
-	Eigen::Map<const Eigen::Matrix<double, 6, 7> > jacobian(jacobian_array.data());
-	return selectPsi(jacobian.transpose());
-    //return jacobian.transpose().block(0, 2, 7, 1);
-}
-
-double ConnectedPandasim::get_z(){
-    return new_z(2);
-}
-
-/* Not sure if it works, doesnt seem necessary for convergence */
-Eigen::VectorXd& ConnectedPandasim::dTdq(){
-    
-    double dH = 0.5*((double)(state.dq.transpose() * M() * state.dq) - (double)(state_previous.dq.transpose() * m_previous * state_previous.dq));
-
-    Eigen::VectorXd dtdq_input(n);
-    for(size_t i = 0; i < n; i++){
-
-        double div = state.dq(i);//(state.q(i) - state_previous.q(i));
-        
-        /* Prevent high torques - clearly not legitimate */
-        if(div > 1e-2){
-            dtdq_input[i] = dH/div;//*(1.0/((double)(cmm->agent->getSamplingRate())));
-        }else{
-            dtdq_input[i] = 0.0;
-        }
-        
-    }
-    
-    helpers::lowpassFilter(dtdq, dtdq_input, 0.95);
-    
-    return dtdq;
 }
 
 Eigen::VectorXd& ConnectedPandasim::dVdq(){

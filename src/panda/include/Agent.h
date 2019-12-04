@@ -97,18 +97,3 @@ private:
     std::string node_name; // will be set to the nodename
 
 };
-
-
-    
-    // Implement printing
-//    inline std::ostream& operator<<(std::ostream& str, Agent const& v) { 
-//        str << "Agent ["<< v.node_name << "] ID: " << v.ID << ", type: " << v.type_name << std::endl;
-//        return str;
-//    }
-//    inline string to_string(Agent const& v) const{
-//        return "Agent [" + v.node_name + "] ID: " + to_string(v.ID) + ", type: " + v.type_name;
-//    }
-
-//    void print(){
-//        std::cout << "Agent: " << name << " (" << type << ") - ID: " << ID << ", Rate: " << sampling_rate <<".\n";
-//    }

@@ -47,7 +47,7 @@ void Formation::connectionsFromPositions(const std::vector<Eigen::VectorXd>& pos
 
 }
 
-
+// Circular formation with radius and phase
 CircleFormation::CircleFormation(){
     
     if(l < 2){
@@ -75,6 +75,7 @@ CircleFormation::CircleFormation(){
     logMsg("Formation", "Circular formation initialised with radius " + std::to_string(radius)  + ".", 2);
 }
 
+// Consensus
 Consensus::Consensus()
 {
     std::vector<Eigen::VectorXd> positions(N);
@@ -88,6 +89,7 @@ Consensus::Consensus()
     logMsg("Formation", "Consensus formation initialised.", 2);
 }
 
+// Formation in line with the given spacing and relative angle
 LineFormation::LineFormation()
 {
     double angle, spacing;
@@ -110,6 +112,7 @@ LineFormation::LineFormation()
     logMsg("Goals", "Goal is set to line with spacing " + std::to_string(spacing)  + ".", 2);
 }
 
+// Formation from specified array
 ManualFormation::ManualFormation(){
     
     std::vector<Eigen::VectorXd> positions(N);

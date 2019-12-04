@@ -2,7 +2,8 @@
 
 // Start servers
 ElisaStation::ElisaStation(){
-        
+    PROFILE_SCOPE("ElisaStation init");
+
     elisa3_register = nh.advertiseService("/registerElisa3", &ElisaStation::registerElisa3, this);
     elisa3_color = nh.advertiseService("/colorElisa3", &ElisaStation::colorElisa3, this);
     vision_sub = nh.subscribe<panda::Readout>("Camera/Elisa3", 20, &ElisaStation::visionCallback, this);
@@ -12,6 +13,8 @@ ElisaStation::ElisaStation(){
 /* Start communication and calibrate internal odometry */
 void ElisaStation::starting()
 {
+    PROFILE_FUNCTION();
+
     logMsg("Elisa Station", "Starting with " + std::to_string(elisa3_addresses.size()) +
     " Elisa3 robots", 2);
 
@@ -25,7 +28,7 @@ void ElisaStation::starting()
 /* Read the sensors and send them to the robots */
 void ElisaStation::update()
 {
-    
+    PROFILE_FUNCTION();
     /** @odometry */
     for(int i = 0; i < elisa3_addresses.size(); i++){
         
@@ -38,6 +41,8 @@ void ElisaStation::update()
 /* Stop the robots and the communication */
 void ElisaStation::stopping()
 {
+    PROFILE_FUNCTION();
+
     logMsg("Elisa3 Station", "Stopping Elisa3 Movement.", 2);
     
     for(int i = 0; i < elisa3_addresses.size(); i++){
@@ -58,14 +63,10 @@ void ElisaStation::stopping()
 /* Register an Elisa3 robot. */
 bool ElisaStation::registerElisa3(panda::registerElisa3::Request &req, panda::registerElisa3::Response &res){
 
-    // Lock to prevent pushing back misordered entries
-//    std::mutex mtx;
-//    mtx.lock();
-    
+    PROFILE_FUNCTION();
+
     elisa3_entries.emplace_back(req.address);
     elisa3_addresses.push_back(req.address);
-
-//    mtx.unlock();
     
     logMsg("Elisa Station", "Succesfully added a new Elisa3 with address " + std::to_string(req.address) + "!", 2);
 
@@ -119,6 +120,7 @@ void ElisaStation::setColor(int address, int r, int g, int b, double intensity){
  */
 void ElisaStation::visionCallback(const panda::Readout::ConstPtr& msg)
 {
+    PROFILE_FUNCTION();
     bool marker_found = false;
     
     // Figure out what the address of the Elisa is based on the marker ID

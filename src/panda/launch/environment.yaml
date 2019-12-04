@@ -20,11 +20,11 @@ NF:
     #     - 0.0
 
     # y axis bound on the workspace
-    obstacle_0:
-      type: lower_bound_x
-      value: -0.66 #-0.56
+    # obstacle_0:
+    #   type: lower_bound_x
+    #   value: -0.66 #-0.56
 
-    # y axis bound on the workspace
-    obstacle_1:
-      type: lower_bound_y
-      value: -0.66 #-0.56
+    # # y axis bound on the workspace
+    # obstacle_1:
+    #   type: lower_bound_y
+    #   value: -0.66 #-0.56

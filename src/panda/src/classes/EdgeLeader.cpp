@@ -1,15 +1,10 @@
-//
-// Created by omdegroot on 15-08-19.
-//
-
-/// Stripped down Edge derived class for leader implementation
+// Stripped down Edge derived class for leader implementation
 
 #include "EdgeLeader.h"
 
 EdgeLeader::EdgeLeader(Agent& agent, int j, Eigen::MatrixXd gain_set, int l_set, Eigen::VectorXd r_star_set)
     : Edge(agent, -1, gain_set, l_set, r_star_set, 1){
         
-        //potential = std::make_unique<NavigationFunction>(agent, l, r_star);
 }
 
 /* Main public function that samples this edge */

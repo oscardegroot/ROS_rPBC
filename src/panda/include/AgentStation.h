@@ -32,15 +32,6 @@ class AgentStation : public Station{
 public:
 	AgentStation();
     
-//    AgentStation(AgentStation& s) = delete;
-    
-    // Can be used from anywhere!
-//    static AgentStation& getAgentStation()
-//    {
-//        static AgentStation instance; // Guaranteed to be destroyed, instantiated on first use
-//        return instance;
-//    }
-    
     void starting() override;
     void update() override;
     void enableStation() override;

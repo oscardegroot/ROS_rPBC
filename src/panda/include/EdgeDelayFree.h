@@ -1,14 +1,14 @@
-/*
-File: Edge.h
-
-Define a connection with another agent that uses the ST and WVM to passify communication
-*/
-
 #pragma once
 
 #include "Edge.h"
 #include "Helpers.h"
 
+/**
+ * @class EdgeDelayFree
+ * @author Oscar
+ * @file EdgeDelayFree.h
+ * @brief Debug class that implements communication with ST without advanced potentials
+ */
 class EdgeDelayFree : public Edge{
 public:
 	// Constructor and destructor

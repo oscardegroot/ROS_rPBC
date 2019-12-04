@@ -1,9 +1,9 @@
 ID: 1
-address: 3658 #3658 = 10, 3533 = 6
-marker_id: 10
+address: 3819 #3658 = 10, 3533 = 6
+marker_id: 7
 color: 
   type: cyan
-  intensity: 0.0
+  intensity: 0.3
 
 # NF:
 #   beta:

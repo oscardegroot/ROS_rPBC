@@ -3,7 +3,7 @@
 *
 * @brief Node to introduce artificial delays in the network
 * 
-* Code is of worse quality since it is only research related
+* (Code is of worse quality due to timing constraints)
 */
 
 #include "ros/ros.h"
@@ -95,13 +95,13 @@ int main(int argc, char **argv){
         helpers::safelyRetrieve(nh, "/network/delay/max_delay", max_delay);
         helpers::safelyRetrieve(nh, "/network/delay/change", max_step_delay);
         
-        // Initialise randoml
+        // Initialise randomly
         delay_ij = min_delay + (max_delay - min_delay)*((double)rand() / RAND_MAX);
         delay_ji = min_delay + (max_delay - min_delay)*((double)rand() / RAND_MAX);
 
     }else{
-        helpers::safelyRetrieve(nh, "/network/delay/value_plus", delay_ij); // Initial when variable
-        helpers::safelyRetrieve(nh, "/network/delay/value_minus", delay_ji); // Initial when variable
+        helpers::safelyRetrieve(nh, "/network/delay/min_delay", delay_ij);
+        helpers::safelyRetrieve(nh, "/network/delay/max_delay", delay_ji);
     }
     
     if(helpers::ifParameter(nh, "/network/packet_loss/enabled")){

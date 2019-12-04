@@ -1,4 +1,5 @@
 #include "ros/ros.h"
+#include "CustomLog.h"
 #include <thread>
 #include "Station.h"
 #include "ElisaStation.h"
@@ -27,6 +28,8 @@ int main(int argc, char **argv){
 	ros::init(argc, argv, "Server");
     ros::NodeHandle nh;
     
+    Instrumentor::Get().BeginSession("Server", "server");
+    
 //    /* The elisa station */
     if(helpers::ifParameter(nh, "/elisa_station")){
         
@@ -48,33 +51,37 @@ int main(int argc, char **argv){
         switch(overall_state){
             
             // If we are registering
-            case REGISTERING:                
-                
+            case REGISTERING:  
+            {              
+                PROFILE_SCOPE("Registering");
                 // Only continue if all stations finished registering
                 if(finishedRegistering(stations)){
                     
                     overall_state = STARTING;
                     logMsg("Server", "Overall state advanced to: STARTING", 2);
                 }     
-        
+            }
                 break; 
                 
             // If we are starting
             case STARTING:
-                
-                // Start all stations
-                for(auto& station : stations){
-                    station->starting();
-                }
-                
-                // Proceed with the state
-                overall_state = WAIT_FOR_RESPONSE;
-                logMsg("Server", "Overall state advanced to: WAIT_FOR_RESPONSE", 2);
-                
-                break;
-                
+                {
+                    PROFILE_SCOPE("Starting");
+                    // Start all stations
+                    for(auto& station : stations){
+                        station->starting();
+                    }
+                    
+                    // Proceed with the state
+                    overall_state = WAIT_FOR_RESPONSE;
+                    logMsg("Server", "Overall state advanced to: WAIT_FOR_RESPONSE", 2);
+                }  
+                    break;
+   
             // If we are waiting for responses
             case WAIT_FOR_RESPONSE:
+            {
+                PROFILE_SCOPE("Waiting for responses");
 
                 // If all stations received responses
                 if(responsesReceived(stations)){
@@ -83,12 +90,14 @@ int main(int argc, char **argv){
                     overall_state = ENABLE_STATION;
                     logMsg("Server", "Overall state advanced to: ENABLE_STATION", 2);
                 }
-                
+            }   
                 break;  
  
             // If we are ready to enable the station
             case ENABLE_STATION:
-            
+            {
+                PROFILE_SCOPE("Enabling Stations");
+
                 // Enable all stations
                 for(auto& station : stations){
                     station->enableStation();
@@ -97,12 +106,14 @@ int main(int argc, char **argv){
                 // Proceed to running
                 overall_state = RUNNING_STATION;
                 logMsg("Server", "Overall state advanced to: RUNNING_STATION", 2);
-                
+            }
                 break;
                 
             // While we are running the stations
             case RUNNING_STATION:
-            
+            {
+                PROFILE_SCOPE("Running Stations");
+
                 // Update all stations
                 for(auto& station : stations){
                     station->update();
@@ -110,6 +121,7 @@ int main(int argc, char **argv){
                 
                 // Run on the given sampling frequency
                 loop_rate.sleep();
+            }
                 break;
                 
         }
@@ -120,8 +132,13 @@ int main(int argc, char **argv){
     
     // If the program is stopped, stop all stations
     for(auto& station : stations){
+        PROFILE_SCOPE("Stopping Stations");
+
         station->stopping();
     }
+
+    Instrumentor::Get().EndSession();
+
 
 	return 0;
 }

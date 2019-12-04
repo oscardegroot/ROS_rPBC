@@ -38,8 +38,6 @@
 #include "Exceptions.h"
 #include "Helpers.h"
 
-//using namespace std;
-/** @IMPORTANT class needs rewriting before run. Implement reference based model matrices */
 namespace panda {
 
 
@@ -61,7 +59,6 @@ namespace panda {
         Eigen::MatrixXd& dPsi() override;
         Eigen::MatrixXd& dMinv() override;
         Eigen::VectorXd& C() override;
-        //Eigen::VectorXd c_m;
         
         /** @brief functions called by ROS Control */
         bool init (hardware_interface::RobotHW* hw, ros::NodeHandle& nh) override;  // mandatory
@@ -122,7 +119,6 @@ namespace panda {
         double camera_bound_x, camera_bound_z;
         double velocity_element_bound, velocity_norm_bound;
         
-
         double initial_pause;
 
         // Filter coefficient (LPF)

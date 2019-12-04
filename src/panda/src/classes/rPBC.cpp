@@ -12,6 +12,7 @@ Implements an rPBC controller for the panda robotic arm.
 rPBC::rPBC(Agent& agent) 
 	: Controller(agent)
 {
+    PROFILE_SCOPE("rPBC Init");
 	logMsg("rPBC", "Initiating.. ", 2);
     null_psi_updated = false;
     pinv_psi_updated = false;
@@ -29,7 +30,7 @@ rPBC::rPBC(Agent& agent)
     gamma *= eta;
     eta_startup = 100.0;
 
-    helpers::safelyRetrieve(nh, "/network/delay/max_delay", max_delay);
+    helpers::safelyRetrieve(nh, "/network/delay/max_delay", max_delay, 0.0);
 
 
 	agent.retrieveParameter("controller/gravity_compensation/enabled", gravity_enabled, false);
@@ -52,13 +53,14 @@ rPBC::rPBC(Agent& agent)
         limits_avg = 0.5 * (limits_min + limits_max);
     }
 
-    /* Misses almost all parameters... classic */
     benchmarker = Benchmarker("rPBC", "rPBC Control");
 	logMsg("rPBC", "Done!", 2);
 }
 
 Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_c){
 	
+    PROFILE_FUNCTION();
+    
     // In the initial run, set initial matrices
     if(initial_run){
         timer = helpers::SimpleTimer(3.0*max_delay);
@@ -112,25 +114,26 @@ Eigen::VectorXd rPBC::computeControl(System& system, const Eigen::VectorXd& tau_
     Eigen::VectorXd tau_hat = (1.0/cur_eta) * tau_c - Kz*system.state.dq;
     tau += system.M()*pinvPsi(system)*tau_hat;
     
+    // If no local freedom, these computations are void...
     if(has_local_freedom){
         Eigen::MatrixXd Kv_mat = nullPsi(system) * (-system.M().inverse()*system.dM() + kappa*Eigen::MatrixXd::Identity(system.n, system.n)) + 
                                 dnullPsi(system);
         tau -= system.M()*helpers::pseudoInverse(nullPsi(system))*(Kv_mat*system.state.dq
                                                             + helpers::pseudoInverse(nullPsi(system)).transpose()*dVsdq(system));
     }
-    //logTmp("tau: ", tau);
+
     null_psi_updated = false;
     pinv_psi_updated = false;
     
     benchmarker.end();
-    //publish("tau", tau);
 
 	return tau;
 }
 
 Eigen::VectorXd rPBC::getOutput(System& system){
 
-	// r = lambda*z + zdot
+    PROFILE_FUNCTION();
+
 	Eigen::VectorXd r(l);
 	r = lambda*system.state.z + system.Psi().transpose()*system.state.dq;
     
@@ -142,6 +145,8 @@ Eigen::VectorXd rPBC::getOutput(System& system){
 
 void rPBC::publishAll(System& system){
     
+    PROFILE_FUNCTION();
+    
     // Publish it for debugging
     publish("z", system.state.z);
     publish("z_dot", system.Psi().transpose()*system.state.dq);
@@ -151,63 +156,25 @@ void rPBC::publishAll(System& system){
 
 // Define the local gradient
 Eigen::VectorXd rPBC::dVsdq(System& system){
-
+    PROFILE_FUNCTION();
 	Eigen::VectorXd dVsdq = Eigen::VectorXd::Zero(system.n);
 
 	if(local_enabled){
 		dVsdq -= Vs_gains.cwiseProduct(theta_star - system.state.q);
 	}
 
-    // Simple but works always...
 	if(limit_avoidance_enabled){
 
 		dVsdq -= limit_avoidance_gains.cwiseProduct(limits_avg - system.state.q);
 	}
-
-
-// Controls towards the limit_buffer point and keeps it there (unintended behaviour)
-    // Activation based
-//	if(limit_avoidance_enabled){
-//        double limit_buffer = 0.5;
-//        
-//        for(size_t i = 0; i < system.n; i++){
-//                      
-//            double link_dif = limits_max(i) - limit_buffer - system.state.q(i);
-//            if(link_dif < 0.0){
-//                //logTmp("Limits are close!");
-//                //logTmp(limit_avoidance_gains(i) * (link_dif));
-//                dVsdq(i) -= limit_avoidance_gains(i) * (link_dif);
-//            }else{
-//
-//                // if the state is smaller than the minimum plus the buffer (link_dif > 0)
-//                link_dif = (limits_min(i) + limit_buffer) - system.state.q(i);
-//                if(link_dif > 0.0){
-//                    logTmp("Limits are close! (min)");
-//
-//                    logTmp(limit_avoidance_gains(i) * (link_dif));
-//                    
-//                    // Then control it closer (i.e., -link_dif?)
-//                    dVsdq(i) += limit_avoidance_gains(i) * (link_dif);
-//                }
-//            }
-//        }
-//		//dVsdq -= limit_avoidance_gains.cwiseProduct(limits_avg - system.state.q);
-//	}
-// Does not seem to work (maybe purely because it conflicts with local coordinates?    
-//    if(true){
-//        if(system.get_z() > 0.6){
-//            dVsdq -= -5*(0.5 - system.get_z())*system.Psi_z();
-//        }
-//        logTmp(system.get_z());
-//        logTmp("Input: ", (0.5 - system.get_z())*system.Psi_z());
-//    }
-
-	// Return a linear gradient w.r.t. local coordinates
+    
 	return dVsdq;
 }
 
 Eigen::MatrixXd rPBC::Kv(System& system)
 {
+    PROFILE_FUNCTION();
+
     /** @note Minv_dot * m cancels! */
     Eigen::MatrixXd result = kappa*Eigen::MatrixXd::Identity(system.n, system.n);
     if(true && has_local_freedom){
@@ -216,12 +183,12 @@ Eigen::MatrixXd rPBC::Kv(System& system)
     
     return result;
 }
-//helpers::pseudoInverse(nullPsi(system)) * dnullPsi(system) + -> Deze cancelt cooperatief
-// 
+
 Eigen::MatrixXd& rPBC::pinvPsi(System& system)
 { 
+
     if(!pinv_psi_updated){
-        
+        PROFILE_FUNCTION();
         pinv_psi = helpers::pseudoInverse(system.Psi().transpose());
         pinv_psi_updated = true;
     }
@@ -231,8 +198,10 @@ Eigen::MatrixXd& rPBC::pinvPsi(System& system)
 
 Eigen::MatrixXd& rPBC::nullPsi(System& system)
 { 
+
     if(!null_psi_updated){
-        
+        PROFILE_FUNCTION();
+
         Eigen::FullPivLU<Eigen::MatrixXd> psi_lu(system.Psi().transpose());
         null_psi = psi_lu.kernel().transpose();
         null_psi_updated = true;
@@ -243,7 +212,10 @@ Eigen::MatrixXd& rPBC::nullPsi(System& system)
 
 Eigen::MatrixXd& rPBC::dnullPsi(System& system)
 {
+
     if(!dnull_psi_updated){
+        PROFILE_FUNCTION();
+
         Eigen::MatrixXd dnull_psi_input = system.approximateDerivative(nullPsi(system), previous_null_psi);
         helpers::lowpassFilter(dnull_psi, dnull_psi_input, 0.95);
         dnull_psi_updated = true;
@@ -252,46 +224,3 @@ Eigen::MatrixXd& rPBC::dnullPsi(System& system)
 
     return dnull_psi;
 }
-Eigen::MatrixXd& rPBC::nullPinvPsi(System& system)
-{
-    logTmp("Warning not implemented function nullPinvPsi!");
-    return null_psi;
-}
-
-
-    /* We can simplify two terms with dMinv() * M. (There are three: in Kz, in Kv local and in Kv coop, only Kv local stays).*/
-    /*Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose();// + 
-                        //system.Psi().transpose()*system.dMinv()*system.M(); // using inv(M)' = -M_dot * Minv * Mdot
-
-    Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + 1.0*system.Psi().transpose()*system.state.dq;// + system.Psi().transpose()*Kv(system)*system.state.dq;
-    
-    // Use the rPBC control law to control the agent
-	tau += system.M()*(pinvPsi(system)*tau_hat - (system.dM() + 1.0*Eigen::MatrixXd::Identity(system.n, system.n))*system.state.dq);
-
-    // Local objectives
-    tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);*/
-    /** @oldmethod */
-    
-    /**@todo add dTdq() */
-    /* We can simplify two terms with dMinv() * M. (There are three: in Kz, in Kv local and in Kv coop, only Kv local stays).*/
-    //Eigen::MatrixXd Kz = (lambda + gamma)*system.Psi().transpose() + system.dPsi().transpose();// + 
-                        //system.Psi().transpose()*system.dMinv()*system.M(); // using inv(M)' = -M_dot * Minv * Mdot
-
-    /** @newermethod//Eigen::VectorXd tau_hat = tau_c - Kz*system.state.dq + system.Psi().transpose()*Kv(system)*system.state.dq;// + system.Psi().transpose()*Kv(system)*system.state.dq;
-    Eigen::VectorXd tau_hat = tau_c - ((lambda+gamma-kappa)*system.Psi().transpose() + system.dPsi().transpose())*system.state.dq;
-    
-    // Use the rPBC control law to control the agent // (system.M()*system.dM() should be just system.dM()... But this works better?
-	tau += system.M()*pinvPsi(system)*tau_hat - (system.dM() + system.M()*Kv(system))*system.state.dq;
-
-    //local objectives
-    if(has_local_freedom){
-        //tau -= system.M()*(helpers::pseudoInverse(nullPsi(system)) * helpers::pseudoInverse(nullPsi(system)).transpose()) * dVsdq(system); // seems to work
-        // Try the norm thing again, also nullpsi may have different singularities than psi?
-        tau -= nullPsi(system).transpose()*nullPsi(system)*dVsdq(system);
-        dnull_psi_updated = false;
-        null_pinv_psi_updated = false;
-        previous_null_psi = nullPsi(system);
-    }*/
-    
-    // Identity mass idea... Fix nicely if this works!
-    //double eta = 0.01;

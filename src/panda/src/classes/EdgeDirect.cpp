@@ -48,7 +48,3 @@ Eigen::VectorXd EdgeDirect::calculateWaves(const Eigen::VectorXd& s_in,	const Ei
 
     return r_i;
 }
-
-//Eigen::VectorXd EdgeDirect::sample(const Eigen::VectorXd& r_i)
-//{
-//}

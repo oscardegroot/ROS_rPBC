@@ -60,8 +60,7 @@
     <rosparam command="load" file="$(arg global_path)/environment.yaml"/>
   </node>
   <!-- Plot cooperative coordinates -->
-  <!-- <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] agents/1/z/data[0] agents/1/z/data[1] agents/2/z/data[0] agents/2/z/data[1]"/> -->
-  <node name="delay_plotjes" pkg="rqt_plot" type="rqt_plot" args="/control_energy_01 /control_energy_10"/>
+  <node name="plotjes" pkg="rqt_plot" type="rqt_plot" args="agents/0/z/data[0] agents/0/z/data[1] agents/0/z/data[2] agents/1/z/data[0] agents/1/z/data[1] agents/2/z/data[0] agents/2/z/data[1]"/>
 
   <!-- args="delays_01 delays_10 delays_12 delays_21 delays_02 delays_20" -->
   <node pkg="rosbag" type="record" name="rosbag_agents" output="screen"

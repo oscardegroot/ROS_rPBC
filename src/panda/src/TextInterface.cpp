@@ -1,9 +1,5 @@
-/*
-File: Beacon_Node.cpp
-
-A beacon is a system that only contains a CMM such that it may influence convergence of other systems without having actual dynamics.
-Thanks to the CMM the communication and convergence properties remain stable.
-
+/**
+* @brief Keyboard interface for changing the goal in single-agent demonstrations
 */
 
 #include "ros/ros.h"
@@ -42,7 +38,7 @@ int main(int argc, char **argv){
             logMsg("Interface", "Incorrect goal given! Input is ignored. (goal = " + std::to_string(goal_select) + ")", 1);
             continue;
         }
-        //std::cin >> goal_select;
+
         publisher.publish(goal_select);
 
         std::cout << "\n";

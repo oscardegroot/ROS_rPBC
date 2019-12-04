@@ -15,10 +15,10 @@ A standard IDA-PBC controller, implements the controller interface defined in Co
 class IDAPBC : public Controller{
 
 public:
-// Agent should be given here
+
 	IDAPBC(Agent& agent);
 
-// Model here...
+    // Implementation of control computations
 	Eigen::VectorXd computeControl(System& system, const Eigen::VectorXd& tau_c) override;
 
 	// Get the agent output, possibly modified
@@ -29,19 +29,14 @@ public:
 	Eigen::VectorXd dVsdq(System& system) override;
     void publishAll(System& system) override;
 
-	// Define damping
-	//Eigen::MatrixXd Kv(System& system) override;
-
 private:
 
     Benchmarker benchmark;
+    
     double eta, eta_startup, max_delay;
     bool initial_run = false;
+    
     helpers::SimpleTimer timer;
-    //Eigen::MatrixXd rightPseudoInverse(const Eigen::MatrixXd& A) const;
-    //Eigen::MatrixXd pinv_psi;
-
-
 };
 
 

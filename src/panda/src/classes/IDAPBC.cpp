@@ -20,9 +20,7 @@ IDAPBC::IDAPBC(Agent& agent)
 
 	agent.retrieveParameter("controller/kq", kq, 1.0);
 	agent.retrieveParameter("controller/kz", kz, 1.0);
-//    agent.retrieveParameter("eta", eta, 1.0);
-//    helpers::safelyRetrieve(nh, "/network/delay/max_delay", max_delay);
-//    eta_startup = 100.0;
+
 	agent.retrieveParameter("controller/gravity_compensation/enabled", gravity_enabled, false);
 
 	agent.retrieveParameter("controller/local_potential/enabled", local_enabled, false);
@@ -53,25 +51,11 @@ IDAPBC::IDAPBC(Agent& agent)
 }
 
 Eigen::VectorXd IDAPBC::computeControl(System& system, const Eigen::VectorXd& tau_c){
-    //ScopeTimer timer("IDAPBC Control"); // ~25 us!
-
-    // In the initial run, set initial matrices
-//    if(!initial_run){
-//        timer = helpers::SimpleTimer(3.0*max_delay);
-//        initial_run = true;
-//    }
 
     benchmark.start();
+    
 	// Initialise the control input
 	Eigen::VectorXd tau = Eigen::VectorXd::Zero(system.m);
-    
-    // Quick fix: set eta to high value while t < T
-//    double cur_eta = eta;
-//    if(!timer.finished()){
-//
-//        //cur_eta = eta_startup;
-//        return tau;
-//    }
     
     if(!system.isEnabled()){
         return tau;
@@ -89,11 +73,12 @@ Eigen::VectorXd IDAPBC::computeControl(System& system, const Eigen::VectorXd& ta
     // Add the cooperative input
 	Eigen::MatrixXd pinv_psi;
 	pinv_psi = helpers::pseudoInverse(system.Psi().transpose());
-    //(1.0/cur_eta)*
+
     // Use IDA-PBC for fully actuated agents to find an input
 	tau += pinv_psi * (tau_c - kz*system.Psi().transpose()*system.state.dq);
     
     benchmark.end();
+    
     // Return the input
 	return tau;
 }

@@ -40,6 +40,9 @@ int main(int argc, char **argv){
 	ros::Rate loop_rate(1000);
 
 	while(ros::ok()){
+        
+        PROFILE_SCOPE("Agent Loop");
+        
         // Sample the network
         Eigen::VectorXd tau_network = system->cmm->sample(controller->getOutput(*system));
 

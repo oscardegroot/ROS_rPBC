@@ -58,7 +58,7 @@ ObjectObstacle::ObjectObstacle(Agent& agent, int count, int l_set)
 }
 
 ObjectObstacle::ObjectObstacle(Agent& agent, const Eigen::VectorXd& location_set, double radius, int l_set)
-    : Obstacle(l_set)//, location(location_set)
+    : Obstacle(l_set)
 {
     /** @note Does not take into account the coordinate order, hence does not work in general!!! */
     location = Eigen::VectorXd::Zero(l);

@@ -1,12 +1,12 @@
 
 # Network parameters
 network:
-  enabled: true # Enables artificial effects
+  enabled: false # Enables artificial effects
   delay: 
-    constant: false # Enables delay
+    constant: true # Enables delay
     change: 0.5 # (0 - 1) (* sampling period)
     min_delay: 0.2 #0.2
     max_delay: 0.4 #0.6 
   packet_loss:
-    enabled: true # Enables packet loss
-    p: 1.0 # 5 percent!
+    enabled: false # Enables packet loss
+    p: 0.05 # 5 percent!

@@ -1,13 +1,13 @@
-/*
-File: Edge.h
-
-Define a connection with another agent that uses the ST and WVM to passify communication
-*/
-
 #pragma once
 
 #include "Edge.h"
 
+/**
+ * @class EdgeDirect
+ * @author Oscar
+ * @file EdgeDirect.h
+ * @brief Class with direct communication, without the ST
+ */
 class EdgeDirect : public Edge{
 public:
 	// Constructor and destructor
@@ -17,7 +17,6 @@ public:
 
     Eigen::VectorXd calculateControls(const Eigen::VectorXd& r_js, const Eigen::VectorXd& r_i) override;
 	Eigen::VectorXd calculateWaves(const Eigen::VectorXd& s_in,	const Eigen::VectorXd& r_i) override;
-//	Eigen::VectorXd sample(const Eigen::VectorXd& r_i) override;
 
 
 private:
